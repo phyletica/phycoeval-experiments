@@ -8,7 +8,7 @@ submission_executable="${bin_dir}/psub"
 array_spawner_executable="${bin_dir}/spawn_job_array"
 extra_args=()
 restrict_nodes=''
-wtime='00:30:00'
+wtime='02:30:00'
 expected_nlines=1502
 max_njobs=400
 

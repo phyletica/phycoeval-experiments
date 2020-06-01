@@ -22,6 +22,7 @@ git clone https://github.com/phyletica/ecoevolity.git
     ./build.sh --prefix "$project_dir"
     echo "    Commit $ecoevolity_commit of ecoevolity successfully built and installed"
 )
-echo "Ecoevolity was successfully installed locally"
+echo ""
+echo "Ecoevolity was successfully installed in './bin'"
 echo "You can now remove the ecoevolity directory using the command:"
 echo "    rm -rf ecoevolity"
