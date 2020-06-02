@@ -130,6 +130,6 @@ then
     echo qsub $qsub_flags "$1" -F "$f_args"
     qsub $qsub_flags "$1" -F "$f_args"
 else
-    echo "qsub $qsub_flags $@"
+    echo qsub $qsub_flags $@
     qsub $qsub_flags $@
 fi

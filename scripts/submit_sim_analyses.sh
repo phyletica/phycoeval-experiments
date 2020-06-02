@@ -8,9 +8,9 @@ submission_executable="${bin_dir}/psub"
 array_spawner_executable="${bin_dir}/spawn_job_array"
 extra_args=()
 restrict_nodes=''
-wtime='02:30:00'
+wtime='6:00:00'
 expected_nlines=1502
-max_njobs=400
+max_njobs=100
 
 usage () {
     echo ""
@@ -25,8 +25,8 @@ usage () {
     echo "  -t|--walltime    Max time limit for job."
     echo "                   Default: $wtime."
     echo "  -r|--restrict    Restrict job to lab nodes."
-    echo "  --nsub           Use 'nsub' submission script."
-    echo "                   Default is to use 'psub' script."
+    echo "  --nsub           Submit to queue for \"new\" cluster nodes."
+    echo "                   Default is to use general queue."
     echo "  -l|--nlines      Expected number of lines in each state log file"
     echo "                   output by phycoeval. Default: $expected_nlines."
     echo "  -m|--max-njobs   Maximum number of jobs to be run at a time."
@@ -61,7 +61,8 @@ do
             ;;
         --nsub)
             shift
-            submission_executable="${bin_dir}/nsub"
+            export myqueue="gen28"
+            export myreservation="jro0014_s28"
             ;;
         -l| --nlines)
             shift
@@ -74,9 +75,10 @@ do
             shift
             ;;
         *)
-            extra_args+=( "$1" )
+            extra_args+=("$1")
+            shift
+            ;;
     esac
-    shift
 done
 
 if [ ! -x "$submission_executable" ]
