@@ -36,5 +36,5 @@ mutation_parameters:
         value: 1.0
         estimate: false
 mcmc_settings:
-    chain_length: 30000
-    sample_frequency: 20
+    chain_length: 15000
+    sample_frequency: 10
