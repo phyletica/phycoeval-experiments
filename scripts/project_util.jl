@@ -44,6 +44,31 @@ SIM_STATE_LOG_PATTERN = Regex(join([
         raw"$"
        ]))
 
+SIM_TREE_LOG_PATTERN_STR = (
+        raw"run-(?<run_num>\d+)-" *
+        raw"(?<var_only>var-only-)?" *
+        raw"(?<config_prefix>\S*simphycoeval)" *
+        raw"-sim-(?<sim_num>\d+)" *
+        raw"-(?<config_name>\S+)" *
+        raw"-config-trees-run-(?P<dummy_run_num>\d+).nex"
+       )
+SIM_TREE_LOG_PATTERN = Regex(join([
+        raw"^",
+        SIM_TREE_LOG_PATTERN_STR,
+        raw"$"
+       ]))
+
+SIM_TRUE_TREE_FILE_PATTERN_STR = (
+        raw"(?<config_prefix>\S*simphycoeval)" *
+        raw"-sim-(?<sim_num>\d+)" *
+        raw"-true-tree.phy"
+       )
+SIM_TRUE_TREE_FILE_PATTERN = Regex(join([
+        raw"^",
+        SIM_TRUE_TREE_FILE_PATTERN_STR,
+        raw"$"
+       ]))
+
 BATCH_DIR_PATTERN_STR = raw"batch-(?<batch_num>\d+)"
 BATCH_DIR_PATTERN = Regex(
         raw"^" * BATCH_DIR_PATTERN_STR * raw"$")
