@@ -1,3 +1,4 @@
 [deps]
 ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
+DataDeps = "124859b0-ceae-595e-8997-d05f6a7a8dfe"
 YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
