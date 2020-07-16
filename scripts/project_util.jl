@@ -2,6 +2,9 @@
 
 module ProjectUtil
 
+using CSV
+using DataFrames
+
 # Project paths
 SCRIPT_DIR = Base.Filesystem.dirname(@__FILE__)
 PROJECT_DIR = Base.Filesystem.dirname(SCRIPT_DIR)
@@ -68,6 +71,8 @@ SIM_TRUE_TREE_FILE_PATTERN = Regex(join([
         SIM_TRUE_TREE_FILE_PATTERN_STR,
         raw"$"
        ]))
+
+RUNTIME_PATTERN = Regex(raw"^\s*Runtime:\s+(?<runtime>\d+)\s+seconds\.\s*$")
 
 BATCH_DIR_PATTERN_STR = raw"batch-(?<batch_num>\d+)"
 BATCH_DIR_PATTERN = Regex(
@@ -150,6 +155,26 @@ function batch_dir_iter(directory::AbstractString = Nothing
         directory = SIM_DIR
     end
     return file_path_iter(directory, BATCH_DIR_ENDING_PATTERN)
+end
+
+function get_data_frame(paths::Vector{String};
+                        skip::Int = 0)::DataFrame
+    return DataFrame(mapreduce(
+            x -> CSV.File(x, header = 1, skipto = skip + 2),
+            vcat,
+            paths))
+end
+
+function parse_runtime(path::String)::String
+    open(path, "r") do istream
+        for line in eachline(istream)
+            m = match(RUNTIME_PATTERN, chomp(line))
+            if ! isnothing(m)
+                return m[:runtime]
+            end
+        end
+        error("Could not find runtime in '$path'")
+    end
 end
 
 end # ProjectUtil module

@@ -1,5 +1,6 @@
 #! /usr/bin/env julia
 
+using Statistics
 using ArgParse
 using YAML
 using DataDeps
@@ -94,29 +95,6 @@ function get_sim_output_patterns(
     return sim_output_patterns
 end
 
-# true tree: simphycoeval-sim-00-true-tree.phy
-# true params: simphycoeval-sim-00-true-parameters.txt
-# tree logs:
-#   run-1-simphycoeval-sim-00-species-9-genomes-2-bifurcating-tree-random-config-trees-run-1.nex
-#   run-2-simphycoeval-sim-00-species-9-genomes-2-bifurcating-tree-random-config-trees-run-1.nex
-#   run-3-simphycoeval-sim-00-species-9-genomes-2-bifurcating-tree-random-config-trees-run-1.nex
-#   run-4-simphycoeval-sim-00-species-9-genomes-2-bifurcating-tree-random-config-trees-run-1.nex
-#   run-1-simphycoeval-sim-00-species-9-genomes-2-generalized-tree-random-config-trees-run-1.nex
-#   run-2-simphycoeval-sim-00-species-9-genomes-2-generalized-tree-random-config-trees-run-1.nex
-#   run-3-simphycoeval-sim-00-species-9-genomes-2-generalized-tree-random-config-trees-run-1.nex
-#   run-4-simphycoeval-sim-00-species-9-genomes-2-generalized-tree-random-config-trees-run-1.nex
-#   run-1-var-only-simphycoeval-sim-00-species-9-genomes-2-bifurcating-tree-random-config-trees-run-1.nex
-#   run-2-var-only-simphycoeval-sim-00-species-9-genomes-2-bifurcating-tree-random-config-trees-run-1.nex
-#   run-3-var-only-simphycoeval-sim-00-species-9-genomes-2-bifurcating-tree-random-config-trees-run-1.nex
-#   run-4-var-only-simphycoeval-sim-00-species-9-genomes-2-bifurcating-tree-random-config-trees-run-1.nex
-#   run-1-var-only-simphycoeval-sim-00-species-9-genomes-2-generalized-tree-random-config-trees-run-1.nex
-#   run-2-var-only-simphycoeval-sim-00-species-9-genomes-2-generalized-tree-random-config-trees-run-1.nex
-#   run-3-var-only-simphycoeval-sim-00-species-9-genomes-2-generalized-tree-random-config-trees-run-1.nex
-#   run-4-var-only-simphycoeval-sim-00-species-9-genomes-2-generalized-tree-random-config-trees-run-1.nex
-# state logs:
-#   same as trees, but "*-config-state-run-1.log"
-# stdout:
-#   same as trees, but "*-config.yml.out"
 function parse_sim_results(
         batch_dir::AbstractString,
         burnin::Int,
@@ -133,18 +111,20 @@ function parse_sim_results(
     # Get what output files to expect
     sim_output_patterns = get_sim_output_patterns(
             batch_dir)
-
     # Use true tree files to loop over sim replicates
     true_tree_file_iter = ProjectUtil.flat_file_path_iter(batch_dir,
             ProjectUtil.SIM_TRUE_TREE_FILE_PATTERN)
+    number_of_runs = 0
+    number_of_samples = 0
     for true_tree_path in true_tree_file_iter
         m = match(ProjectUtil.SIM_TRUE_TREE_FILE_PATTERN, true_tree_path)
         if isnothing(m)
-            throw(Exception("Bad true tree path '$true_tree_path'"))
+            error("Bad true tree path '$true_tree_path'")
         end
         sim_num = m[:sim_num]
         true_params_path = Base.Filesystem.joinpath(batch_dir,
                 "simphycoeval-sim-$sim_num-true-parameters.txt")
+        true_params = ProjectUtil.get_data_frame([true_params_path], skip = burnin)
         for sim_pattern in sim_output_patterns
             tree_log_wildcard = (
                     "run-?-$(sim_pattern.var_only)$(sim_pattern.prefix)" *
@@ -156,11 +136,43 @@ function parse_sim_results(
                     true_tree_path,
                     burnin,
                     min_split_freq)
-            sample_size = tree_summary["summary_of_tree_sources"]["total_number_of_trees_sampled"]
-            num_tree_logs = length(tree_summary["summary_of_tree_sources"]["sources"])
+            if number_of_runs == 0
+                number_of_runs = length(tree_summary["summary_of_tree_sources"]["sources"])
+            else
+                @assert number_of_runs == length(tree_summary["summary_of_tree_sources"]["sources"])
+            end
+            if number_of_samples == 0
+                number_of_samples = tree_summary["summary_of_tree_sources"]["total_number_of_trees_sampled"]
+            else
+                @assert number_of_samples == tree_summary["summary_of_tree_sources"]["total_number_of_trees_sampled"]
+            end
+            state_log_paths = [Base.Filesystem.joinpath(batch_dir,
+                    ("run-$i-$(sim_pattern.var_only)$(sim_pattern.prefix)" *
+                    "-sim-$sim_num-$(sim_pattern.config_name)" *
+                    "-config-state-run-1.log")
+                   ) for i in 1:number_of_runs]
+            state_df = ProjectUtil.get_data_frame(state_log_paths, skip = burnin)
             write(Base.stdout, "$(get_sim_label(sim_pattern))\n")
-            write(Base.stdout, "  sample size: $sample_size\n")
-            write(Base.stdout, "  n sources: $num_tree_logs\n")
+            write(Base.stdout, "  sample size: $number_of_samples\n")
+            write(Base.stdout, "  n sources: $number_of_runs\n")
+            write(Base.stdout, "  $(size(state_df))\n")
+            # Some sanity checks to ensure that the summary provided by
+            # sumphycoeval matches what is in the state log files
+            @assert length(state_df[!, "ln_likelihood"]) == number_of_samples
+            @assert Statistics.median(state_df[!, "number_of_heights"]) == tree_summary["number_of_heights_summary"]["median"]
+            @assert isapprox(
+                    Statistics.mean(state_df[!, "number_of_heights"]),
+                    tree_summary["number_of_heights_summary"]["mean"])
+            @assert isapprox(
+                    Statistics.mean(state_df[!, "pop_size_root"]),
+                    tree_summary["clades"]["root"]["pop_size_mean"])
+            stdout_paths = [Base.Filesystem.joinpath(batch_dir,
+                    ("run-$i-$(sim_pattern.var_only)$(sim_pattern.prefix)" *
+                    "-sim-$sim_num-$(sim_pattern.config_name)" *
+                    "-config.yml.out")
+                   ) for i in 1:number_of_runs]
+            runtimes = [ProjectUtil.parse_runtime(p) for p in stdout_paths]
+            @assert length(runtimes) == number_of_runs
         end
     end
     return nothing
