@@ -23,6 +23,7 @@ bin/sumcoevolity
 bin/swprobs
 bin/phycoeval
 bin/simphycoeval
+bin/sumphycoeval
 ecoevolity/
 *.log
 *.out
