@@ -2,7 +2,7 @@
 
 set -e
 
-ecoevolity_commit="bea7b419"
+ecoevolity_commit="a6bd852f"
 
 # Get path to directory of this script
 project_dir="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
