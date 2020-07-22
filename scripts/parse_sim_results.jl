@@ -176,7 +176,7 @@ function parse_sim_results(
                     treesum["number_of_heights_summary"]["mean"])
             @assert isapprox(
                     mean_root_size,
-                    treesum["clades"]["root"]["pop_size_mean"])
+                    treesum["splits"]["root"]["pop_size_mean"])
             stdout_paths = [Base.Filesystem.joinpath(batch_dir,
                     ("run-$i-$(sim_pattern.var_only)$(sim_pattern.prefix)" *
                     "-sim-$sim_num-$(sim_pattern.config_name)" *
@@ -230,26 +230,28 @@ function parse_sim_results(
              tree_length_hpdi_95_upper = treesum["tree_length"]["hpdi_95"][2],
              tree_length_ess = treesum["tree_length"]["ess"],
              tree_length_psrf = treesum["tree_length"]["psrf"],
-             root_height_true = treesum["summary_of_target_tree"]["clades"]["root"]["height"],
-             root_height_true_percentile = treesum["summary_of_target_tree"]["clades"]["root"]["height_percentile"],
-             root_height_mean = treesum["clades"]["root"]["height_mean"],
-             root_height_median = treesum["clades"]["root"]["height_median"],
-             root_height_eti_95_lower = treesum["clades"]["root"]["height_eti_95"][1],
-             root_height_eti_95_upper = treesum["clades"]["root"]["height_eti_95"][2],
-             root_height_hpdi_95_lower = treesum["clades"]["root"]["height_hpdi_95"][1],
-             root_height_hpdi_95_upper = treesum["clades"]["root"]["height_hpdi_95"][2],
-             root_height_ess = treesum["clades"]["root"]["height_ess"],
-             root_height_psrf = treesum["clades"]["root"]["height_psrf"],
-             root_pop_size_true = treesum["summary_of_target_tree"]["clades"]["root"]["pop_size"],
-             root_pop_size_true_percentile = treesum["summary_of_target_tree"]["clades"]["root"]["pop_size_percentile"],
-             root_pop_size_mean = treesum["clades"]["root"]["pop_size_mean"],
-             root_pop_size_median = treesum["clades"]["root"]["pop_size_median"],
-             root_pop_size_eti_95_lower = treesum["clades"]["root"]["pop_size_eti_95"][1],
-             root_pop_size_eti_95_upper = treesum["clades"]["root"]["pop_size_eti_95"][2],
-             root_pop_size_hpdi_95_lower = treesum["clades"]["root"]["pop_size_hpdi_95"][1],
-             root_pop_size_hpdi_95_upper = treesum["clades"]["root"]["pop_size_hpdi_95"][2],
-             root_pop_size_ess = treesum["clades"]["root"]["pop_size_ess"],
-             root_pop_size_psrf = treesum["clades"]["root"]["pop_size_psrf"],
+             root_height_true = treesum["summary_of_target_tree"]["splits"]["root"]["height"],
+             root_height_true_percentile = treesum["summary_of_target_tree"]["splits"]["root"]["height_percentile"],
+             root_height_mean = treesum["splits"]["root"]["height_mean"],
+             root_height_median = treesum["splits"]["root"]["height_median"],
+             root_height_eti_95_lower = treesum["splits"]["root"]["height_eti_95"][1],
+             root_height_eti_95_upper = treesum["splits"]["root"]["height_eti_95"][2],
+             root_height_hpdi_95_lower = treesum["splits"]["root"]["height_hpdi_95"][1],
+             root_height_hpdi_95_upper = treesum["splits"]["root"]["height_hpdi_95"][2],
+             root_height_ess = treesum["splits"]["root"]["height_ess"],
+             root_height_psrf = treesum["splits"]["root"]["height_psrf"],
+             root_pop_size_true = treesum["summary_of_target_tree"]["splits"]["root"]["pop_size"],
+             root_pop_size_true_percentile = treesum["summary_of_target_tree"]["splits"]["root"]["pop_size_percentile"],
+             root_pop_size_mean = treesum["splits"]["root"]["pop_size_mean"],
+             root_pop_size_median = treesum["splits"]["root"]["pop_size_median"],
+             root_pop_size_eti_95_lower = treesum["splits"]["root"]["pop_size_eti_95"][1],
+             root_pop_size_eti_95_upper = treesum["splits"]["root"]["pop_size_eti_95"][2],
+             root_pop_size_hpdi_95_lower = treesum["splits"]["root"]["pop_size_hpdi_95"][1],
+             root_pop_size_hpdi_95_upper = treesum["splits"]["root"]["pop_size_hpdi_95"][2],
+             root_pop_size_ess = treesum["splits"]["root"]["pop_size_ess"],
+             root_pop_size_psrf = treesum["splits"]["root"]["pop_size_psrf"],
+             root_node_true_prob = treesum["splits"]["root"]["node"]["frequency"]
+             root_node_true_is_map = treesum["splits"]["root"]["node"]["is_a_map_node_given_split"]
              euclidean_distance_mean = treesum["summary_of_target_tree"]["euclidean_distance"]["mean"],
              euclidean_distance_median = treesum["summary_of_target_tree"]["euclidean_distance"]["median"],
              euclidean_distance_eti_95_lower = treesum["summary_of_target_tree"]["euclidean_distance"]["eti_95"][1],
@@ -257,51 +259,59 @@ function parse_sim_results(
              euclidean_distance_hpdi_95_lower = treesum["summary_of_target_tree"]["euclidean_distance"]["hpdi_95"][1],
              euclidean_distance_hpdi_95_upper = treesum["summary_of_target_tree"]["euclidean_distance"]["hpdi_95"][2],
             )
-            if endswith(sim_name, "generalized-tree-provided-fixed")
-                clade_12 = Set{Int}([
+            if endswith(sim_name, "tree-provided-fixed")
+                split_12 = Set{Int}([
                         leaf_label_map["sp1"],
                         leaf_label_map["sp2"]
                        ])
-                clade_123 = Set{Int}([
+                split_13 = Set{Int}([
+                        leaf_label_map["sp1"],
+                        leaf_label_map["sp3"]
+                       ])
+                split_23 = Set{Int}([
+                        leaf_label_map["sp2"],
+                        leaf_label_map["sp3"]
+                       ])
+                split_123 = Set{Int}([
                         leaf_label_map["sp1"],
                         leaf_label_map["sp2"],
                         leaf_label_map["sp3"]
                        ])
-                clade_456 = Set{Int}([
+                split_456 = Set{Int}([
                         leaf_label_map["sp4"],
                         leaf_label_map["sp5"],
                         leaf_label_map["sp6"]
                        ])
-                clade_45 = Set{Int}([
+                split_45 = Set{Int}([
                         leaf_label_map["sp4"],
                         leaf_label_map["sp5"]
                        ])
-                clade_46 = Set{Int}([
+                split_46 = Set{Int}([
                         leaf_label_map["sp4"],
                         leaf_label_map["sp6"]
                        ])
-                clade_56 = Set{Int}([
+                split_56 = Set{Int}([
                         leaf_label_map["sp5"],
                         leaf_label_map["sp6"]
                        ])
-                clade_789 = Set{Int}([
+                split_789 = Set{Int}([
                         leaf_label_map["sp7"],
                         leaf_label_map["sp8"],
                         leaf_label_map["sp9"]
                        ])
-                clade_78 = Set{Int}([
+                split_78 = Set{Int}([
                         leaf_label_map["sp7"],
                         leaf_label_map["sp8"]
                        ])
-                clade_79 = Set{Int}([
+                split_79 = Set{Int}([
                         leaf_label_map["sp7"],
                         leaf_label_map["sp9"]
                        ])
-                clade_89 = Set{Int}([
+                split_89 = Set{Int}([
                         leaf_label_map["sp8"],
                         leaf_label_map["sp9"]
                        ])
-                clade_123456 = Set{Int}([
+                split_123456 = Set{Int}([
                         leaf_label_map["sp1"],
                         leaf_label_map["sp2"],
                         leaf_label_map["sp3"],
@@ -309,7 +319,7 @@ function parse_sim_results(
                         leaf_label_map["sp5"],
                         leaf_label_map["sp6"]
                        ])
-                clade_123789 = Set{Int}([
+                split_123789 = Set{Int}([
                         leaf_label_map["sp1"],
                         leaf_label_map["sp2"],
                         leaf_label_map["sp3"],
@@ -317,7 +327,7 @@ function parse_sim_results(
                         leaf_label_map["sp8"],
                         leaf_label_map["sp9"]
                        ])
-                clade_456789 = Set{Int}([
+                split_456789 = Set{Int}([
                         leaf_label_map["sp4"],
                         leaf_label_map["sp5"],
                         leaf_label_map["sp6"],
@@ -325,37 +335,57 @@ function parse_sim_results(
                         leaf_label_map["sp8"],
                         leaf_label_map["sp9"]
                        ])
-                height_12_789 = Set{Set{Int}}([clade_12, clade_789])
-                height_123_456 = Set{Set{Int}}([clade_123, clade_456])
+                height_12_789 = Set{Set{Int}}([split_12, split_789])
+                height_123_456 = Set{Set{Int}}([split_123, split_456])
 
-                clade_789_height_true = NaN
-                clade_789_height_mean = NaN
-                clade_789_height_median = NaN
-                clade_789_height_eti_95_lower = NaN
-                clade_789_height_eti_95_upper = NaN
-                clade_789_height_hpdi_95_lower = NaN
-                clade_789_height_hpdi_95_upper = NaN
-                clade_789_height_ess = NaN
-                clade_456_height_true = NaN
-                clade_456_height_mean = NaN
-                clade_456_height_median = NaN
-                clade_456_height_eti_95_lower = NaN
-                clade_456_height_eti_95_upper = NaN
-                clade_456_height_hpdi_95_lower = NaN
-                clade_456_height_hpdi_95_upper = NaN
-                clade_456_height_ess = NaN
+                node_7_8_9 = Set{Set{Int}}([
+                        [leaf_label_map["sp7"]],
+                        [leaf_label_map["sp8"]],
+                        [leaf_label_map["sp9"]]])
+                node_4_5_6 = Set{Set{Int}}([
+                        [leaf_label_map["sp4"]],
+                        [leaf_label_map["sp5"]],
+                        [leaf_label_map["sp6"]]])
+                node_12_3 = Set{Set{Int}}([
+                        [leaf_label_map["sp1"], leaf_label_map["sp2"]],
+                        [leaf_label_map["sp3"]]])
 
-                clade_789_prob = 0.0
-                clade_78_prob = 0.0
-                clade_79_prob = 0.0
-                clade_89_prob = 0.0
-                clade_456_prob = 0.0
-                clade_45_prob = 0.0
-                clade_46_prob = 0.0
-                clade_56_prob = 0.0
-                clade_123456_prob = 0.0
-                clade_123789_prob = 0.0
-                clade_456789_prob = 0.0
+                split_789_height_true = NaN
+                split_789_height_mean = NaN
+                split_789_height_median = NaN
+                split_789_height_eti_95_lower = NaN
+                split_789_height_eti_95_upper = NaN
+                split_789_height_hpdi_95_lower = NaN
+                split_789_height_hpdi_95_upper = NaN
+                split_789_height_ess = NaN
+                split_456_height_true = NaN
+                split_456_height_mean = NaN
+                split_456_height_median = NaN
+                split_456_height_eti_95_lower = NaN
+                split_456_height_eti_95_upper = NaN
+                split_456_height_hpdi_95_lower = NaN
+                split_456_height_hpdi_95_upper = NaN
+                split_456_height_ess = NaN
+
+                split_789_prob = 0.0
+                split_78_prob = 0.0
+                split_79_prob = 0.0
+                split_89_prob = 0.0
+                split_456_prob = 0.0
+                split_45_prob = 0.0
+                split_46_prob = 0.0
+                split_56_prob = 0.0
+                split_123_prob = 0.0
+                split_12_prob = 0.0
+                split_13_prob = 0.0
+                split_23_prob = 0.0
+                split_123456_prob = 0.0
+                split_123789_prob = 0.0
+                split_456789_prob = 0.0
+
+                node_7_8_9_prob = 0.0
+                node_4_5_6_prob = 0.0
+                node_12_3_prob = 0.0
 
                 height_12_789_true = NaN
                 height_12_789_prob = 0.0
@@ -376,60 +406,86 @@ function parse_sim_results(
                 height_123_456_hpdi_95_upper = NaN
                 height_123_456_ess = NaN
 
-                for c in treesum["clades"]["nontrivial_clades"]
+                for c in treesum["splits"]["nontrivial_splits"]
                     leaf_set = Set{Int}(c["leaf_indices"])
-                    if leaf_set == clade_789
-                        clade_789_prob = c["frequency"]
-                        clade_789_height_mean = c["height_mean"]
-                        clade_789_height_median = c["height_median"]
-                        clade_789_height_eti_95_lower = c["height_eti_95"][1]
-                        clade_789_height_eti_95_upper = c["height_eti_95"][2]
-                        clade_789_height_hpdi_95_lower = c["height_hpdi_95"][1]
-                        clade_789_height_hpdi_95_upper = c["height_hpdi_95"][2]
-                        clade_789_height_ess = c["height_ess"]
-                    elseif leaf_set == clade_456
-                        clade_456_prob = c["frequency"]
-                        clade_456_height_mean = c["height_mean"]
-                        clade_456_height_median = c["height_median"]
-                        clade_456_height_eti_95_lower = c["height_eti_95"][1]
-                        clade_456_height_eti_95_upper = c["height_eti_95"][2]
-                        clade_456_height_hpdi_95_lower = c["height_hpdi_95"][1]
-                        clade_456_height_hpdi_95_upper = c["height_hpdi_95"][2]
-                        clade_456_height_ess = c["height_ess"]
-                    elseif leaf_set == clade_78
-                        clade_78_prob = c["frequency"]
-                    elseif leaf_set == clade_79
-                        clade_79_prob = c["frequency"]
-                    elseif leaf_set == clade_89
-                        clade_89_prob = c["frequency"]
-                    elseif leaf_set == clade_45
-                        clade_45_prob = c["frequency"]
-                    elseif leaf_set == clade_46
-                        clade_46_prob = c["frequency"]
-                    elseif leaf_set == clade_56
-                        clade_56_prob = c["frequency"]
-                    elseif leaf_set == clade_123456
-                        clade_123456_prob = c["frequency"]
-                    elseif leaf_set == clade_123789
-                        clade_123789_prob = c["frequency"]
-                    elseif leaf_set == clade_456789
-                        clade_456789_prob = c["frequency"]
+                    if leaf_set == split_789
+                        split_789_prob = c["frequency"]
+                        split_789_height_mean = c["height_mean"]
+                        split_789_height_median = c["height_median"]
+                        split_789_height_eti_95_lower = c["height_eti_95"][1]
+                        split_789_height_eti_95_upper = c["height_eti_95"][2]
+                        split_789_height_hpdi_95_lower = c["height_hpdi_95"][1]
+                        split_789_height_hpdi_95_upper = c["height_hpdi_95"][2]
+                        split_789_height_ess = c["height_ess"]
+                        for n in c["nodes"]
+                            split_set = Set{Set{Int}}([Set{Int}(split) for split in n["descendant_splits"]])
+                            if split_set == node_7_8_9
+                                node_7_8_9_prob = n["frequency"]
+                            end
+                        end
+                    elseif leaf_set == split_456
+                        split_456_prob = c["frequency"]
+                        split_456_height_mean = c["height_mean"]
+                        split_456_height_median = c["height_median"]
+                        split_456_height_eti_95_lower = c["height_eti_95"][1]
+                        split_456_height_eti_95_upper = c["height_eti_95"][2]
+                        split_456_height_hpdi_95_lower = c["height_hpdi_95"][1]
+                        split_456_height_hpdi_95_upper = c["height_hpdi_95"][2]
+                        split_456_height_ess = c["height_ess"]
+                        for n in c["nodes"]
+                            split_set = Set{Set{Int}}([Set{Int}(split) for split in n["descendant_splits"]])
+                            if split_set == node_4_5_6
+                                node_4_5_6_prob = n["frequency"]
+                            end
+                        end
+                    elseif leaf_set == split_123
+                        split_123_prob = c["frequency"]
+                        for n in c["nodes"]
+                            split_set = Set{Set{Int}}([Set{Int}(split) for split in n["descendant_splits"]])
+                            if split_set == node_12_3
+                                node_12_3_prob = n["frequency"]
+                            end
+                        end
+                    elseif leaf_set == split_12
+                        split_12_prob = c["frequency"]
+                    elseif leaf_set == split_13
+                        split_13_prob = c["frequency"]
+                    elseif leaf_set == split_23
+                        split_23_prob = c["frequency"]
+                    elseif leaf_set == split_78
+                        split_78_prob = c["frequency"]
+                    elseif leaf_set == split_79
+                        split_79_prob = c["frequency"]
+                    elseif leaf_set == split_89
+                        split_89_prob = c["frequency"]
+                    elseif leaf_set == split_45
+                        split_45_prob = c["frequency"]
+                    elseif leaf_set == split_46
+                        split_46_prob = c["frequency"]
+                    elseif leaf_set == split_56
+                        split_56_prob = c["frequency"]
+                    elseif leaf_set == split_123456
+                        split_123456_prob = c["frequency"]
+                    elseif leaf_set == split_123789
+                        split_123789_prob = c["frequency"]
+                    elseif leaf_set == split_456789
+                        split_456789_prob = c["frequency"]
                     end
                 end
-                for c in treesum["summary_of_target_tree"]["clades"]["nontrivial_clades"]
+                for c in treesum["summary_of_target_tree"]["splits"]["nontrivial_splits"]
                     leaf_set = Set{Int}(c["leaf_indices"])
-                    if leaf_set == clade_789
-                        clade_789_height_true = c["height"]
-                    elseif leaf_set == clade_456
-                        clade_456_height_true= c["height"]
+                    if leaf_set == split_789
+                        split_789_height_true = c["height"]
+                    elseif leaf_set == split_456
+                        split_456_height_true= c["height"]
                     end
                 end
 
                 for h in treesum["heights"]
                     height_set = Set{Set{Int}}()
-                    for c in h["clades"]
-                        clade = Set{Int}(c["leaf_indices"])
-                        push!(height_set, clade)
+                    for c in h["splits"]
+                        split = Set{Int}(c["leaf_indices"])
+                        push!(height_set, split)
                     end
                     if height_set == height_12_789
                         height_12_789_prob = h["frequency"]
@@ -453,9 +509,9 @@ function parse_sim_results(
                 end
                 for h in treesum["summary_of_target_tree"]["heights"]
                     height_set = Set{Set{Int}}()
-                    for c in h["clades"]
-                        clade = Set{Int}(c["leaf_indices"])
-                        push!(height_set, clade)
+                    for c in h["splits"]
+                        split = Set{Int}(c["leaf_indices"])
+                        push!(height_set, split)
                     end
                     if height_set == height_12_789
                         height_12_789_true = h["height"]
@@ -464,31 +520,38 @@ function parse_sim_results(
                     end
                 end
                 extra_cols = DataFrame(
-                 clade_789_prob = clade_789_prob,
-                 clade_78_prob = clade_78_prob,
-                 clade_79_prob = clade_79_prob,
-                 clade_89_prob = clade_89_prob,
-                 clade_456_prob = clade_456_prob,
-                 clade_45_prob = clade_45_prob,
-                 clade_46_prob = clade_46_prob,
-                 clade_56_prob = clade_56_prob,
-                 clade_123456_prob = clade_123456_prob,
-                 clade_123789_prob = clade_123789_prob,
-                 clade_456789_prob = clade_456789_prob,
-                 clade_789_height_true = clade_789_height_true,
-                 clade_789_height_mean = clade_789_height_mean,
-                 clade_789_height_median = clade_789_height_median,
-                 clade_789_height_eti_95_lower = clade_789_height_eti_95_lower,
-                 clade_789_height_eti_95_upper = clade_789_height_eti_95_upper,
-                 clade_789_height_hpdi_95_lower = clade_789_height_hpdi_95_lower,
-                 clade_789_height_hpdi_95_upper = clade_789_height_hpdi_95_upper,
-                 clade_456_height_true = clade_456_height_true,
-                 clade_456_height_mean = clade_456_height_mean,
-                 clade_456_height_median = clade_456_height_median,
-                 clade_456_height_eti_95_lower = clade_456_height_eti_95_lower,
-                 clade_456_height_eti_95_upper = clade_456_height_eti_95_upper,
-                 clade_456_height_hpdi_95_lower = clade_456_height_hpdi_95_lower,
-                 clade_456_height_hpdi_95_upper = clade_456_height_hpdi_95_upper,
+                 split_789_prob = split_789_prob,
+                 split_78_prob = split_78_prob,
+                 split_79_prob = split_79_prob,
+                 split_89_prob = split_89_prob,
+                 split_456_prob = split_456_prob,
+                 split_45_prob = split_45_prob,
+                 split_46_prob = split_46_prob,
+                 split_56_prob = split_56_prob,
+                 split_123_prob = split_123_prob,
+                 split_12_prob = split_12_prob,
+                 split_13_prob = split_13_prob,
+                 split_23_prob = split_23_prob,
+                 split_123456_prob = split_123456_prob,
+                 split_123789_prob = split_123789_prob,
+                 split_456789_prob = split_456789_prob,
+                 split_789_height_true = split_789_height_true,
+                 split_789_height_mean = split_789_height_mean,
+                 split_789_height_median = split_789_height_median,
+                 split_789_height_eti_95_lower = split_789_height_eti_95_lower,
+                 split_789_height_eti_95_upper = split_789_height_eti_95_upper,
+                 split_789_height_hpdi_95_lower = split_789_height_hpdi_95_lower,
+                 split_789_height_hpdi_95_upper = split_789_height_hpdi_95_upper,
+                 split_456_height_true = split_456_height_true,
+                 split_456_height_mean = split_456_height_mean,
+                 split_456_height_median = split_456_height_median,
+                 split_456_height_eti_95_lower = split_456_height_eti_95_lower,
+                 split_456_height_eti_95_upper = split_456_height_eti_95_upper,
+                 split_456_height_hpdi_95_lower = split_456_height_hpdi_95_lower,
+                 split_456_height_hpdi_95_upper = split_456_height_hpdi_95_upper,
+                 node_7_8_9_prob = node_7_8_9_prob,
+                 node_4_5_6_prob = node_4_5_6_prob,
+                 node_12_3_prob = node_12_3_prob,
                  height_12_789_true = height_12_789_true,
                  height_12_789_mean = height_12_789_mean,
                  height_12_789_median = height_12_789_median,
