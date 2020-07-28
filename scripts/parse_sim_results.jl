@@ -125,6 +125,7 @@ function parse_sim_results(
        )
     sim_name = Base.Filesystem.basename(Base.Filesystem.dirname(batch_dir))
     write(Base.stdout, "$sim_name\n")
+    return_dir = pwd()
     cd(batch_dir)
     batch_dir = "."
     if extract_sim_archives
@@ -135,8 +136,32 @@ function parse_sim_results(
     # Get what output files to expect
     sim_output_patterns = get_sim_output_patterns(
             batch_dir)
-    results = Dict{SimOutputPattern, DataFrame}()
+    results_paths = Dict{SimOutputPattern, String}()
     for sim_pattern in sim_output_patterns
+        res_path = Base.Filesystem.joinpath(
+                batch_dir,
+                "results-$(sim_pattern.var_only)$(sim_pattern.config_name).tsv")
+        if Base.Filesystem.ispath(res_path)
+            write(Base.stdout, "Table '$(basename(res_path))' already exists; skipping!")
+            continue
+        end
+        if Base.Filesystem.ispath(res_path * ".gz")
+            write(Base.stdout, "Table '$(basename(res_path)).gz' already exists... Skipping!\n")
+            continue
+        end
+        results_paths[sim_pattern] = res_path
+    end
+    if length(results_paths) < 1
+        if extract_sim_archives
+            write(Base.stdout, "Cleaning up extracted files...\n")
+            remove_extracted_files(batch_dir)
+        end
+        cd(return_dir)
+        return nothing
+    end
+
+    results = Dict{SimOutputPattern, DataFrame}()
+    for sim_pattern in keys(results_paths) 
         results[sim_pattern] = DataFrame()
     end
     # Use true tree files to loop over sim replicates
@@ -153,7 +178,7 @@ function parse_sim_results(
         true_params_path = Base.Filesystem.joinpath(batch_dir,
                 "simphycoeval-sim-$sim_num-true-parameters.txt")
         true_params = ProjectUtil.get_data_frame([true_params_path], skip = burnin)
-        for sim_pattern in sim_output_patterns
+        for sim_pattern in keys(results_paths)
             analysis_label = get_sim_label(sim_pattern)
             tree_log_wildcard = (
                     "run-?-$(sim_pattern.var_only)$(sim_pattern.prefix)" *
@@ -599,20 +624,18 @@ function parse_sim_results(
             results[sim_pattern] = vcat(results[sim_pattern], row)
         end
     end
-    for sim_pattern in sim_output_patterns
-        results_path = Base.Filesystem.joinpath(
-                batch_dir,
-                "results-$(sim_pattern.var_only)$(sim_pattern.config_name).tsv")
-        CSV.write(results_path,
+    for (sim_pattern, res_path) in results_paths
+        CSV.write(res_path,
                   results[sim_pattern],
                   delim = '\t',
                   append = false)
-        run(`gzip $results_path`)
+        run(`gzip $res_path`)
     end
     if extract_sim_archives
         write(Base.stdout, "Cleaning up extracted files...\n")
         remove_extracted_files(batch_dir)
     end
+    cd(return_dir)
     return nothing
 end
 
