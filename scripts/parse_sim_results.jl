@@ -38,11 +38,31 @@ function check_archive_paths(batch_dir::AbstractString)
     return nothing
 end
 
+function pull_sim_archives(batch_dir::AbstractString)
+    relative_batch_dir = Base.Filesystem.relpath(batch_dir, ProjectUtil.PROJECT_DIR)
+    for archive_name in sim_archive_names
+        archive_path = Base.Filesystem.joinpath(relative_batch_dir, archive_name)
+        git_cmd = `git lfs pull --include $archive_path`
+        run(git_cmd)
+    end
+    return nothing
+end
+
 function extract_sim_files(batch_dir::AbstractString)
     check_archive_paths(batch_dir)
+    pull_sim_archives(batch_dir)
     for archive_name in sim_archive_names
         archive_path = Base.Filesystem.joinpath(batch_dir, archive_name)
         DataDeps.unpack(archive_path, keep_originals = true)
+    end
+    return nothing
+end
+
+function remove_extracted_files(batch_dir::AbstractString)
+    check_archive_paths(batch_dir)
+    for archive_name in sim_archive_names
+        archive_path = Base.Filesystem.joinpath(batch_dir, archive_name)
+        run(pipeline(`tar tzf $archive_path`, `xargs rm --`))
     end
     return nothing
 end
@@ -108,19 +128,22 @@ function parse_sim_results(
     cd(batch_dir)
     batch_dir = "."
     if extract_sim_archives
-        write(Base.stdout, "extracting archives...\n")
+        write(Base.stdout, "Extracting archives...\n")
         extract_sim_files(batch_dir)
     end
 
     # Get what output files to expect
     sim_output_patterns = get_sim_output_patterns(
             batch_dir)
+    results = Dict{SimOutputPattern, DataFrame}()
+    for sim_pattern in sim_output_patterns
+        results[sim_pattern] = DataFrame()
+    end
     # Use true tree files to loop over sim replicates
     true_tree_file_iter = ProjectUtil.flat_file_path_iter(batch_dir,
             ProjectUtil.SIM_TRUE_TREE_FILE_PATTERN)
     number_of_runs = 0
     number_of_samples = 0
-    results = DataFrame()
     for true_tree_path in true_tree_file_iter
         m = match(ProjectUtil.SIM_TRUE_TREE_FILE_PATTERN, true_tree_path)
         if isnothing(m)
@@ -250,8 +273,8 @@ function parse_sim_results(
              root_pop_size_hpdi_95_upper = treesum["splits"]["root"]["pop_size_hpdi_95"][2],
              root_pop_size_ess = treesum["splits"]["root"]["pop_size_ess"],
              root_pop_size_psrf = treesum["splits"]["root"]["pop_size_psrf"],
-             root_node_true_prob = treesum["splits"]["root"]["node"]["frequency"]
-             root_node_true_is_map = treesum["splits"]["root"]["node"]["is_a_map_node_given_split"]
+             root_node_true_prob = treesum["summary_of_target_tree"]["splits"]["root"]["node"]["frequency"],
+             root_node_true_is_map = treesum["summary_of_target_tree"]["splits"]["root"]["node"]["is_a_map_node_given_split"],
              euclidean_distance_mean = treesum["summary_of_target_tree"]["euclidean_distance"]["mean"],
              euclidean_distance_median = treesum["summary_of_target_tree"]["euclidean_distance"]["median"],
              euclidean_distance_eti_95_lower = treesum["summary_of_target_tree"]["euclidean_distance"]["eti_95"][1],
@@ -339,16 +362,16 @@ function parse_sim_results(
                 height_123_456 = Set{Set{Int}}([split_123, split_456])
 
                 node_7_8_9 = Set{Set{Int}}([
-                        [leaf_label_map["sp7"]],
-                        [leaf_label_map["sp8"]],
-                        [leaf_label_map["sp9"]]])
+                        Set{Int}([leaf_label_map["sp7"]]),
+                        Set{Int}([leaf_label_map["sp8"]]),
+                        Set{Int}([leaf_label_map["sp9"]])])
                 node_4_5_6 = Set{Set{Int}}([
-                        [leaf_label_map["sp4"]],
-                        [leaf_label_map["sp5"]],
-                        [leaf_label_map["sp6"]]])
+                        Set{Int}([leaf_label_map["sp4"]]),
+                        Set{Int}([leaf_label_map["sp5"]]),
+                        Set{Int}([leaf_label_map["sp6"]])])
                 node_12_3 = Set{Set{Int}}([
-                        [leaf_label_map["sp1"], leaf_label_map["sp2"]],
-                        [leaf_label_map["sp3"]]])
+                        Set{Int}([leaf_label_map["sp1"], leaf_label_map["sp2"]]),
+                        Set{Int}([leaf_label_map["sp3"]])])
 
                 split_789_height_true = NaN
                 split_789_height_mean = NaN
@@ -516,7 +539,7 @@ function parse_sim_results(
                     if height_set == height_12_789
                         height_12_789_true = h["height"]
                     elseif height_set == height_123_456
-                        height_124_456_true = h["height"]
+                        height_123_456_true = h["height"]
                     end
                 end
                 extra_cols = DataFrame(
@@ -553,6 +576,7 @@ function parse_sim_results(
                  node_4_5_6_prob = node_4_5_6_prob,
                  node_12_3_prob = node_12_3_prob,
                  height_12_789_true = height_12_789_true,
+                 height_12_789_prob = height_12_789_prob,
                  height_12_789_mean = height_12_789_mean,
                  height_12_789_median = height_12_789_median,
                  height_12_789_eti_95_lower = height_12_789_eti_95_lower,
@@ -561,6 +585,7 @@ function parse_sim_results(
                  height_12_789_hpdi_95_upper = height_12_789_hpdi_95_upper,
                  height_12_789_ess = height_12_789_ess,
                  height_123_456_true = height_123_456_true,
+                 height_123_456_prob = height_123_456_prob,
                  height_123_456_mean = height_123_456_mean,
                  height_123_456_median = height_123_456_median,
                  height_123_456_eti_95_lower = height_123_456_eti_95_lower,
@@ -571,8 +596,22 @@ function parse_sim_results(
                 )
                 row = hcat(row, extra_cols)
             end
-            results = vcat(results, row)
+            results[sim_pattern] = vcat(results[sim_pattern], row)
         end
+    end
+    for sim_pattern in sim_output_patterns
+        results_path = Base.Filesystem.joinpath(
+                batch_dir,
+                "results-$(sim_pattern.var_only)$(sim_pattern.config_name).tsv")
+        CSV.write(results_path,
+                  results[sim_pattern],
+                  delim = '\t',
+                  append = false)
+        run(`gzip $results_path`)
+    end
+    if extract_sim_archives
+        write(Base.stdout, "Cleaning up extracted files...\n")
+        remove_extracted_files(batch_dir)
     end
     return nothing
 end
