@@ -5,6 +5,8 @@ module ProjectUtil
 using CSV
 using DataFrames
 using Statistics
+using CodecZlib
+using Mmap
 
 # Project paths
 SCRIPT_DIR = Base.Filesystem.dirname(@__FILE__)
@@ -14,6 +16,7 @@ BIN_DIR = Base.Filesystem.joinpath(PROJECT_DIR, "bin")
 DATA_DIR = Base.Filesystem.joinpath(PROJECT_DIR, "data")
 SIM_DIR = Base.Filesystem.joinpath(PROJECT_DIR, "simulations")
 SIM_SCRIPT_DIR = Base.Filesystem.joinpath(SCRIPT_DIR, "simphycoeval-scripts")
+RESULTS_DIR = Base.Filesystem.joinpath(PROJECT_DIR, "results")
 
 function get_project_dir()::AbstractString
     return PROJECT_DIR
@@ -129,6 +132,20 @@ file_path_iter(directory::AbstractString,
     end
 end
 
+dir_path_iter(directory::AbstractString,
+               regex_pattern::Regex
+              ) = Channel(ctype = AbstractString) do c
+    for (dir_path, dir_names, file_names) in Base.Filesystem.walkdir(directory)
+        for d_name in dir_names
+            m = match(regex_pattern, d_name)
+            if ! isnothing(m)
+                path = Base.Filesystem.joinpath(dir_path, d_name)
+                push!(c, path)
+            end
+        end
+    end
+end
+
 flat_file_path_iter(directory::AbstractString,
                     regex_pattern::Regex
                    ) = Channel(ctype = AbstractString) do c
@@ -155,13 +172,23 @@ function batch_dir_iter(directory::AbstractString = Nothing
     if isnothing(directory)
         directory = SIM_DIR
     end
-    return file_path_iter(directory, BATCH_DIR_ENDING_PATTERN)
+    return dir_path_iter(directory, BATCH_DIR_ENDING_PATTERN)
 end
 
 function get_data_frame(paths::Vector{String};
                         skip::Int = 0)::DataFrame
     return DataFrame(mapreduce(
             x -> CSV.File(x, header = 1, skipto = skip + 2),
+            vcat,
+            paths))
+end
+
+function get_data_frame_from_gz(paths::Vector{String};
+                        skip::Int = 0)::DataFrame
+    return DataFrame(mapreduce(
+            x -> CSV.File(transcode(GzipDecompressor, Mmap.mmap(x)),
+                          header = 1,
+                          skipto = skip + 2),
             vcat,
             paths))
 end
