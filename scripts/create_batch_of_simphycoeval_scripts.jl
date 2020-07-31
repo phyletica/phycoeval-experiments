@@ -148,6 +148,8 @@ function main_cli()::Cint
                          false)
     end
 
+    write(stdout, "$batch_num_str\n")
+
     return 0
 end
     
