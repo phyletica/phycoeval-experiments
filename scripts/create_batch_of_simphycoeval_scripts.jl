@@ -40,6 +40,7 @@ function write_sim_script(
                 exe_name = "simphycoeval"))
         write(ostream, "rng_seed=$batch_id\n")
         write(ostream, "number_of_reps=$number_of_reps\n")
+        write(ostream, "number_of_topo_mcmc_gens_per_rep=$number_of_topo_mcmc_gens_per_rep\n")
         write(ostream, "sim_name=\"$sim_name\"\n")
         write(ostream, "config_dir=\"../../configs\"\n")
         write(ostream, "config_path=\"\${config_dir}/$sim_cfg_file\"\n")
