@@ -24,7 +24,7 @@ fi
 
 source "${project_dir}/modules-to-load.sh" >/dev/null 2>&1 || echo "    No modules loaded"
 
-rng_seed=463883070
+rng_seed=590705757
 number_of_reps=10
 number_of_topo_mcmc_gens_per_rep=1000
 sim_name="species-9-genomes-2-bifurcating-tree-random-unfixed"
