@@ -7,6 +7,7 @@ using DataFrames
 using Statistics
 using CodecZlib
 using Mmap
+using Random
 
 # Project paths
 SCRIPT_DIR = Base.Filesystem.dirname(@__FILE__)
@@ -203,6 +204,13 @@ function parse_runtime(path::String)::String
         end
         error("Could not find runtime in '$path'")
     end
+end
+
+function get_batch_id(rng::MersenneTwister,
+        num_id_digits::Int = 9)::AbstractString
+    batch_num_str = Random.randstring(rng, '0':'9',
+            num_id_digits)
+    return batch_num_str
 end
 
 

@@ -105,24 +105,25 @@ function main_cli()::Cint
                 required = true
                 range_tester = x -> Base.Filesystem.isfile(x)
                 help = "Paths to simulation configs."
-        "--seed"
-                arg_type = Int
-                range_tester = x -> x > 0
-                action = :store_arg
-                help = "Seed for random number generator."
+        #= "--seed" =#
+        #=         arg_type = Int =#
+        #=         range_tester = x -> x > 0 =#
+        #=         action = :store_arg =#
+        #=         help = "Seed for random number generator." =#
+        "--batch-seed", "-b"
+                arg_type = AbstractString
+                action = :append_arg
+                help = ("Seed to provide simphycoeval when generating this "
+                        * "batch if simulated datasets.")
     end
 
     parsed_args = parse_args(parser)
 
-    rng = Random.MersenneTwister()
-    if isnothing(parsed_args["seed"])
-        parsed_args["seed"] = Random.rand(1:typemax(Int))
+    batch_num_strings::Vector{AbstractString} = parsed_args["batch-seed"]
+    if length(batch_num_strings) < 1
+        rng = Random.MersenneTwister()
+        push!(batch_num_strings, ProjectUtil.get_batch_id(rng, 9))
     end
-    Random.seed!(rng, parsed_args["seed"])
-
-    num_seed_digits::Int = 9
-    batch_num_str::AbstractString = Random.randstring(rng, '0':'9',
-                                                      num_seed_digits)
 
     try
         Base.Filesystem.mkdir(ProjectUtil.SIM_SCRIPT_DIR)
@@ -132,24 +133,26 @@ function main_cli()::Cint
         end
     end
 
-    for sim_cfg_path in parsed_args["fixed_sim_config_path"]
-        write_sim_script(batch_num_str,
-                         parsed_args["nreps"],
-                         parsed_args["topo_mcmc_gens_per_rep"],
-                         sim_cfg_path,
-                         parsed_args["prior_config_path"],
-                         true)
-    end
-    for sim_cfg_path in parsed_args["sim_config_path"]
-        write_sim_script(batch_num_str,
-                         parsed_args["nreps"],
-                         parsed_args["topo_mcmc_gens_per_rep"],
-                         sim_cfg_path,
-                         parsed_args["prior_config_path"],
-                         false)
-    end
+    for batch_num_str in batch_num_strings
+        for sim_cfg_path in parsed_args["fixed_sim_config_path"]
+            write_sim_script(batch_num_str,
+                             parsed_args["nreps"],
+                             parsed_args["topo_mcmc_gens_per_rep"],
+                             sim_cfg_path,
+                             parsed_args["prior_config_path"],
+                             true)
+        end
+        for sim_cfg_path in parsed_args["sim_config_path"]
+            write_sim_script(batch_num_str,
+                             parsed_args["nreps"],
+                             parsed_args["topo_mcmc_gens_per_rep"],
+                             sim_cfg_path,
+                             parsed_args["prior_config_path"],
+                             false)
+        end
 
-    write(stdout, "$batch_num_str\n")
+        write(stdout, "$batch_num_str\n")
+    end
 
     return 0
 end

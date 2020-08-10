@@ -35,3 +35,4 @@ ecoevolity/
 simphycoeval-model-used-for-sims.yml
 spawn_job_array.*
 Manifest.toml
+scripts/simphycoeval-scripts
