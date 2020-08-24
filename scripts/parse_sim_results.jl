@@ -443,6 +443,10 @@ function parse_sim_results(
             height_12_789 = Set{Set{Int}}([split_12, split_789])
             height_123_456 = Set{Set{Int}}([split_123, split_456])
 
+            height_12_78 = Set{Set{Int}}([split_12, split_78])
+            height_45_789 = Set{Set{Int}}([split_45, split_789])
+            height_456_789 = Set{Set{Int}}([split_456, split_789])
+
             node_7_8_9 = Set{Set{Int}}([
                     Set{Int}([leaf_label_map["sp7"]]),
                     Set{Int}([leaf_label_map["sp8"]]),
@@ -454,6 +458,14 @@ function parse_sim_results(
             node_12_3 = Set{Set{Int}}([
                     Set{Int}([leaf_label_map["sp1"], leaf_label_map["sp2"]]),
                     Set{Int}([leaf_label_map["sp3"]])])
+            node_1_2_3 = Set{Set{Int}}([
+                    Set{Int}([leaf_label_map["sp1"]]),
+                    Set{Int}([leaf_label_map["sp2"]]),
+                    Set{Int}([leaf_label_map["sp3"]])])
+            node_123_456_789 = Set{Set{Int}}([
+                    Set{Int}([leaf_label_map["sp1"], leaf_label_map["sp2"], leaf_label_map["sp3"]]),
+                    Set{Int}([leaf_label_map["sp4"], leaf_label_map["sp5"], leaf_label_map["sp6"]]),
+                    Set{Int}([leaf_label_map["sp7"], leaf_label_map["sp8"], leaf_label_map["sp9"]])])
 
             split_789_height_true = NaN
             split_789_height_mean = NaN
@@ -491,6 +503,8 @@ function parse_sim_results(
             node_7_8_9_prob = 0.0
             node_4_5_6_prob = 0.0
             node_12_3_prob = 0.0
+            node_1_2_3_prob = 0.0
+            node_123_456_789_prob = 0.0
 
             height_12_789_true = NaN
             height_12_789_prob = 0.0
@@ -510,6 +524,17 @@ function parse_sim_results(
             height_123_456_hpdi_95_lower = NaN
             height_123_456_hpdi_95_upper = NaN
             height_123_456_ess = NaN
+
+            height_12_78_prob = 0.0
+            height_45_789_prob = 0.0
+            height_456_789_prob = 0.0
+
+            for n in treesum["splits"]["root"]["nodes"]
+                split_set = Set{Set{Int}}([Set{Int}(split) for split in n["descendant_splits"]])
+                if split_set == node_123_456_789
+                    node_123_456_789_prob = n["frequency"]
+                end
+            end
 
             for c in treesum["splits"]["nontrivial_splits"]
                 leaf_set = Set{Int}(c["leaf_indices"])
@@ -549,6 +574,8 @@ function parse_sim_results(
                         split_set = Set{Set{Int}}([Set{Int}(split) for split in n["descendant_splits"]])
                         if split_set == node_12_3
                             node_12_3_prob = n["frequency"]
+                        elseif split_set == node_1_2_3
+                            node_1_2_3_prob = n["frequency"]
                         end
                     end
                 elseif leaf_set == split_12
@@ -610,6 +637,12 @@ function parse_sim_results(
                     height_123_456_hpdi_95_lower = h["hpdi_95"][1]
                     height_123_456_hpdi_95_upper = h["hpdi_95"][2]
                     height_123_456_ess = h["ess"]
+                elseif height_set == height_12_78
+                    height_12_78_prob = h["frequency"]
+                elseif height_set == height_45_789
+                    height_45_789_prob = h["frequency"]
+                elseif height_set == height_456_789
+                    height_456_789_prob = h["frequency"]
                 end
             end
             for h in treesum["summary_of_target_tree"]["heights"]
@@ -629,10 +662,12 @@ function parse_sim_results(
              split_78_prob = split_78_prob,
              split_79_prob = split_79_prob,
              split_89_prob = split_89_prob,
+             max_789_subsplit_prob = maximum((split_78_prob, split_79_prob, split_89_prob)),
              split_456_prob = split_456_prob,
              split_45_prob = split_45_prob,
              split_46_prob = split_46_prob,
              split_56_prob = split_56_prob,
+             max_456_subsplit_prob = maximum((split_45_prob, split_46_prob, split_56_prob)),
              split_123_prob = split_123_prob,
              split_12_prob = split_12_prob,
              split_13_prob = split_13_prob,
@@ -657,6 +692,8 @@ function parse_sim_results(
              node_7_8_9_prob = node_7_8_9_prob,
              node_4_5_6_prob = node_4_5_6_prob,
              node_12_3_prob = node_12_3_prob,
+             node_1_2_3_prob = node_1_2_3_prob,
+             node_123_456_789_prob = node_123_456_789_prob,
              height_12_789_true = height_12_789_true,
              height_12_789_prob = height_12_789_prob,
              height_12_789_mean = height_12_789_mean,
@@ -675,6 +712,9 @@ function parse_sim_results(
              height_123_456_hpdi_95_lower = height_123_456_hpdi_95_lower,
              height_123_456_hpdi_95_upper = height_123_456_hpdi_95_upper,
              height_123_456_ess = height_123_456_ess,
+             height_12_78_prob = height_12_78_prob,
+             height_45_789_prob = height_45_789_prob,
+             height_456_789_prob = height_456_789_prob,
             )
             row = hcat(row, extra_cols)
             results[sim_pattern] = vcat(results[sim_pattern], row)
