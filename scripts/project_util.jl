@@ -100,9 +100,10 @@ function get_pbs_header(pbs_script_path::AbstractString;
                    then
                        source "\${PBS_O_HOME}/.bashrc"
                    fi
+                   cd "\$PBS_O_WORKDIR"
+               else
+                  cd "\$( dirname "\${BASH_SOURCE[0]}" )"
                fi
-               
-               cd $script_dir
                
                project_dir="$relative_project_dir"
                $exe_var_name="\${project_dir}/bin/$exe_name"
