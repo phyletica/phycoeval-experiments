@@ -100,7 +100,7 @@ function get_pbs_header(pbs_script_path::AbstractString;
                    then
                        source "\${PBS_O_HOME}/.bashrc"
                    fi
-                   cd "\$script_dir"
+                   cd "$script_dir"
                else
                   cd "\$( dirname "\${BASH_SOURCE[0]}" )"
                fi
