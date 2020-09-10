@@ -1,5 +1,7 @@
 #! /usr/bin/env julia
 
+using Random
+using Distributions
 using Statistics
 using DataDeps
 using DataFrames
@@ -258,6 +260,17 @@ function share_xy_axes!(
     return nothing
 end
 
+function prep_for_violin(
+        rng::MersenneTwister,
+        v::Vector{Float64})::Vector{Float64}
+    s = Set(v)
+    if ! ((length(s) == 1) & (1.0 in s))
+        return v
+    end
+    uniform_dist = Uniform(0.0, 1e-8)
+    return v - rand(uniform_dist, length(v))
+end
+
 function main_cli()::Cint
     if ! Base.Filesystem.ispath(ProjectUtil.RESULTS_DIR)
         Base.Filesystem.mkdir(ProjectUtil.RESULTS_DIR)
@@ -269,6 +282,9 @@ function main_cli()::Cint
 
     brooks_gelman_1998_recommended_psrf = 1.2
 
+    rng = Random.MersenneTwister()
+    Random.seed!(rng, 39475839)
+
     results = SimResults()
     nrows = size(results.df)[1]
 
@@ -276,7 +292,8 @@ function main_cli()::Cint
     vo_root_node_probs = get_floats(results, true, true, true, true, :root_node_true_prob)
     vln_root_node_probs = StatsPlots.violin(
             ["All sites" "SNPs"],
-            hcat(root_node_probs, vo_root_node_probs),
+            hcat(prep_for_violin(rng, root_node_probs),
+                 prep_for_violin(rng, vo_root_node_probs)),
             ylims = (0.0, 1.0),
             legend = false,
             title = "Root node",
@@ -287,7 +304,8 @@ function main_cli()::Cint
     vo_node_789_probs = get_floats(results, true, true, true, true, :node_7_8_9_prob)
     vln_node_789_probs = StatsPlots.violin(
             ["All sites" "SNPs"],
-            hcat(node_789_probs, vo_node_789_probs),
+            hcat(prep_for_violin(rng, node_789_probs),
+                 prep_for_violin(rng, vo_node_789_probs)),
             ylims = (0.0, 1.0),
             legend = false,
             title = "Node 789",
@@ -298,7 +316,8 @@ function main_cli()::Cint
     vo_node_456_probs = get_floats(results, true, true, true, true, :node_4_5_6_prob)
     vln_node_456_probs = StatsPlots.violin(
             ["All sites" "SNPs"],
-            hcat(node_456_probs, vo_node_456_probs),
+            hcat(prep_for_violin(rng, node_456_probs),
+                 prep_for_violin(rng, vo_node_456_probs)),
             ylims = (0.0, 1.0),
             legend = false,
             title = "Node 456",
@@ -311,7 +330,8 @@ function main_cli()::Cint
     write(stdout, "$vo_node_12_3_probs\n")
     vln_node_12_3_probs = StatsPlots.violin(
             ["All sites" "SNPs"],
-            hcat(node_12_3_probs, vo_node_12_3_probs),
+            hcat(prep_for_violin(rng, node_12_3_probs),
+                 prep_for_violin(rng, vo_node_12_3_probs)),
             ylims = (0.0, 1.0),
             legend = false,
             title = "Node 12-3",
@@ -322,7 +342,8 @@ function main_cli()::Cint
     vo_height_12_789_probs = get_floats(results, true, true, true, true, :height_12_789_prob)
     vln_height_12_789_probs = StatsPlots.violin(
             ["All sites" "SNPs"],
-            hcat(height_12_789_probs, vo_height_12_789_probs),
+            hcat(prep_for_violin(rng, height_12_789_probs),
+                 prep_for_violin(rng, vo_height_12_789_probs)),
             ylims = (0.0, 1.0),
             legend = false,
             title = "Height 12-789",
@@ -332,7 +353,8 @@ function main_cli()::Cint
     height_123_456_probs = get_floats(results, true, true, true, false, :height_123_456_prob)
     vo_height_123_456_probs = get_floats(results, true, true, true, true, :height_123_456_prob)
     vln_height_123_456_probs = StatsPlots.violin(["All sites" "SNPs"],
-            hcat(height_123_456_probs, vo_height_123_456_probs),
+            hcat(prep_for_violin(rng, height_123_456_probs),
+                 prep_for_violin(rng, vo_height_123_456_probs)),
             ylims = (0.0, 1.0),
             legend = false,
             title = "Height 123-456",
@@ -343,7 +365,8 @@ function main_cli()::Cint
     vo_split_12_probs = get_floats(results, true, true, true, true, :split_12_prob)
     vln_split_12_probs = StatsPlots.violin(
             ["All sites" "SNPs"],
-            hcat(split_12_probs, vo_split_12_probs),
+            hcat(prep_for_violin(rng, split_12_probs),
+                 prep_for_violin(rng, vo_split_12_probs)),
             ylims = (0.0, 1.0),
             legend = false,
             title = "Split 12",
@@ -354,7 +377,8 @@ function main_cli()::Cint
     vo_true_topo_probs = get_floats(results, true, true, true, true, :topo_true_prob)
     vln_true_topo_probs = StatsPlots.violin(
             ["All sites" "SNPs"],
-            hcat(true_topo_probs, vo_true_topo_probs),
+            hcat(prep_for_violin(rng, true_topo_probs),
+                 prep_for_violin(rng, vo_true_topo_probs)),
             ylims = (0.0, 1.0),
             legend = false,
             title = "True topology",
@@ -387,8 +411,10 @@ function main_cli()::Cint
     vo_bif_max_456_subsplit_prob = get_floats(results, true, true, false, true, :max_456_subsplit_prob)
     vln_max_456_subsplit_probs = StatsPlots.violin(
             ["gen-all" "gen-SNPs" "bif-all" "bif-SNPs"],
-            hcat(gen_max_456_subsplit_prob, vo_gen_max_456_subsplit_prob,
-                 bif_max_456_subsplit_prob, vo_bif_max_456_subsplit_prob),
+            hcat(prep_for_violin(rng, gen_max_456_subsplit_prob),
+                 prep_for_violin(rng, vo_gen_max_456_subsplit_prob),
+                 prep_for_violin(rng, bif_max_456_subsplit_prob),
+                 prep_for_violin(rng, vo_bif_max_456_subsplit_prob)),
             ylims = (0.0, 1.0),
             ylabel = "Max posterior probability",
             legend = false,
@@ -403,8 +429,10 @@ function main_cli()::Cint
     vo_bif_max_789_subsplit_prob = get_floats(results, true, true, false, true, :max_789_subsplit_prob)
     vln_max_789_subsplit_probs = StatsPlots.violin(
             ["gen-all" "gen-SNPs" "bif-all" "bif-SNPs"],
-            hcat(gen_max_789_subsplit_prob, vo_gen_max_789_subsplit_prob,
-                 bif_max_789_subsplit_prob, vo_bif_max_789_subsplit_prob),
+            hcat(prep_for_violin(rng, gen_max_789_subsplit_prob),
+                 prep_for_violin(rng, vo_gen_max_789_subsplit_prob),
+                 prep_for_violin(rng, bif_max_789_subsplit_prob),
+                 prep_for_violin(rng, vo_bif_max_789_subsplit_prob)),
             ylims = (0.0, 1.0),
             ylabel = "Max posterior probability",
             legend = false,
@@ -444,8 +472,10 @@ function main_cli()::Cint
 
     vln_bif_root_node_probs = StatsPlots.violin(
             ["gen-all" "gen-SNPs" "bif-all" "bif-SNPs"],
-            hcat(bif_gen_root_node_probs, vo_bif_gen_root_node_probs,
-                 bif_bif_root_node_probs, vo_bif_bif_root_node_probs),
+            hcat(prep_for_violin(rng, bif_gen_root_node_probs),
+                 prep_for_violin(rng, vo_bif_gen_root_node_probs),
+                 prep_for_violin(rng, bif_bif_root_node_probs),
+                 prep_for_violin(rng, vo_bif_bif_root_node_probs)),
             ylims = (0.0, 1.0),
             ylabel = "Posterior probability",
             legend = false,
@@ -455,8 +485,10 @@ function main_cli()::Cint
 
     vln_bif_true_split_prob_means = StatsPlots.violin(
             ["gen-all" "gen-SNPs" "bif-all" "bif-SNPs"],
-            hcat(bif_gen_true_split_prob_mean, vo_bif_gen_true_split_prob_mean,
-                 bif_bif_true_split_prob_mean, vo_bif_bif_true_split_prob_mean),
+            hcat(prep_for_violin(rng, bif_gen_true_split_prob_mean),
+                 prep_for_violin(rng, vo_bif_gen_true_split_prob_mean),
+                 prep_for_violin(rng, bif_bif_true_split_prob_mean),
+                 prep_for_violin(rng, vo_bif_bif_true_split_prob_mean)),
             ylims = (0.0, 1.0),
             legend = false,
     )
@@ -465,42 +497,48 @@ function main_cli()::Cint
 
     vln_bif_gen_ht_12_78_probs = StatsPlots.violin(
             ["All sites" "SNPs"],
-            hcat(bif_gen_ht_12_78_prob, vo_bif_gen_ht_12_78_prob),
+            hcat(prep_for_violin(rng, bif_gen_ht_12_78_prob),
+                 prep_for_violin(rng, vo_bif_gen_ht_12_78_prob)),
             ylims = (0.0, 1.0),
             legend = false,
             title = "Height 12-78",
     )
     vln_bif_gen_ht_45_789_probs = StatsPlots.violin(
             ["All sites" "SNPs"],
-            hcat(bif_gen_ht_45_789_prob, vo_bif_gen_ht_45_789_prob),
+            hcat(prep_for_violin(rng, bif_gen_ht_45_789_prob),
+                 prep_for_violin(rng, vo_bif_gen_ht_45_789_prob)),
             ylims = (0.0, 1.0),
             legend = false,
             title = "Height 45-789",
     )
     vln_bif_gen_ht_456_789_probs = StatsPlots.violin(
             ["All sites" "SNPs"],
-            hcat(bif_gen_ht_456_789_prob, vo_bif_gen_ht_456_789_prob),
+            hcat(prep_for_violin(rng, bif_gen_ht_456_789_prob),
+                 prep_for_violin(rng, vo_bif_gen_ht_456_789_prob)),
             ylims = (0.0, 1.0),
             legend = false,
             title = "Height 456-789",
     )
     vln_bif_gen_nd_1_2_3_probs = StatsPlots.violin(
             ["All sites" "SNPs"],
-            hcat(bif_gen_nd_1_2_3_prob, vo_bif_gen_nd_1_2_3_prob),
+            hcat(prep_for_violin(rng, bif_gen_nd_1_2_3_prob),
+                 prep_for_violin(rng, vo_bif_gen_nd_1_2_3_prob)),
             ylims = (0.0, 1.0),
             legend = false,
             title = "Node 1-2-3",
     )
     vln_bif_gen_nd_4_5_6_probs = StatsPlots.violin(
             ["All sites" "SNPs"],
-            hcat(bif_gen_nd_4_5_6_prob, vo_bif_gen_nd_4_5_6_prob),
+            hcat(prep_for_violin(rng, bif_gen_nd_4_5_6_prob),
+                 prep_for_violin(rng, vo_bif_gen_nd_4_5_6_prob)),
             ylims = (0.0, 1.0),
             legend = false,
             title = "Node 4-5-6",
     )
     vln_bif_gen_nd_123_456_789_probs = StatsPlots.violin(
             ["All sites" "SNPs"],
-            hcat(bif_gen_nd_123_456_789_prob, vo_bif_gen_nd_123_456_789_prob),
+            hcat(prep_for_violin(rng, bif_gen_nd_123_456_789_prob),
+                 prep_for_violin(rng, vo_bif_gen_nd_123_456_789_prob)),
             ylims = (0.0, 1.0),
             legend = false,
             title = "Node 123-456-789",
@@ -627,13 +665,19 @@ function main_cli()::Cint
 
     vln_fixed_gen_asdsf = StatsPlots.violin(
             ["gen-all" "gen-SNPs" "bif-all" "bif-SNPs"],
-            hcat(fixed_gen_gen_asdsf, vo_fixed_gen_gen_asdsf, fixed_gen_bif_asdsf, vo_fixed_gen_bif_asdsf),
+            hcat(prep_for_violin(rng, fixed_gen_gen_asdsf),
+                 prep_for_violin(rng, vo_fixed_gen_gen_asdsf),
+                 prep_for_violin(rng, fixed_gen_bif_asdsf),
+                 prep_for_violin(rng, vo_fixed_gen_bif_asdsf)),
             legend = false,
             title = "generalized",
     )
     vln_fixed_bif_asdsf = StatsPlots.violin(
             ["gen-all" "gen-SNPs" "bif-all" "bif-SNPs"],
-            hcat(fixed_bif_gen_asdsf, vo_fixed_bif_gen_asdsf, fixed_bif_bif_asdsf, vo_fixed_bif_bif_asdsf),
+            hcat(prep_for_violin(rng, fixed_bif_gen_asdsf),
+                 prep_for_violin(rng, vo_fixed_bif_gen_asdsf),
+                 prep_for_violin(rng, fixed_bif_bif_asdsf),
+                 prep_for_violin(rng, vo_fixed_bif_bif_asdsf)),
             legend = false,
             title = "bifurcating",
     )
@@ -661,13 +705,19 @@ function main_cli()::Cint
 
     vln_unfixed_gen_asdsf = StatsPlots.violin(
             ["gen-all" "gen-SNPs" "bif-all" "bif-SNPs"],
-            hcat(unfixed_gen_gen_asdsf, vo_unfixed_gen_gen_asdsf, unfixed_gen_bif_asdsf, vo_unfixed_gen_bif_asdsf),
+            hcat(prep_for_violin(rng, unfixed_gen_gen_asdsf),
+                 prep_for_violin(rng, vo_unfixed_gen_gen_asdsf),
+                 prep_for_violin(rng, unfixed_gen_bif_asdsf),
+                 prep_for_violin(rng, vo_unfixed_gen_bif_asdsf)),
             legend = false,
             title = "generalized",
     )
     vln_unfixed_bif_asdsf = StatsPlots.violin(
             ["gen-all" "gen-SNPs" "bif-all" "bif-SNPs"],
-            hcat(unfixed_bif_gen_asdsf, vo_unfixed_bif_gen_asdsf, unfixed_bif_bif_asdsf, vo_unfixed_bif_bif_asdsf),
+            hcat(prep_for_violin(rng, unfixed_bif_gen_asdsf),
+                 prep_for_violin(rng, vo_unfixed_bif_gen_asdsf),
+                 prep_for_violin(rng, unfixed_bif_bif_asdsf),
+                 prep_for_violin(rng, vo_unfixed_bif_bif_asdsf)),
             legend = false,
             title = "bifurcating",
     )
