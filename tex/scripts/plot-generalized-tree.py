@@ -13,6 +13,7 @@ from gram import gram
 
 var.punctuation = var.phylip_punctuation
 
+
 class TreeInfo(object):
     IMAGES = {
             'gv': 'gekko-vittatus-1-green-shadow.png',
@@ -554,6 +555,270 @@ class RevJumpMoveTreeInfo(object):
         tg.epdf()
 
 
+class SimpleTreeInfo(object):
+    NODE_LABELS = {
+            'n1': '\\sffamily A',
+            'n2': '\\sffamily B',
+            'n3': '\\sffamily C',
+            'n4': '\\sffamily D',
+            'n5': '\\sffamily E',
+            'n6': '\\sffamily F',
+            'n7': '\\sffamily G',
+            'n8': '\\sffamily H',
+            'n9': '\\sffamily I',
+            'n12':      '$t_1$',
+            'n123':     '$t_2$',
+            'n45':      '$t_3$',
+            'n456':     '$t_4$',
+            'n78':      '$t_5$',
+            'n789':     '$t_6$',
+            'n456789':  '$t_7$',
+            'root':     '$t_8$',
+            }
+    GEN_NODE_LABELS = {
+            'n1': '\\sffamily A',
+            'n2': '\\sffamily B',
+            'n3': '\\sffamily C',
+            'n4': '\\sffamily D',
+            'n5': '\\sffamily E',
+            'n6': '\\sffamily F',
+            'n7': '\\sffamily G',
+            'n8': '\\sffamily H',
+            'n9': '\\sffamily I',
+            'n12':      '$t_1$',
+            'n123':     '$t_2$',
+            'n456':     '$t_3$',
+            'n789':     '$t_4$',
+            'root':     '$t_5$',
+            }
+    _TREE = '((((n1:{l1},n2:{l2})n12:{l12},n3:{l3})n123:{l123},(((n4:{l4},n5:{l5})n45:{l45},n6:{l6})n456:{l456},((n7:{l7},n8:{l8})n78:{l78},n9:{l9})n789:{l789})n456789:{l456789}))root:{lroot};'
+
+    read("((A:0.1,B:0.1)AB:0.1,C:0.2)root:0.0;")
+    _DUMMY_TREE = var.trees[-1]
+    _DUMMY_TG = treegram.TreeGram(_DUMMY_TREE)
+    _DUMMY_TG.render()
+    LEAF_STYLE = copy.deepcopy(_DUMMY_TG.styleDict['leaf'])
+    LEAF_STYLE.name = "simple_leaf"
+    LEAF_STYLE.anchor = "west"
+    LEAF_STYLE.textSize = "normalsize"
+    # LEAF_STYLE.rotate = 90
+
+    INTERNAL_NODE_STYLE = copy.deepcopy(_DUMMY_TG.styleDict['node right'])
+    INTERNAL_NODE_STYLE.name = "simple_internal"
+    INTERNAL_NODE_STYLE.anchor = "west"
+    INTERNAL_NODE_STYLE.textSize = "normalsize"
+    # INTERNAL_NODE_STYLE.rotate = 90
+
+    def __init__(self, node_heights = None, height_multiplier = 1.0, tree = None):
+        self.raw_node_heights = node_heights
+        if not node_heights:
+            self.raw_node_heights = {
+                    '12'     : 0.05,
+                    '123'    : 0.06,
+                    '45'     : 0.11,
+                    '456'    : 0.14,
+                    '78'     : 0.03,
+                    '789'    : 0.12,
+                    '456789' : 0.18,
+                    'root'   : 0.2,
+                    }
+        self.node_heights = {}
+        for k, v in self.raw_node_heights.items():
+            self.node_heights[k] = v * height_multiplier
+        self.height_multiplier = height_multiplier
+        if not tree:
+            self.tree = self._TREE
+        else:
+            self.tree = tree
+
+    def _get_stem_lengths(self):
+        return {
+                'l123': self.node_heights['root'] - self.node_heights['123'],
+                'l12': self.node_heights['123'] - self.node_heights['12'],
+                'l456': self.node_heights['456789'] - self.node_heights['456'],
+                'l45': self.node_heights['456'] - self.node_heights['45'],
+                'l789': self.node_heights['456789'] - self.node_heights['789'],
+                'l78': self.node_heights['789'] - self.node_heights['78'],
+                'l456789': self.node_heights['root'] - self.node_heights['456789'],
+                'l1': self.node_heights['12'],
+                'l2': self.node_heights['12'],
+                'l3': self.node_heights['123'],
+                'l4': self.node_heights['45'],
+                'l5': self.node_heights['45'],
+                'l6': self.node_heights['456'],
+                'l7': self.node_heights['78'],
+                'l8': self.node_heights['78'],
+                'l9': self.node_heights['789'],
+                'lroot': self.node_heights['root'] * 0.08,
+                }
+
+    def _get_event_labels(self, include_zero = False):
+        height_set = set(self.node_heights.values())
+        if include_zero:
+            height_set.add(0.0)
+        heights = sorted(height_set)
+        labels = []
+        for i, h in enumerate(heights):
+            l = '$\\tau_{{\\scriptscriptstyle {0}}}$'.format(i+1) 
+            if include_zero:
+                l = '$\\tau_{{\\scriptscriptstyle {0}}}$'.format(i) 
+            labels.append(l)
+        return labels
+
+    stem_lengths = property(_get_stem_lengths)
+
+    def __str__(self):
+        d = {}
+        # d.update(self.node_heights)
+        d.update(self.stem_lengths)
+        return self.tree.format(**d)
+
+    def plot_tree(self,
+            base_name = 'tree',
+            dir_name = 'gram',
+            scale = 1.0,
+            yscale = 1.0,
+            vmargin = 0,
+            lmargin = 15,
+            phylo_line_weight = 'ultra thick',
+            event_line_weight = 'thick',
+            event_line_color = 'black!50',
+            event_line_style = 'dashed',
+            title_str = None,
+            show_title = False,
+            title_font_size = 'huge',
+            show_events = False,
+            event_indices_to_labels = None,
+            show_event_labels = False,
+            remove_event_labels = False,
+            event_labels_top = True,
+            event_font_size = 'LARGE',
+            show_event_times = False,
+            show_node_labels = False,
+            show_gen_node_labels = False,
+            show_tip_labels = True,
+            time_font_size = 'small',
+            include_time_zero = False,
+            ):
+        read(str(self))
+        sys.stderr.write("{0}\n".format(str(self)))
+        tree = var.trees[-1]
+        nodes_to_shift = []
+        node_root = None
+        for n in tree.iterNodes():
+            if n.name == "root":
+                node_root = n
+            if n.isLeaf and (n.name != "root"):
+                n.name = self.NODE_LABELS[n.name]
+                if not show_tip_labels:
+                    n.name = " "
+                continue
+            if n.name in self.NODE_LABELS:
+                if show_node_labels:
+                    if show_gen_node_labels:
+                        n.name = self.GEN_NODE_LABELS.get(n.name, None)
+                    else:
+                        n.name = self.NODE_LABELS[n.name]
+                else:
+                    n.name = None
+                if n.name:
+                    nodes_to_shift.append(n)
+            else:
+                n.name = None
+        tg = treegram.TreeGram(tree, scale = scale, yScale = yscale) #, showNodeNums = True)
+        tg.styleDict[self.LEAF_STYLE.name] = self.LEAF_STYLE
+        tg.styleDict[self.INTERNAL_NODE_STYLE.name] = self.INTERNAL_NODE_STYLE
+        for p4_node in tree.iterLeavesNoRoot():
+            p4_node.label.myStyle = self.LEAF_STYLE.name
+        for n in nodes_to_shift:
+            tg.tree.node(n.nodeNum).label.myStyle = 'simple_internal'
+        tg.tree.node(node_root.nodeNum).label.xShift = 0.1
+        tg.latexUsePackages.append('sfmath')
+        tg.latexUsePackages.append('color')
+        tg.latexOtherPreambleCommands.extend([
+                "\definecolor{mygreen}{RGB}{50,162,81}",
+                "\definecolor{myorange}{RGB}{255,127,15}",
+                "\definecolor{myblue}{RGB}{60,183,204}",
+                "\definecolor{myyellow}{RGB}{255,217,74}",
+                "\definecolor{myteal}{RGB}{57,115,124}",
+                "\definecolor{myauburn}{RGB}{184,90,13}",
+                ])
+        # tg.latexOtherPreambleCommands()
+        tg.internalNodeLabelSize = 'small' # 'tiny' is default
+        tg.tgDefaultLineThickness = phylo_line_weight
+        tg.baseName = base_name
+        tg.dirName = dir_name
+        # tg.grid(0, 0, 8, 5)
+        height_set = set(self.node_heights.values())
+        if include_time_zero:
+            height_set.add(0.0)
+        heights = sorted(height_set)
+        show_indices = [i for i, h in enumerate(heights)]
+        event_labels = self._get_event_labels(include_time_zero)
+        if event_indices_to_labels:
+            show_indices = sorted(event_indices_to_labels.keys())
+            event_labels = [event_indices_to_labels[i] for i in show_indices]
+        lines = []
+        line_labels = []
+        top = 8.41*yscale
+        bottom = -0.3
+        horizontal_center = scale*((self.node_heights['root'] + 0.1)/2.0)
+        if show_title:
+            if title_str:
+                title = tg.text(title_str, horizontal_center, top)
+            else:
+                title = tg.text('$n_{{\\tau}} = {0}$'.format(len(heights)), horizontal_center, top)
+            title.anchor = "south"
+            title.textSize = title_font_size
+        height_xs = []
+        for i, h in enumerate(heights):
+            x = scale*((self.node_heights['root'] + 0.1) - h)
+            height_xs.append(x)
+            if not i in show_indices:
+                continue
+            l = tg.line(x, bottom, x, top)
+            l.lineStyle = event_line_style
+            l.lineThickness = event_line_weight
+            l.colour = event_line_color
+            if not remove_event_labels:
+                event_label = event_labels[i]
+                if event_labels_top:
+                    t = tg.text(event_label, x, top)
+                else:
+                    t = tg.text(event_label, x, bottom)
+                t.textSize = event_font_size
+                if event_labels_top:
+                    t.anchor = "south"
+                    t.yShift = -0.1
+                    # t.rotate = 90
+                else:
+                    t.anchor = "north"
+                    t.yShift = 0.18
+                    # t.rotate = 90
+            if show_event_times:
+                if event_labels_top:
+                    split_t = tg.text("\\sffamily {0:.2f}".format(h / self.height_multiplier), x, bottom)
+                    split_t.rotate = 45
+                    split_t.anchor = "north east"
+                    split_t.yShift = 0.13
+                else:
+                    split_t = tg.text("\\sffamily {0:.2f}".format(h / self.height_multiplier), x, top)
+                    split_t.rotate = 45
+                    split_t.anchor = "south west"
+                    split_t.yShift = -0.18
+                split_t.textSize = time_font_size
+                line_labels.append(split_t)
+            line_labels.append(t)
+            lines.append(l)
+        if not show_events:
+            for l in lines:
+                l.colour = 'black!00'
+        if not show_event_labels:
+            for l in line_labels:
+                l.colour = 'black!00'
+        tg.epdf()
+
+
 def main_cli():
     out_dir = os.path.join(os.path.pardir, 'trees')
     if not os.path.isdir(out_dir):
@@ -602,6 +867,88 @@ def main_cli():
             show_node_labels = True,
             show_tip_labels = True,
             time_font_size = 'large')
+
+
+    t = SimpleTreeInfo(
+            node_heights = {
+                    '12'     : 0.05,
+                    '123'    : 0.06,
+                    '45'     : 0.11,
+                    '456'    : 0.14,
+                    '78'     : 0.03,
+                    '789'    : 0.12,
+                    '456789' : 0.18,
+                    'root'   : 0.2,
+                    },
+            height_multiplier = 40.0)
+    t.plot_tree(
+            base_name = 'bifurcating-tree',
+            dir_name = out_dir,
+            scale = 1.0,
+            yscale = 0.8,
+            vmargin = 0,
+            lmargin = 0,
+            phylo_line_weight = 'ultra thick',
+            event_line_weight = 'thick',
+            event_line_color = 'black!50',
+            event_line_style = 'dashed',
+            show_title = False,
+            title_str = '{\\sffamily True history}',
+            show_events = True,
+            event_indices_to_labels = None,
+            show_event_labels = True,
+            remove_event_labels = False,
+            # event_labels_top = True,
+            event_labels_top = False,
+            show_node_labels = True,
+            show_gen_node_labels = False,
+            event_font_size = 'Large',
+            show_event_times = True,
+            show_tip_labels = True,
+            time_font_size = 'small',
+            include_time_zero = False,
+            )
+
+    t = SimpleTreeInfo(
+            node_heights = {
+                    '12': 0.05,
+                    '123': 0.08,
+                    '45': 0.08,
+                    '456': 0.08,
+                    '78': 0.05,
+                    '789': 0.05,
+                    '456789': 0.2,
+                    'root': 0.2,
+                    },
+            height_multiplier = 40.0)
+    t.plot_tree(
+            base_name = 'generalized-tree',
+            dir_name = out_dir,
+            scale = 1.0,
+            yscale = 0.8,
+            vmargin = 0,
+            lmargin = 0,
+            phylo_line_weight = 'ultra thick',
+            event_line_weight = 'thick',
+            event_line_color = 'black!50',
+            event_line_style = 'dashed',
+            show_title = False,
+            title_str = '{\\sffamily True history}',
+            show_events = True,
+            event_indices_to_labels = None,
+            show_event_labels = True,
+            remove_event_labels = False,
+            # event_labels_top = True,
+            event_labels_top = False,
+            show_node_labels = True,
+            show_gen_node_labels = True,
+            event_font_size = 'Large',
+            show_event_times = True,
+            show_tip_labels = True,
+            time_font_size = 'small',
+            include_time_zero = False,
+            )
+
 
     t = TreeInfo(
             node_heights = {
