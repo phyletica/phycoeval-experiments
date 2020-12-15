@@ -7,20 +7,33 @@ include("project_util.jl")
 
 
 function get_sim_name(sim_config_path::AbstractString,
-        fix_sim_model::Bool = false)::AbstractString
+        fix_sim_model::Bool = false,
+        locus_size::Int = 1,
+        use_all_sites::Bool = true
+        )::AbstractString
     cfg_name::AbstractString = Base.Filesystem.basename(
             Base.Filesystem.splitext(sim_config_path)[1])
     fixed_label::AbstractString = fix_sim_model ? "fixed" : "unfixed"
+    if locus_size > 1
+        linked_label = use_all_sites ? "linked" : "unlinked"
+        return "locus-$locus_size-$linked_label-$cfg_name-$fixed_label"
+    end
 
     return "$cfg_name-$fixed_label"
 end
 
 function get_sim_script_path(batch_id::AbstractString,
         sim_config_path::AbstractString,
-        fix_sim_model::Bool = false)::AbstractString
-    script_name = "simphycoeval-$(get_sim_name(sim_config_path, fix_sim_model))-batch-$batch_id.sh"
+        fix_sim_model::Bool = false,
+        locus_size::Int = 1,
+        use_all_sites::Bool = true
+        )::AbstractString
+    script_name = "simphycoeval-$(get_sim_name(
+            sim_config_path,
+            fix_sim_model,
+            locus_size,
+            use_all_sites))-batch-$batch_id.sh"
     return Base.Filesystem.joinpath(ProjectUtil.SIM_SCRIPT_DIR, script_name)
-
 end
 
 function write_sim_script(
@@ -29,11 +42,19 @@ function write_sim_script(
         number_of_topo_mcmc_gens_per_rep::Int,
         sim_config_path::AbstractString,
         prior_config_paths::AbstractVector{AbstractString},
-        fix_sim_model::Bool = false)
+        fix_sim_model::Bool = false,
+        locus_size::Int = 1,
+        use_all_sites::Bool = true
+        )
     script_path::AbstractString = get_sim_script_path(batch_id,
             sim_config_path,
-            fix_sim_model)
-    sim_name::AbstractString = get_sim_name(sim_config_path, fix_sim_model)
+            fix_sim_model,
+            locus_size,
+            use_all_sites)
+    sim_name::AbstractString = get_sim_name(sim_config_path,
+            fix_sim_model,
+            locus_size,
+            use_all_sites)
     sim_cfg_file::AbstractString = Base.Filesystem.basename(sim_config_path)
     open(script_path, "w") do ostream
         write(ostream, ProjectUtil.get_pbs_header(script_path,
@@ -41,6 +62,9 @@ function write_sim_script(
         write(ostream, "rng_seed=$batch_id\n")
         write(ostream, "number_of_reps=$number_of_reps\n")
         write(ostream, "number_of_topo_mcmc_gens_per_rep=$number_of_topo_mcmc_gens_per_rep\n")
+        if locus_size > 1
+            write(ostream, "locus_size=$locus_size\n")
+        end
         write(ostream, "sim_name=\"$sim_name\"\n")
         write(ostream, "config_dir=\"../../configs\"\n")
         write(ostream, "config_path=\"\${config_dir}/$sim_cfg_file\"\n")
@@ -51,6 +75,12 @@ function write_sim_script(
         write(ostream, "mkdir -p \"\$output_dir\"\n")
         write(ostream, "\n")
         write(ostream, "\$exe_path --seed=\"\$rng_seed\" -n \"\$number_of_reps\" -t \"\$number_of_topo_mcmc_gens_per_rep\" -o \"\$output_dir\"")
+        if locus_size > 1
+            write(ostream, " -l \"\$locus_size\"")
+        end
+        if ! use_all_sites 
+            write(ostream, " --max-one-variable-site-per-locus")
+        end
         if fix_sim_model
             write(ostream, " --fix-model")
         end
@@ -59,7 +89,9 @@ function write_sim_script(
             write(ostream, " -p \"\${config_dir}/$prior_cfg_name\"")
         end
         write(ostream, " \"\$config_path\"")
-        write(ostream, " && julia --project \"\$config_set_up_script_path\" \"\$output_dir\"")
+        if locus_size < 2
+            write(ostream, " && julia --project \"\$config_set_up_script_path\" \"\$output_dir\"")
+        end
         write(ostream, " && julia --project \"\$qsub_set_up_script_path\" \"\$output_dir\"")
         write(ostream, "\n")
     end
@@ -98,6 +130,14 @@ function main_cli()::Cint
                 range_tester = x -> Base.Filesystem.isfile(x)
                 dest_name = "fixed_sim_config_path"
                 help = "Path to fixed simulation configs."
+        "--locus-size", "-l"
+                arg_type = Int
+                action = :append_arg
+                required = false
+                range_tester = x -> x > 0
+                dest_name = "locus_size"
+                help = ("The number of sites to simulate per locus. "
+                        * "Default: 1 (unlinked characters).")
         "sim_config_path"
                 arg_type = AbstractString
                 action = :store_arg
@@ -125,6 +165,11 @@ function main_cli()::Cint
         push!(batch_num_strings, ProjectUtil.get_batch_id(rng, 9))
     end
 
+    locus_sizes::Vector{Int} = parsed_args["locus_size"]
+    if length(locus_sizes) < 1
+        push!(batch_num_strings, 1)
+    end
+
     try
         Base.Filesystem.mkdir(ProjectUtil.SIM_SCRIPT_DIR)
     catch err
@@ -135,20 +180,48 @@ function main_cli()::Cint
 
     for batch_num_str in batch_num_strings
         for sim_cfg_path in parsed_args["fixed_sim_config_path"]
-            write_sim_script(batch_num_str,
-                             parsed_args["nreps"],
-                             parsed_args["topo_mcmc_gens_per_rep"],
-                             sim_cfg_path,
-                             parsed_args["prior_config_path"],
-                             true)
+            for locus_size in locus_sizes
+                write_sim_script(batch_num_str,
+                                 parsed_args["nreps"],
+                                 parsed_args["topo_mcmc_gens_per_rep"],
+                                 sim_cfg_path,
+                                 parsed_args["prior_config_path"],
+                                 true,
+                                 locus_size,
+                                 true)
+                if locus_size > 1
+                    write_sim_script(batch_num_str,
+                                     parsed_args["nreps"],
+                                     parsed_args["topo_mcmc_gens_per_rep"],
+                                     sim_cfg_path,
+                                     parsed_args["prior_config_path"],
+                                     true,
+                                     locus_size,
+                                     false)
+                end
+            end
         end
         for sim_cfg_path in parsed_args["sim_config_path"]
-            write_sim_script(batch_num_str,
-                             parsed_args["nreps"],
-                             parsed_args["topo_mcmc_gens_per_rep"],
-                             sim_cfg_path,
-                             parsed_args["prior_config_path"],
-                             false)
+            for locus_size in locus_sizes
+                write_sim_script(batch_num_str,
+                                 parsed_args["nreps"],
+                                 parsed_args["topo_mcmc_gens_per_rep"],
+                                 sim_cfg_path,
+                                 parsed_args["prior_config_path"],
+                                 false,
+                                 locus_size,
+                                 true)
+                if locus_size > 1
+                    write_sim_script(batch_num_str,
+                                     parsed_args["nreps"],
+                                     parsed_args["topo_mcmc_gens_per_rep"],
+                                     sim_cfg_path,
+                                     parsed_args["prior_config_path"],
+                                     false,
+                                     locus_size,
+                                     false)
+                end
+            end
         end
 
         write(stdout, "$batch_num_str\n")

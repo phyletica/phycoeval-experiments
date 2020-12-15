@@ -13,6 +13,10 @@ batch_seeds=( \
     -b 809536974 \
 )
 
+locus_sizes=(\
+    -l 1 \
+    -l 100 \
+)
 prior_configs=(\
     -p ../configs/species-9-genomes-2-bifurcating-tree-random.yml \
     -p ../configs/species-9-genomes-2-generalized-tree-random.yml \
@@ -30,4 +34,5 @@ julia --project create_batch_of_simphycoeval_scripts.jl -n 10 -t 1000 \
     "${batch_seeds[@]}" \
     "${prior_configs[@]}" \
     "${fixed_sim_configs[@]}" \
+    "${locus_sizes[@]}" \
     "${sim_configs[@]}"
