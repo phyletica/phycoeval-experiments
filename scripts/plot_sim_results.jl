@@ -554,7 +554,7 @@ function main_cli()::Cint
     for locus_size in locus_sizes
         locus_prefix = ""
         if locus_size > 1
-            locus_prefix = "locus-$locus_size"
+            locus_prefix = "locus-$locus_size-"
         end
 
         root_node_probs = get_floats(results, true, true, true, false, :root_node_true_prob, locus_size)
