@@ -8,6 +8,7 @@ submission_executable="${bin_dir}/psub"
 array_spawner_executable="${bin_dir}/spawn_job_array"
 extra_args=()
 restrict_nodes=''
+dry_run=''
 wtime='6:00:00'
 expected_nlines=1502
 max_njobs=100
@@ -31,6 +32,8 @@ usage () {
     echo "                   output by phycoeval. Default: $expected_nlines."
     echo "  -m|--max-njobs   Maximum number of jobs to be run at a time."
     echo "                   Default: $max_njobs."
+    echo "  -d|--dry-run     Prepare job submission and echo command, but do"
+    echo "                   not submit job array."
     echo ""
 }
 
@@ -73,6 +76,10 @@ do
             shift
             max_njobs="$1"
             shift
+            ;;
+        -d| --dry-run)
+            shift
+            dry_run=1
             ;;
         *)
             extra_args+=("$1")
@@ -273,4 +280,7 @@ else
     psub_flags="${psub_flags} -a 1-${number_of_reruns}%${max_njobs}"
 fi
 echo $submission_executable $psub_flags "$array_spawner_executable" "$qsub_path_list"
-$submission_executable $psub_flags "$array_spawner_executable" "$qsub_path_list"
+if [ -z "$dry_run" ]
+then
+    $submission_executable $psub_flags "$array_spawner_executable" "$qsub_path_list"
+fi
