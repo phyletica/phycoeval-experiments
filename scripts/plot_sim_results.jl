@@ -9,6 +9,7 @@ using CSV
 using Plots
 using StatsPlots
 using HypothesisTests
+using LaTeXStrings
 # using GR
 
 include("project_util.jl")
@@ -19,6 +20,7 @@ comp_blue_col= RGB(2/255, 219/255, 240/255)
 dark_orange_col = RGB(186/255, 88/255, 0/255)
 l_dark_orange_col = RGB(255/255, 135/255, 31/255)
 comp_orange_col = RGB(255/255, 181/255, 91/255)
+highlight_col = "red"
 
 gen_col = dark_blue_col
 vo_gen_col = comp_blue_col
@@ -102,6 +104,9 @@ struct SimResults
         run(`gzip $main_tsv_path`)
         return new(results)
     end
+    function SimResults(data_frame::DataFrame)
+        return new(data_frame)
+    end
 end
 
 function get_rows(r::SimResults,
@@ -141,7 +146,7 @@ function get_bools(r::SimResults,
         sim_generalized::Bool,
         analysis_generalized::Bool,
         var_only::Bool,
-        col_header::Union{Symbol, AbstractString};
+        col_header::Union{Symbol, AbstractString},
         locus_size::Int = 1
         )::Vector{Bool}
     return r.df[(r.df[!, :sim_fixed] .== fixed) .& (r.df[!, :sim_generalized] .== sim_generalized) .& (r.df[!, :analysis_generalized] .== analysis_generalized) .& (r.df[!, :only_var_sites] .== var_only) .& (r.df[!, :locus_size] .== locus_size), :][!, col_header]
@@ -348,7 +353,10 @@ function get_true_v_est_plot(r::SimResults,
         col_header_prefix::String,
         locus_size::Int = 1,
         use_median::Bool = false,
-        axis_limit_buffer::AbstractFloat = 0.05
+        axis_limit_buffer::AbstractFloat = 0.05,
+        psrf_threshold::AbstractFloat = -1.0,
+        ess_threshold::AbstractFloat = -1.0,
+        highlight_color = "red"
         )::Plots.Plot
     x = get_floats(r,
             fixed,
@@ -395,8 +403,8 @@ function get_true_v_est_plot(r::SimResults,
     xy_buffer = xy_range * axis_limit_buffer
     axis_limits = [extremes[1] - xy_buffer,
                    extremes[2] + xy_buffer]
-    identity_line = [extremes[1] - (xy_buffer * 2.0)
-                     extremes[2] + (xy_buffer * 2.0)]
+    identity_line = [extremes[1] - (xy_buffer * 20.0)
+                     extremes[2] + (xy_buffer * 20.0)]
 
     plt = Plots.plot(identity_line, identity_line,
             seriestype = :line,
@@ -412,6 +420,44 @@ function get_true_v_est_plot(r::SimResults,
             legend = false,
             xlims = axis_limits,
             ylims = axis_limits)
+    if (psrf_threshold > 0) | (ess_threshold > 0)
+        highlight_x = Vector{Float64}()
+        highlight_y = Vector{Float64}()
+        highlight_y_lower = Vector{Float64}()
+        highlight_y_upper = Vector{Float64}()
+        psrf = get_floats(r,
+                fixed,
+                sim_generalized,
+                analysis_generalized,
+                var_only,
+                col_header_prefix * "_psrf",
+                locus_size)
+        ess = get_floats(r,
+                fixed,
+                sim_generalized,
+                analysis_generalized,
+                var_only,
+                col_header_prefix * "_ess",
+                locus_size)
+        for i in 1:length(x)
+            if (((psrf_threshold > 0) & (psrf[i] > psrf_threshold)) |
+                    ((ess_threshold > 0) & (ess[i] < ess_threshold)))
+                append!(highlight_x, x[i])
+                append!(highlight_y, y[i])
+                append!(highlight_y_lower, y_lower[i])
+                append!(highlight_y_upper, y_upper[i])
+            end
+        end
+        if length(highlight_x) > 0
+            Plots.plot!(plt,
+                    highlight_x,
+                    highlight_y,
+                    yerror = (highlight_y - highlight_y_lower, highlight_y_upper - highlight_y),
+                    seriestype = :scatter,
+                    markercolor = highlight_color)
+        end
+    end
+    return plt
 end
 
 function get_shared_x_limits(
@@ -526,6 +572,15 @@ function prep_for_violin(
     return v
 end
 
+function relative_xy(plt::Plots.Plot, x, y)
+        x_lims = Plots.xlims(plt)
+        y_lims = Plots.ylims(plt)
+        coords = x_lims[1] + (x * (x_lims[2] - x_lims[1])),
+                 y_lims[1] + (y * (y_lims[2] - y_lims[1]))
+        return coords
+end
+
+
 function main_cli()::Cint
     if ! Base.Filesystem.ispath(ProjectUtil.RESULTS_DIR)
         Base.Filesystem.mkdir(ProjectUtil.RESULTS_DIR)
@@ -536,6 +591,7 @@ function main_cli()::Cint
     write(stdout, "Plotting backend: $(backend())\n")
 
     brooks_gelman_1998_recommended_psrf = 1.2
+    ess_threshold = 200.0
 
     violin_probability_jiggle = 1.0e-3
     violin_asdsf_jiggle = 1e-8
@@ -556,6 +612,140 @@ function main_cli()::Cint
         if locus_size > 1
             locus_prefix = "locus-$locus_size-"
         end
+
+        sum_stats = DataFrame()
+        bools = [true, false]
+        for sim_fixed in bools
+            for sim_generalized in bools
+                for analysis_generalized in bools
+                    for only_var_sites in bools
+                        tree_len_perc = get_floats(results,
+                                sim_fixed,
+                                sim_generalized,
+                                analysis_generalized,
+                                only_var_sites,
+                                :tree_length_true_percentile,
+                                locus_size)
+                        tree_len_cover = Statistics.mean(
+                                0.025 .<= tree_len_perc .<= 0.975)
+                        root_height_perc = get_floats(results,
+                                sim_fixed,
+                                sim_generalized,
+                                analysis_generalized,
+                                only_var_sites,
+                                :root_height_true_percentile,
+                                locus_size)
+                        root_height_cover = Statistics.mean(
+                                0.025 .<= root_height_perc .<= 0.975)
+                        root_pop_size_perc = get_floats(results,
+                                sim_fixed,
+                                sim_generalized,
+                                analysis_generalized,
+                                only_var_sites,
+                                :root_pop_size_true_percentile,
+                                locus_size)
+                        root_pop_size_cover = Statistics.mean(
+                                0.025 .<= root_pop_size_perc .<= 0.975)
+
+                        tree_cred_level = get_floats(results,
+                                sim_fixed,
+                                sim_generalized,
+                                analysis_generalized,
+                                only_var_sites,
+                                :topo_true_cred_level,
+                                locus_size)
+                        tree_cover = Statistics.mean(tree_cred_level .>= 0.95)
+
+                        freq_tree_correct = Statistics.mean(get_bools(results,
+                                sim_fixed,
+                                sim_generalized,
+                                analysis_generalized,
+                                only_var_sites,
+                                :topo_true_is_map,
+                                locus_size))
+
+                        num_heights_cred_level = get_floats(results,
+                                sim_fixed,
+                                sim_generalized,
+                                analysis_generalized,
+                                only_var_sites,
+                                :num_heights_true_cred_level,
+                                locus_size)
+                        num_heights_cover = Statistics.mean(num_heights_cred_level .>= 0.95)
+
+                        freq_num_heights_correct = Statistics.mean(
+                                get_ints(results,
+                                        sim_fixed,
+                                        sim_generalized,
+                                        analysis_generalized,
+                                        only_var_sites,
+                                        :num_heights_true,
+                                        locus_size) .==
+                                get_ints(results,
+                                        sim_fixed,
+                                        sim_generalized,
+                                        analysis_generalized,
+                                        only_var_sites,
+                                        :num_heights_map,
+                                        locus_size))
+
+                        row = DataFrame(
+                                sim_fixed = sim_fixed,
+                                sim_generalized = sim_generalized,
+                                analysis_generalized = analysis_generalized,
+                                only_var_sites = only_var_sites,
+                                locus_size = locus_size,
+                                coverage_tree_length = tree_len_cover,
+                                coverage_root_height = root_height_cover,
+                                coverage_root_pop_size = root_pop_size_cover,
+                                coverage_tree = tree_cover,
+                                coverage_num_heights = num_heights_cover,
+                                freq_correct_tree = freq_tree_correct,
+                                freq_correct_num_heights = freq_num_heights_correct,
+                                )
+                        sum_stats = vcat(sum_stats, row)
+                    end
+                end
+            end
+        end
+
+        sum_results = SimResults(sum_stats)
+        for sim_fixed in bools
+            for sim_generalized in bools
+                for analysis_generalized in bools
+                    for only_var_sites in bools
+                        write(stdout, "\n\n")
+                        write(stdout, "$(sim_fixed ? "Fixed" : "Free")")
+                        write(stdout, " $(sim_generalized ? "gen" : "bif")")
+                        write(stdout, " $(analysis_generalized ? "gen" : "bif")")
+                        write(stdout, " $(only_var_sites ? "var-only" : "all-sites")")
+                        write(stdout, " $(locus_size)\n")
+                        write(stdout, "tree-length-coverage: $(get_floats(sum_results,
+                                sim_fixed,
+                                sim_generalized,
+                                analysis_generalized,
+                                only_var_sites,
+                                :coverage_tree_length,
+                                locus_size))\n")
+                        write(stdout, "root-height-coverage: $(get_floats(sum_results,
+                                sim_fixed,
+                                sim_generalized,
+                                analysis_generalized,
+                                only_var_sites,
+                                :coverage_root_height,
+                                locus_size))\n")
+                        write(stdout, "root-pop-size-coverage: $(get_floats(sum_results,
+                                sim_fixed,
+                                sim_generalized,
+                                analysis_generalized,
+                                only_var_sites,
+                                :coverage_root_pop_size,
+                                locus_size))\n")
+                    end
+                end
+            end
+        end
+
 
         root_node_probs = get_floats(results, true, true, true, false, :root_node_true_prob, locus_size)
         vo_root_node_probs = get_floats(results, true, true, true, true, :root_node_true_prob, locus_size)
@@ -1639,7 +1829,32 @@ function main_cli()::Cint
                 true,
                 false,
                 "tree_length",
-                locus_size)
+                locus_size,
+                false,
+                0.05,
+                brooks_gelman_1998_recommended_psrf,
+                ess_threshold,
+                "red")
+        tree_len_coverage = get_floats(
+                sum_results,
+                false,
+                true,
+                true,
+                false,
+                :coverage_tree_length,
+                locus_size)[1]
+        #= sss = "p(TL " * "\\in" * " CI) = $(tree_len_coverage)" =#
+        #= sss = "p(TL $(L"\in") CI) = $(tree_len_coverage)" =#
+        annotate!(gen_gen_tree_len,
+                relative_xy(gen_gen_tree_len, 0.05, 0.99)...,
+                #= text(L"$p(\textrm{TL} \in \textrm{CI}) = %$tree_len_coverage$", =#
+                #= text(sss, =#
+                #= text("\$\\textrm{\\sffamily\\it p}(\\textrm{\\sffamily TL} \\in \\textrm{\\sffamily CI}) = $(tree_len_coverage)\$", =#
+                text(L"$\textrm{\sffamily\it p}(\textrm{\sffamily TL} \in \textrm{\sffamily CI}) = %$(tree_len_coverage)$",
+                        :left,
+                        :top,
+                        8),
+                annotation_clip = false)
         vo_gen_gen_tree_len = get_true_v_est_plot(
                 results,
                 false,
@@ -1859,6 +2074,231 @@ function main_cli()::Cint
         write(stdout, "Writing to unfixed-asdsf.pdf\n")
         Plots.savefig(vln_unfixed_asdsf_grid,
                 joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-asdsf.pdf"))
+
+
+        # Plot topology-related probs
+
+        true_topo_probs = get_floats(results, false, true, true, false, :topo_true_prob, locus_size)
+        vo_true_topo_probs = get_floats(results, false, true, true, true, :topo_true_prob, locus_size)
+        root_node_probs = get_floats(results, false, true, true, false, :root_node_true_prob, locus_size)
+        vo_root_node_probs = get_floats(results, false, true, true, true, :root_node_true_prob, locus_size)
+        true_split_prob_means = get_floats(results, false, true, true, false, :true_split_prob_mean, locus_size)
+        vo_true_split_prob_means = get_floats(results, false, true, true, true, :true_split_prob_mean, locus_size)
+        true_node_prob_means = get_floats(results, false, true, true, false, :true_node_prob_mean, locus_size)
+        vo_true_node_prob_means = get_floats(results, false, true, true, true, :true_node_prob_mean, locus_size)
+        true_height_prob_means = get_floats(results, false, true, true, false, :true_height_prob_mean, locus_size)
+        vo_true_height_prob_means = get_floats(results, false, true, true, true, :true_height_prob_mean, locus_size)
+
+        v = get_floats(results, false, true, true, false, :true_shared_height_prob_mean, locus_size)
+        true_shared_height_prob_means = v[.!any.(isnan, v)]
+        v = get_floats(results, false, true, true, true, :true_shared_height_prob_mean, locus_size)
+        vo_true_shared_height_prob_means = v[.!any.(isnan, v)]
+
+        v = get_split_violin_plot(
+                true_shared_height_prob_means,
+                vo_true_shared_height_prob_means,
+                xlabels = [ "" ],
+                left_fill_colors = gen_col,
+                left_marker_colors = gen_col,
+                left_fill_alphas = gen_fill_alpha,
+                left_marker_alphas = gen_marker_alpha,
+                left_labels = [ "All sites" ],
+                right_fill_colors = vo_gen_col,
+                right_marker_colors = vo_gen_col,
+                right_fill_alphas = vo_gen_fill_alpha,
+                right_marker_alphas = vo_gen_marker_alpha,
+                right_labels = [ "Variable sites" ],
+                legend = :best,
+                dot_legend = false)
+        Plots.plot!(v, size = (200, 200))
+        Plots.ylims!(v, (-0.02, 1.02))
+        Plots.ylabel!(v, "Posterior probability")
+        Plots.savefig(v,
+                joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-true-shared-height-probs.pdf"))
+
+        v = get_split_violin_plot(
+                hcat(true_topo_probs,
+                     root_node_probs,
+                     true_split_prob_means,
+                     true_node_prob_means,
+                     true_height_prob_means),
+                hcat(vo_true_topo_probs,
+                     vo_root_node_probs,
+                     vo_true_split_prob_means,
+                     vo_true_node_prob_means,
+                     vo_true_height_prob_means),
+                xlabels = [ "True topology" "Root node" "True split mean" "True node mean" "True height mean" ],
+                left_fill_colors = gen_col,
+                left_marker_colors = gen_col,
+                left_fill_alphas = gen_fill_alpha,
+                left_marker_alphas = gen_marker_alpha,
+                left_labels = [ "All sites" ],
+                right_fill_colors = vo_gen_col,
+                right_marker_colors = vo_gen_col,
+                right_fill_alphas = vo_gen_fill_alpha,
+                right_marker_alphas = vo_gen_marker_alpha,
+                right_labels = [ "Variable sites" ],
+                legend = :best,
+                dot_legend = false)
+        Plots.plot!(v, size = (1200, 300))
+        Plots.ylims!(v, (-0.02, 1.02))
+        Plots.ylabel!(v, "Posterior probability")
+        Plots.savefig(v,
+                joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-true-tree-probs.pdf"))
+
+
+        true_topo_probs = get_floats(results, false, false, false, false, :topo_true_prob, locus_size)
+        vo_true_topo_probs = get_floats(results, false, false, false, true, :topo_true_prob, locus_size)
+        root_node_probs = get_floats(results, false, false, false, false, :root_node_true_prob, locus_size)
+        vo_root_node_probs = get_floats(results, false, false, false, true, :root_node_true_prob, locus_size)
+        true_split_prob_means = get_floats(results, false, false, false, false, :true_split_prob_mean, locus_size)
+        vo_true_split_prob_means = get_floats(results, false, false, false, true, :true_split_prob_mean, locus_size)
+        true_node_prob_means = get_floats(results, false, false, false, false, :true_node_prob_mean, locus_size)
+        vo_true_node_prob_means = get_floats(results, false, false, false, true, :true_node_prob_mean, locus_size)
+        true_height_prob_means = get_floats(results, false, false, false, false, :true_height_prob_mean, locus_size)
+        vo_true_height_prob_means = get_floats(results, false, false, false, true, :true_height_prob_mean, locus_size)
+
+        v = get_split_violin_plot(
+                hcat(true_topo_probs,
+                     root_node_probs,
+                     true_split_prob_means,
+                     true_node_prob_means,
+                     true_height_prob_means),
+                hcat(vo_true_topo_probs,
+                     vo_root_node_probs,
+                     vo_true_split_prob_means,
+                     vo_true_node_prob_means,
+                     vo_true_height_prob_means),
+                xlabels = [ "True topology" "Root node" "True split mean" "True node mean" "True height mean" ],
+                left_fill_colors = gen_col,
+                left_marker_colors = gen_col,
+                left_fill_alphas = gen_fill_alpha,
+                left_marker_alphas = gen_marker_alpha,
+                left_labels = [ "All sites" ],
+                right_fill_colors = vo_gen_col,
+                right_marker_colors = vo_gen_col,
+                right_fill_alphas = vo_gen_fill_alpha,
+                right_marker_alphas = vo_gen_marker_alpha,
+                right_labels = [ "Variable sites" ],
+                legend = :best,
+                dot_legend = false)
+        Plots.plot!(v, size = (1200, 300))
+        Plots.ylims!(v, (-0.02, 1.02))
+        Plots.ylabel!(v, "Posterior probability")
+        Plots.savefig(v,
+                joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-bif-bif-true-tree-probs.pdf"))
+
+
+        true_topo_probs = get_floats(results, false, true, false, false, :topo_true_prob, locus_size)
+        vo_true_topo_probs = get_floats(results, false, true, false, true, :topo_true_prob, locus_size)
+        root_node_probs = get_floats(results, false, true, false, false, :root_node_true_prob, locus_size)
+        vo_root_node_probs = get_floats(results, false, true, false, true, :root_node_true_prob, locus_size)
+        true_split_prob_means = get_floats(results, false, true, false, false, :true_split_prob_mean, locus_size)
+        vo_true_split_prob_means = get_floats(results, false, true, false, true, :true_split_prob_mean, locus_size)
+        true_node_prob_means = get_floats(results, false, true, false, false, :true_node_prob_mean, locus_size)
+        vo_true_node_prob_means = get_floats(results, false, true, false, true, :true_node_prob_mean, locus_size)
+        true_height_prob_means = get_floats(results, false, true, false, false, :true_height_prob_mean, locus_size)
+        vo_true_height_prob_means = get_floats(results, false, true, false, true, :true_height_prob_mean, locus_size)
+
+        v = get_floats(results, false, true, false, false, :true_shared_height_prob_mean, locus_size)
+        true_shared_height_prob_means = v[.!any.(isnan, v)]
+        v = get_floats(results, false, true, false, true, :true_shared_height_prob_mean, locus_size)
+        vo_true_shared_height_prob_means = v[.!any.(isnan, v)]
+
+        v = get_split_violin_plot(
+                true_shared_height_prob_means,
+                vo_true_shared_height_prob_means,
+                xlabels = [ "" ],
+                left_fill_colors = gen_col,
+                left_marker_colors = gen_col,
+                left_fill_alphas = gen_fill_alpha,
+                left_marker_alphas = gen_marker_alpha,
+                left_labels = [ "All sites" ],
+                right_fill_colors = vo_gen_col,
+                right_marker_colors = vo_gen_col,
+                right_fill_alphas = vo_gen_fill_alpha,
+                right_marker_alphas = vo_gen_marker_alpha,
+                right_labels = [ "Variable sites" ],
+                legend = :best,
+                dot_legend = false)
+        Plots.plot!(v, size = (200, 200))
+        Plots.ylims!(v, (-0.02, 1.02))
+        Plots.ylabel!(v, "Posterior probability")
+        Plots.savefig(v,
+                joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-bif-true-shared-height-probs.pdf"))
+
+        v = get_split_violin_plot(
+                hcat(true_topo_probs,
+                     root_node_probs,
+                     true_split_prob_means,
+                     true_node_prob_means,
+                     true_height_prob_means),
+                hcat(vo_true_topo_probs,
+                     vo_root_node_probs,
+                     vo_true_split_prob_means,
+                     vo_true_node_prob_means,
+                     vo_true_height_prob_means),
+                xlabels = [ "True topology" "Root node" "True split mean" "True node mean" "True height mean" ],
+                left_fill_colors = gen_col,
+                left_marker_colors = gen_col,
+                left_fill_alphas = gen_fill_alpha,
+                left_marker_alphas = gen_marker_alpha,
+                left_labels = [ "All sites" ],
+                right_fill_colors = vo_gen_col,
+                right_marker_colors = vo_gen_col,
+                right_fill_alphas = vo_gen_fill_alpha,
+                right_marker_alphas = vo_gen_marker_alpha,
+                right_labels = [ "Variable sites" ],
+                legend = :best,
+                dot_legend = false)
+        Plots.plot!(v, size = (1200, 300))
+        Plots.ylims!(v, (-0.02, 1.02))
+        Plots.ylabel!(v, "Posterior probability")
+        Plots.savefig(v,
+                joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-bif-true-tree-probs.pdf"))
+
+
+        true_topo_probs = get_floats(results, false, false, true, false, :topo_true_prob, locus_size)
+        vo_true_topo_probs = get_floats(results, false, false, true, true, :topo_true_prob, locus_size)
+        root_node_probs = get_floats(results, false, false, true, false, :root_node_true_prob, locus_size)
+        vo_root_node_probs = get_floats(results, false, false, true, true, :root_node_true_prob, locus_size)
+        true_split_prob_means = get_floats(results, false, false, true, false, :true_split_prob_mean, locus_size)
+        vo_true_split_prob_means = get_floats(results, false, false, true, true, :true_split_prob_mean, locus_size)
+        true_node_prob_means = get_floats(results, false, false, true, false, :true_node_prob_mean, locus_size)
+        vo_true_node_prob_means = get_floats(results, false, false, true, true, :true_node_prob_mean, locus_size)
+        true_height_prob_means = get_floats(results, false, false, true, false, :true_height_prob_mean, locus_size)
+        vo_true_height_prob_means = get_floats(results, false, false, true, true, :true_height_prob_mean, locus_size)
+
+        v = get_split_violin_plot(
+                hcat(true_topo_probs,
+                     root_node_probs,
+                     true_split_prob_means,
+                     true_node_prob_means,
+                     true_height_prob_means),
+                hcat(vo_true_topo_probs,
+                     vo_root_node_probs,
+                     vo_true_split_prob_means,
+                     vo_true_node_prob_means,
+                     vo_true_height_prob_means),
+                xlabels = [ "True topology" "Root node" "True split mean" "True node mean" "True height mean" ],
+                left_fill_colors = gen_col,
+                left_marker_colors = gen_col,
+                left_fill_alphas = gen_fill_alpha,
+                left_marker_alphas = gen_marker_alpha,
+                left_labels = [ "All sites" ],
+                right_fill_colors = vo_gen_col,
+                right_marker_colors = vo_gen_col,
+                right_fill_alphas = vo_gen_fill_alpha,
+                right_marker_alphas = vo_gen_marker_alpha,
+                right_labels = [ "Variable sites" ],
+                legend = :best,
+                dot_legend = false)
+        Plots.plot!(v, size = (1200, 300))
+        Plots.ylims!(v, (-0.02, 1.02))
+        Plots.ylabel!(v, "Posterior probability")
+        Plots.savefig(v,
+                joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-bif-gen-true-tree-probs.pdf"))
+
     end
 
     return 0
