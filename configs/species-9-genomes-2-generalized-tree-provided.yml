@@ -17,7 +17,7 @@ tree_model:
                             shape: 10.0
                             mean: 0.2
                 alpha_of_node_height_beta_prior:
-                    value: 1.0
+                    value: 2.0
                     estimate: false
 branch_parameters:
     population_size:
