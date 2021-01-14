@@ -208,7 +208,7 @@ do
             continue
         fi
 
-        if [ "$(tail -n 1 "$trees_log" | grep -c "END;" "$out_file")" != 1 ]
+        if [ "$(tail -n 1 "$trees_log" | grep -c "END;")" != 1 ]
         then
             echo "Incomplete trees log: $qsub_path"
             reruns+=( "$qsub_path" )
