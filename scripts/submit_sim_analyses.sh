@@ -153,13 +153,14 @@ do
         prefix="${dir_path}/${file_prefix}"
         out_file="${prefix}.yml.out"
         state_log="${prefix}-state-run-1.log"
+        trees_log="${prefix}-trees-run-1.nex"
         op_log="${prefix}-operator-run-1.log"
 
         # Consolidate tree logs if run was restarted 
         extra_run_number=2
         while [ -e "${prefix}-trees-run-${extra_run_number}.nex" ]
         do
-            mv "${prefix}-trees-run-${extra_run_number}.nex" "$state_log"
+            mv "${prefix}-trees-run-${extra_run_number}.nex" "$trees_log"
             ((++extra_run_number))
         done
     
@@ -179,16 +180,23 @@ do
             ((++extra_run_number))
         done
     
-        if [ ! -e "$out_file" ] 
+        if [ ! -e "$out_file" ]
         then
-            echo "No stdout: $qsub_path" 
+            echo "No stdout: $qsub_path"
             reruns+=( "$qsub_path" )
             continue
         fi
     
-        if [ ! -e "$state_log" ] 
+        if [ ! -e "$state_log" ]
         then
-            echo "No state log: $qsub_path" 
+            echo "No state log: $qsub_path"
+            reruns+=( "$qsub_path" )
+            continue
+        fi
+
+        if [ ! -e "$trees_log" ]
+        then
+            echo "No trees log: $qsub_path"
             reruns+=( "$qsub_path" )
             continue
         fi
@@ -199,11 +207,18 @@ do
             reruns+=( "$qsub_path" )
             continue
         fi
+
+        if [ "$(tail -n 1 "$trees_log" | grep -c "END;" "$out_file")" != 1 ]
+        then
+            echo "Incomplete trees log: $qsub_path"
+            reruns+=( "$qsub_path" )
+            continue
+        fi
     
         nlines="$(wc -l "$state_log" | awk '{print $1}')"
-        if [ "$nlines" != "$expected_nlines" ] 
+        if [ "$nlines" != "$expected_nlines" ]
         then
-            echo "Incomplete log: $qsub_path" 
+            echo "Incomplete state log: $qsub_path"
             reruns+=( "$qsub_path" )
             continue
         fi
