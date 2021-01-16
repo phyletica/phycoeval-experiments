@@ -208,7 +208,8 @@ do
             continue
         fi
 
-        if [ "$(tail -n 1 "$trees_log" | grep -c "END;")" != 1 ]
+        nlines="$(wc -l "$trees_log" | awk '{print $1}')"
+        if [ "$nlines" -lt "$expected_nlines" ] || [ "$(tail -n 1 "$trees_log" | grep -c "END;")" != 1 ]
         then
             echo "Incomplete trees log: $qsub_path"
             reruns+=( "$qsub_path" )
