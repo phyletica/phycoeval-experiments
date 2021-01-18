@@ -43,6 +43,7 @@ function write_sim_script(
         sim_config_path::AbstractString,
         prior_config_paths::AbstractVector{AbstractString},
         fix_sim_model::Bool = false,
+        min_div_diff::Float64 = -1.0,
         locus_size::Int = 1,
         use_all_sites::Bool = true
         )
@@ -83,6 +84,8 @@ function write_sim_script(
         end
         if fix_sim_model
             write(ostream, " --fix-model")
+        elseif min_div_diff > 0.0
+            write(ostream, " --min-div-diff $min_div_diff")
         end
         for prior_cfg_path in prior_config_paths
             prior_cfg_name = Base.Filesystem.basename(prior_cfg_path)
@@ -138,6 +141,14 @@ function main_cli()::Cint
                 dest_name = "locus_size"
                 help = ("The number of sites to simulate per locus. "
                         * "Default: 1 (unlinked characters).")
+        "--min-div-diff", "-m"
+                arg_type = Float64
+                action = :store_arg
+                default = 0.001
+                required = false
+                dest_name = "min_div_diff"
+                help = ("The minimum difference between div times. "
+                        * "Default: 1e-3.")
         "sim_config_path"
                 arg_type = AbstractString
                 action = :store_arg
@@ -187,6 +198,7 @@ function main_cli()::Cint
                                  sim_cfg_path,
                                  parsed_args["prior_config_path"],
                                  true,
+                                 parsed_args["min_div_diff"],
                                  locus_size,
                                  true)
                 if locus_size > 1
@@ -196,6 +208,7 @@ function main_cli()::Cint
                                      sim_cfg_path,
                                      parsed_args["prior_config_path"],
                                      true,
+                                     parsed_args["min_div_diff"],
                                      locus_size,
                                      false)
                 end
@@ -209,6 +222,7 @@ function main_cli()::Cint
                                  sim_cfg_path,
                                  parsed_args["prior_config_path"],
                                  false,
+                                 parsed_args["min_div_diff"],
                                  locus_size,
                                  true)
                 if locus_size > 1
@@ -218,6 +232,7 @@ function main_cli()::Cint
                                      sim_cfg_path,
                                      parsed_args["prior_config_path"],
                                      false,
+                                     parsed_args["min_div_diff"],
                                      locus_size,
                                      false)
                 end
