@@ -114,5 +114,10 @@ do
             tar czf sim-files-true-trees.tar.gz simphycoeval-sim-*-true-tree.phy && rm simphycoeval-sim-*-true-tree.phy
             break
         fi; done
+        for p in simphycoeval*rejected-trees.phy; do if [ -e "$p" ]; then
+            echo "Archiving and removing files with rejected trees..."
+            tar czf sim-files-rejected-trees.tar.gz simphycoeval*rejected-trees.phy && rm simphycoeval*rejected-trees.phy
+            break
+        fi; done
     )
 done
