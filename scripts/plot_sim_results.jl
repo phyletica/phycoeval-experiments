@@ -741,6 +741,34 @@ function main_cli()::Cint
                                 only_var_sites,
                                 :coverage_root_pop_size,
                                 locus_size))\n")
+                        write(stdout, "topo-coverage: $(get_floats(sum_results,
+                                sim_fixed,
+                                sim_generalized,
+                                analysis_generalized,
+                                only_var_sites,
+                                :coverage_tree,
+                                locus_size))\n")
+                        write(stdout, "nheights-coverage: $(get_floats(sum_results,
+                                sim_fixed,
+                                sim_generalized,
+                                analysis_generalized,
+                                only_var_sites,
+                                :coverage_num_heights,
+                                locus_size))\n")
+                        write(stdout, "freq-tree-correct: $(get_floats(sum_results,
+                                sim_fixed,
+                                sim_generalized,
+                                analysis_generalized,
+                                only_var_sites,
+                                :freq_correct_tree,
+                                locus_size))\n")
+                        write(stdout, "freq-nheights-correct: $(get_floats(sum_results,
+                                sim_fixed,
+                                sim_generalized,
+                                analysis_generalized,
+                                only_var_sites,
+                                :freq_correct_num_heights,
+                                locus_size))\n")
                     end
                 end
             end
