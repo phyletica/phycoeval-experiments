@@ -1,0 +1,44 @@
+---
+data:
+    ploidy: 2
+    constant_sites_removed: false
+    alignment:
+        genotypes_are_diploid: true
+        markers_are_dominant: false
+        population_name_is_prefix: false
+        population_name_delimiter: ' '
+        path: ../data/Gekko-reduced2_n81-polyallelic-sites-removed.nex
+tree_model:
+    tree_space: generalized
+    starting_tree: comb
+    tree_prior:
+        uniform_root_and_betas:
+            parameters:
+                root_height:
+                    estimate: true
+                    prior:
+                        gamma_distribution:
+                            shape: 1.0
+                            mean: 0.01
+                alpha_of_node_height_beta_prior:
+                    value: 1.0
+                    estimate: false
+branch_parameters:
+    population_size:
+        equal_population_sizes: true
+        value: 0.001
+        estimate: true
+        prior:
+            gamma_distribution:
+                shape: 4.0
+                mean: 0.001
+mutation_parameters:
+    freq_1:
+        value: 0.5
+        estimate: false
+    mutation_rate:
+        value: 1.0
+        estimate: false
+mcmc_settings:
+    chain_length: 15000
+    sample_frequency: 10
