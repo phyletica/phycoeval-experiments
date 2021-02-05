@@ -2,7 +2,7 @@
 
 set -e
 
-ecoevolity_commit="4eead3ca"
+ecoevolity_commit="d405aa64"
 
 # Get path to directory of this script
 project_dir="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -19,7 +19,7 @@ git clone https://github.com/phyletica/ecoevolity.git
 (
     cd ecoevolity
     git checkout -b testing "$ecoevolity_commit"
-    ./build.sh --prefix "$project_dir"
+    ./build.sh --threads --prefix "$project_dir"
     echo "    Commit $ecoevolity_commit of ecoevolity successfully built and installed"
 )
 echo ""
