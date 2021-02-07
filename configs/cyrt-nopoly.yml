@@ -7,7 +7,7 @@ data:
         markers_are_dominant: false
         population_name_is_prefix: false
         population_name_delimiter: ' '
-        path: ../data/Cyrtodactylus-reduced3_n80-polyallelic-sites-removed.nex
+        path: ../data/Cyrtodactylus-reduced5_n27-polyallelic-sites-removed.nex
 tree_model:
     tree_space: generalized
     starting_tree: comb
@@ -26,12 +26,12 @@ tree_model:
 branch_parameters:
     population_size:
         equal_population_sizes: true
-        value: 0.001
+        value: 0.0005
         estimate: true
         prior:
             gamma_distribution:
-                shape: 4.0
-                mean: 0.001
+                shape: 2.0
+                mean: 0.0005
 mutation_parameters:
     freq_1:
         value: 0.5
