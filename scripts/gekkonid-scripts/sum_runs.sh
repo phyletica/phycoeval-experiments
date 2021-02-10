@@ -15,7 +15,7 @@ project_dir="../.."
 output_dir="${project_dir}/gekkonid-output"
 
 source "${project_dir}/modules-to-load.sh" >/dev/null 2>&1 || echo "    No modules loaded"
-source "./labels_and_multipliers.sh"
+source "./labels_and_calibrations.sh"
 
 # Unzip state and trees logs
 files_to_delete=()
@@ -36,11 +36,19 @@ for out_label in ${output_labels[@]}
 do
     # sumchains currently does not support phycoeval state log files
     # pyco-sumchains ${output_dir}/run-??-threads-*-${out_label}-state-run-1.log > "${output_dir}/pyco-sumchains-${out_label}.txt"
-    "${project_dir}/bin/sumphycoeval" -f -b 101 --mo "${output_dir}/map-tree-${out_label}.nex" ${output_dir}/run-??-threads-*-${out_label}-trees-run-1.nex > "${output_dir}/posterior-summary-${out_label}.yml"
+    yml_path="${output_dir}/posterior-summary-${out_label}.yml"
 
-    multiplier=${tree_multipliers[$idx]}
+    "${project_dir}/bin/sumphycoeval" -f -b 101 --mo "${output_dir}/map-tree-${out_label}.nex" ${output_dir}/run-??-threads-*-${out_label}-trees-run-1.nex > "$yml_path"
 
-    "${project_dir}/bin/sumphycoeval" -f -b 101 -m $multiplier --mo "${output_dir}/scaled-map-tree-${out_label}.nex" ${output_dir}/run-??-threads-*-${out_label}-trees-run-1.nex > "${output_dir}/scaled-posterior-summary-${out_label}.yml"
+    root_height="$(./get_root_height.jl "$yml_path")"
+
+    if [ -n "$root_height" ]
+    then
+        root_age="${root_calibrations[idx]}"
+        multiplier="$(echo "${root_age}/${root_height}" | bc -l)"
+
+        "${project_dir}/bin/sumphycoeval" -f -b 101 -m $multiplier --mo "${output_dir}/scaled-map-tree-${out_label}.nex" ${output_dir}/run-??-threads-*-${out_label}-trees-run-1.nex > "${output_dir}/scaled-posterior-summary-${out_label}.yml"
+    fi
     idx=$(expr $idx + 1)
 done
 
