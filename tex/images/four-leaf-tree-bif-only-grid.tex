@@ -1,0 +1,52 @@
+\documentclass[border=10pt,varwidth=30cm]{standalone}
+\usepackage{graphicx,capt-of}
+\usepackage{rotating}
+\usepackage{multirow}
+\usepackage[cm]{sfmath}
+\usepackage[T1]{fontenc}
+\usepackage{xspace}
+
+\renewcommand{\familydefault}{\sfdefault}
+
+\newcounter{subfloat}
+\renewcommand{\thesubfloat}{\Alph{subfloat}}
+\newcommand{\image}[2]{%
+    \stepcounter{subfloat}%
+    \begin{tabular}[t]{@{}c@{}}
+    \thesubfloat. #1 \\
+    #2
+    \end{tabular}%
+}
+\newcommand{\insertlabel}{%
+    \small
+    \stepcounter{subfloat}%
+    \thesubfloat}
+\newcommand{\trm}[1]{\ensuremath{\textrm{\sffamily #1}}}
+
+\newcommand{\genmodel}{\ensuremath{M_{\textrm{\sffamily G}}}\xspace}
+\newcommand{\bimodel}{\ensuremath{M_{\textrm{\sffamily BI}}}\xspace}
+\newcommand{\pltwidth}{0.1}
+
+\begin{document}
+
+\begin{figure}
+    \setlength\arrayrulewidth{2pt}
+    \centering
+    \begin{tabular}{@{}cccc@{}}
+        3 & &  &  \\
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-tree-4-bare-cropped.pdf}
+        & &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-tree-5-bare-cropped-blank.pdf}
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-tree-0-bare-cropped-blank.pdf} \\[1ex]
+        12 & &  &  \\
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-tree-3-bare-cropped.pdf}
+        & &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-tree-1-bare-cropped-blank.pdf}
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-tree-2-bare-cropped-blank.pdf} \\
+        {\Large \textbf{15}} & & \multicolumn{2}{c}{ } \\
+    \end{tabular}
+\end{figure}
+
+\end{document}
