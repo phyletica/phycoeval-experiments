@@ -6,7 +6,7 @@ import glob
 import copy
 
 from PIL import Image
-import ete3
+# import ete3
 
 from gram import treegram
 from gram import gram 

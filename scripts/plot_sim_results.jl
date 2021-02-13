@@ -57,11 +57,41 @@ l_dark_orange_col = RGB(255/255, 135/255, 31/255)
 comp_orange_col = RGB(255/255, 181/255, 91/255)
 highlight_col = "red"
 
+# How I got these colors from matplotlib:
+# from matplotlib import cm
+# v = cm.get_cmap("viridis")
+# viridis015 = v(0.15, bytes = True)
+viridis000 = RGB(68/255, 1/255, 84/255)
+viridis005 = RGB(71/255, 18/255, 101/255)
+viridis010 = RGB(72/255, 35/255, 116/255)
+viridis015 = RGB(69/255, 52/255, 127/255)
+viridis020 = RGB(64/255, 67/255, 135/255)
+viridis025 = RGB(58/255, 82/255, 139/255)
+viridis030 = RGB(52/255, 94/255, 141/255)
+viridis035 = RGB(46/255, 107/255, 142/255)
+viridis040 = RGB(41/255, 120/255, 142/255)
+viridis045 = RGB(36/255, 132/255, 141/255)
+viridis050 = RGB(32/255, 144/255, 140/255)
+viridis055 = RGB(30/255, 155/255, 137/255)
+viridis060 = RGB(34/255, 167/255, 132/255)
+viridis065 = RGB(47/255, 179/255, 123/255)
+viridis070 = RGB(68/255, 190/255, 112/255)
+viridis075 = RGB(94/255, 201/255, 97/255)
+viridis080 = RGB(121/255, 209/255, 81/255)
+viridis085 = RGB(154/255, 216/255, 60/255)
+viridis090 = RGB(189/255, 222/255, 38/255)
+viridis095 = RGB(223/255, 227/255, 24/255)
+
+
 gen_col = dark_blue_col
 vo_gen_col = comp_blue_col
+#= gen_col = viridis020 =#
+#= vo_gen_col = viridis035 =# 
 #= vo_gen_col = dark_blue_col =#
 bif_col = dark_orange_col 
 vo_bif_col = comp_orange_col 
+#= bif_col = viridis065 =#
+#= vo_bif_col = viridis080 =#
 #= vo_bif_col = dark_orange_col =# 
 
 marker_alpha = 0.8
@@ -354,8 +384,12 @@ function get_split_violin_plot(
         right_labels,
         legend = false,
         dot_legend = false)::Plots.Plot
+    xlabs = xlabels
+    for i in eachindex(xlabs)
+        xlabs[i] = "\\textrm{\\sffamily $(xlabs[i])}"
+    end
     vln = StatsPlots.violin(
-            xlabels,
+            xlabs,
             left_values,
             legend = legend,
             side = :left,
@@ -364,7 +398,7 @@ function get_split_violin_plot(
             label = left_labels
     )
     StatsPlots.dotplot!(vln,
-            xlabels,
+            xlabs,
             left_values,
             legend = dot_legend,
             side = :left,
@@ -373,7 +407,7 @@ function get_split_violin_plot(
             label = left_labels
     )
     StatsPlots.violin!(vln,
-            xlabels,
+            xlabs,
             right_values,
             legend = legend,
             side = :right,
@@ -382,7 +416,7 @@ function get_split_violin_plot(
             label = right_labels
     )
     StatsPlots.dotplot!(vln,
-            xlabels,
+            xlabs,
             right_values,
             legend = dot_legend,
             side = :right,
@@ -769,22 +803,37 @@ function tex_to_pdf(
         path::String)
     run_latexmk(path, "-C")
     run_latexmk(path, "-pdf")
+    return nothing
 end
 
 function tex_clean(
         path::String)
     run_latexmk(path, "-C")
+    return nothing
 end
 
 function crop_pdf(
-        path::String)::String
+        path::String)
     if isnothing(Sys.which("pdfcrop"))
         return nothing
     end
     prefix, ext = splitext(path)
     out_path = "$(prefix)-cropped$(ext)"
-    #= cmd = `pdfcrop $path $out_path` =#
-    cmd = `cp $path $out_path`
+    cmd = `pdfcrop $path $out_path`
+    #= cmd = `cp $path $out_path` =#
+    run(cmd)
+    return out_path
+end
+
+function blank_pdf(
+        path::String)
+    if isnothing(Sys.which("convert"))
+        return nothing
+    end
+    prefix, ext = splitext(path)
+    out_path = "$(prefix)-blank$(ext)"
+    cmd = `convert "$path" -threshold -1 -alpha off "$out_path"`
+    #= cmd = `cp $path $out_path` =#
     run(cmd)
     return out_path
 end
@@ -796,8 +845,12 @@ function process_tex(path::String;
     sans_path = tex_to_sans(path, target = target, replacement = replacement)
     tex_to_pdf(sans_path)
     sans_pdf = splitext(sans_path)[1] * ".pdf"
-    crop_pdf(sans_pdf)
+    cropped_pdf_path = crop_pdf(sans_pdf)
+    if isnothing(cropped_pdf_path)
+        return sans_pdf
+    end
     tex_clean(sans_path)
+    return cropped_pdf_path
 end
 
 
@@ -1110,10 +1163,11 @@ function main_cli()::Cint
                 #= xlabel = "Posterior probability", =#
                 #= ylabel = "Frequency", =#
                 legend = false)
-        Plots.plot!(h, size = (140, 120), yaxis = false, grid = :x, xticks = (0:0.5:1))
+        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1))
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-gen-node-probs-root-all-sites-hist.tex")
         Plots.savefig(h, plot_path)
-        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+        pdf_path = process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+        blank_pdf(pdf_path)
 
         v = get_split_violin_plot(
                 node_789_probs,
@@ -1162,10 +1216,11 @@ function main_cli()::Cint
                 #= xlabel = "Posterior probability", =#
                 #= ylabel = "Frequency", =#
                 legend = false)
-        Plots.plot!(h, size = (140, 120), yaxis = false, grid = :x, xticks = (0:0.5:1))
+        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1))
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-gen-node-probs-789-all-sites-hist.tex")
         Plots.savefig(h, plot_path)
-        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+        pdf_path = process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+        blank_pdf(pdf_path)
 
         v = get_split_violin_plot(
                 node_456_probs,
@@ -1214,10 +1269,11 @@ function main_cli()::Cint
                 #= xlabel = "Posterior probability", =#
                 #= ylabel = "Frequency", =#
                 legend = false)
-        Plots.plot!(h, size = (140, 120), yaxis = false, grid = :x, xticks = (0:0.5:1))
+        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1))
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-gen-node-probs-456-all-sites-hist.tex")
         Plots.savefig(h, plot_path)
-        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+        pdf_path = process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+        blank_pdf(pdf_path)
 
         v = get_split_violin_plot(
                 node_12_3_probs,
@@ -1266,10 +1322,11 @@ function main_cli()::Cint
                 #= xlabel = "Posterior probability", =#
                 #= ylabel = "Frequency", =#
                 legend = false)
-        Plots.plot!(h, size = (140, 120), yaxis = false, grid = :x, xticks = (0:0.5:1))
+        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1))
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-gen-node-probs-12-3-all-sites-hist.tex")
         Plots.savefig(h, plot_path)
-        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+        pdf_path = process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+        blank_pdf(pdf_path)
 
         v = get_split_violin_plot(
                 height_12_789_probs,
@@ -1318,10 +1375,11 @@ function main_cli()::Cint
                 #= xlabel = "Posterior probability", =#
                 #= ylabel = "Frequency", =#
                 legend = false)
-        Plots.plot!(h, size = (140, 120), yaxis = false, grid = :x, xticks = (0:0.5:1))
+        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1))
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-gen-height-probs-12-789-all-sites-hist.tex")
         Plots.savefig(h, plot_path)
-        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+        pdf_path = process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+        blank_pdf(pdf_path)
 
         v = get_split_violin_plot(
                 height_123_456_probs,
@@ -1370,10 +1428,11 @@ function main_cli()::Cint
                 #= xlabel = "Posterior probability", =#
                 #= ylabel = "Frequency", =#
                 legend = false)
-        Plots.plot!(h, size = (140, 120), yaxis = false, grid = :x, xticks = (0:0.5:1))
+        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1))
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-gen-height-probs-123-456-all-sites-hist.tex")
         Plots.savefig(h, plot_path)
-        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+        pdf_path = process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+        blank_pdf(pdf_path)
 
         v = get_split_violin_plot(
                 split_12_probs,
@@ -1422,10 +1481,11 @@ function main_cli()::Cint
                 #= xlabel = "Posterior probability", =#
                 #= ylabel = "Frequency", =#
                 legend = false)
-        Plots.plot!(h, size = (140, 120), yaxis = false, grid = :x, xticks = (0:0.5:1))
+        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1))
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-gen-split-probs-12-all-sites-hist.tex")
         Plots.savefig(h, plot_path)
-        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+        pdf_path = process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+        blank_pdf(pdf_path)
 
         v = get_split_violin_plot(
                 true_topo_probs,
@@ -1459,10 +1519,11 @@ function main_cli()::Cint
                 #= xlabel = "Posterior probability", =#
                 #= ylabel = "Frequency", =#
                 legend = false)
-        Plots.plot!(h, size = (140, 120), yaxis = false, grid = :x, xticks = (0:0.5:1))
+        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1))
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-gen-topo-probs-all-sites-hist.tex")
         Plots.savefig(h, plot_path)
-        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+        pdf_path = process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+        blank_pdf(pdf_path)
 
         v = get_split_violin_plot(
                 hcat(root_node_probs,
@@ -1643,6 +1704,26 @@ function main_cli()::Cint
                 legend = false,
                 dot_legend = false)
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-max-789-subsplit-probs.tex")
+        Plots.savefig(v, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        v = get_split_violin_plot(
+                hcat(gen_max_456_subsplit_prob, gen_max_789_subsplit_prob),
+                hcat(bif_max_456_subsplit_prob, bif_max_789_subsplit_prob),
+                xlabels = [ "Node 456" "Node 789" ],
+                left_fill_colors = [ gen_col gen_col ],
+                left_marker_colors = [gen_col gen_col],
+                left_fill_alphas = [gen_fill_alpha gen_fill_alpha],
+                left_marker_alphas = [gen_marker_alpha gen_marker_alpha],
+                left_labels = "Generalized",
+                right_fill_colors = [bif_col bif_col],
+                right_marker_colors = [bif_col bif_col],
+                right_fill_alphas = [bif_fill_alpha bif_fill_alpha],
+                right_marker_alphas = [bif_marker_alpha bif_marker_alpha],
+                right_labels = "Bifurcating",
+                legend = false,
+                dot_legend = false)
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-max-poly-subsplit-probs-all-sites.tex")
         Plots.savefig(v, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
@@ -2029,6 +2110,23 @@ function main_cli()::Cint
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
         p = get_groups_by_y(
+                hcat(fixed_gen_gen_dist_mean,
+                     fixed_gen_bif_dist_mean),
+                hcat(fixed_gen_gen_dist_lower,
+                     fixed_gen_bif_dist_lower),
+                hcat(fixed_gen_gen_dist_upper,
+                     fixed_gen_bif_dist_upper),
+                [ LaTeXString("\\begin{tabular}{c} Generalized model \\\\ (true model) \\end{tabular}") LaTeXString("\\begin{tabular}{c} Independent bifurcating \\\\ model \\end{tabular}") ],
+                [ gen_col bif_col ],
+                [ gen_marker_alpha bif_marker_alpha ],
+                y_buffer = 0.02,
+                show_labels_on_x = true)
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-all-sites-euclidean-distances.tex")
+        write(stdout, "Writing to $(plot_path)\n")
+        Plots.savefig(p, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        p = get_groups_by_y(
                 hcat(fixed_bif_gen_dist_mean,
                      fixed_bif_bif_dist_mean,
                      vo_fixed_bif_gen_dist_mean,
@@ -2051,6 +2149,25 @@ function main_cli()::Cint
         write(stdout, "Writing to $(plot_path)\n")
         Plots.savefig(p, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        p = get_groups_by_y(
+                hcat(fixed_bif_gen_dist_mean,
+                     fixed_bif_bif_dist_mean),
+                hcat(fixed_bif_gen_dist_lower,
+                     fixed_bif_bif_dist_lower),
+                hcat(fixed_bif_gen_dist_upper,
+                     fixed_bif_bif_dist_upper),
+                [ LaTeXString("\\begin{tabular}{c} Generalized \\\\ model \\end{tabular}") LaTeXString("\\begin{tabular}{c} Independent bifurcating \\\\ model (true model) \\end{tabular}") ],
+                [ gen_col bif_col ],
+                [ gen_marker_alpha bif_marker_alpha ],
+                y_buffer = 0.02,
+                show_labels_on_x = true)
+        Plots.ylabel!(p, "Euclidean distance from true tree")
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-bif-all-sites-euclidean-distances.tex")
+        write(stdout, "Writing to $(plot_path)\n")
+        Plots.savefig(p, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
 
         p = get_groups_by_y(
                 hcat(unfixed_gen_gen_dist_mean,
