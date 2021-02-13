@@ -30,12 +30,14 @@ gekko_root_age=33.76
 
 export root_calibrations=( \
     "$cyrt_root_age" \
+    "$cyrt_root_age" \
     "$gekko_root_age" \
     "$gekko_root_age" \
 )
 
 export output_labels=( \
     cyrt-nopoly \
+    cyrt-nopoly-bif \
     gekko-nopoly \
     gekko-nopoly-bif \
 )

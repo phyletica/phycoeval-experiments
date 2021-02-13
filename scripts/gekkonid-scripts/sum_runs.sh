@@ -23,11 +23,16 @@ for out_label in ${output_labels[@]}
 do
     for pth in ${output_dir}/run-??-threads-*-${out_label}-[st][tr][ae][te][es]-run-1.[ln][oe][gx].gz
     do
-        file_name="$(basename "$pth")"
-        (
-            cd "$output_dir" && gzip -k -f -d "$file_name"
-        )
-        files_to_delete+=("${pth/\.gz/}")
+        if [ -e "$pth" ]
+        then
+            file_name="$(basename "$pth")"
+            (
+                cd "$output_dir" && gzip -k -f -d "$file_name"
+            )
+            files_to_delete+=("${pth/\.gz/}")
+        else
+            echo "WARNING: didn't find gzipped file pattern \"$pth\""
+        fi
     done
 done
 
