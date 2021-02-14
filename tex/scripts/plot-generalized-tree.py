@@ -37,19 +37,39 @@ class TreeInfo(object):
             'p': 'gecko-pixabay-cc0.png',
             }
     NODE_LABELS = {
-            'T1': '$T_1$',
-            'T2': '$T_2$',
-            'T3': '$T_3$',
+            'n12':      '$t_1$',
+            'n123':     '$t_2$',
+            'n45':      '$t_3$',
+            'n456':     '$t_4$',
+            'n78':      '$t_5$',
+            'n789':     '$t_6$',
+            'n456789':  '$t_7$',
+            'root':     '$t_8$',
             }
-    _TREE = '(((({yv}:{lyv},{tv}:{ltv}):{lytv},{av}:{lav}):{lv},((({yp}:{lyp},{tp}:{ltp}):{lytp},{ap}:{lap}):{lp},(({yg}:{lyg},{tg}:{ltg}):{lytg},{ag}:{lag}):{lg}):{lgp}))root:{lroot};'
+    GEN_NODE_LABELS = {
+            'n12':      '$t_1$',
+            'n123':     '$t_2$',
+            'n456':     '$t_3$',
+            'n789':     '$t_4$',
+            'root':     '$t_5$',
+            }
+    _TREE = '(((({yv}:{lyv},{tv}:{ltv})n12:{lytv},{av}:{lav})n123:{lv},((({yp}:{lyp},{tp}:{ltp})n45:{lytp},{ap}:{lap})n456:{lp},(({yg}:{lyg},{tg}:{ltg})n78:{lytg},{ag}:{lag})n789:{lg})n456789:{lgp}))root:{lroot};'
 
-    LEAF_STYLE = gram.GramText("x")
+    read("((A:0.1,B:0.1)AB:0.1,C:0.2)root:0.0;")
+    _DUMMY_TREE = var.trees[-1]
+    _DUMMY_TG = treegram.TreeGram(_DUMMY_TREE)
+    _DUMMY_TG.render()
+    LEAF_STYLE = copy.deepcopy(_DUMMY_TG.styleDict['leaf'])
     LEAF_STYLE.name = "myleaf"
     LEAF_STYLE.anchor = "west"
-    # LEAF_STYLE.textHeight = 0.19
-    # LEAF_STYLE.textDepth = 0.19
     LEAF_STYLE.textSize = "normalsize"
     LEAF_STYLE.yShift = -0.2
+
+    INTERNAL_NODE_STYLE = copy.deepcopy(_DUMMY_TG.styleDict['node right'])
+    INTERNAL_NODE_STYLE.name = "simple_internal"
+    INTERNAL_NODE_STYLE.anchor = "west"
+    INTERNAL_NODE_STYLE.textSize = "normalsize"
+    # INTERNAL_NODE_STYLE.rotate = 90
 
     def __init__(self, node_heights = None, height_multiplier = 1.0, tree = None):
         self.raw_node_heights = node_heights
@@ -138,6 +158,7 @@ class TreeInfo(object):
             event_labels_top = True,
             event_font_size = 'LARGE',
             show_node_labels = False,
+            show_gen_node_labels = False,
             show_tip_images = True,
             event_label_plots = False,
             show_times = False,
@@ -148,23 +169,29 @@ class TreeInfo(object):
             plot_y_shift = -1.8,
             plot_suffix = "-vln.pdf",
             ):
+        if event_label_plots:
+            show_node_labels = False
         read(str(self))
         sys.stderr.write("{0}\n".format(str(self)))
         tree = var.trees[-1]
         nodes_to_shift = []
+        node_root = None
         for n in tree.iterNodes():
-            if n.name in self.NODE_LABELS:
-                if show_node_labels:
-                    n.name = self.NODE_LABELS[n.name]
-                    nodes_to_shift.append(n)
-                else:
-                    n.name = None
             if n.isLeaf:
                 try:
                     img = Image.open(self.get_image_path(n.name))
                 except IOError as e:
                     if n.name == 'root':
-                        n.name = None
+                        node_root = n
+                        if show_node_labels:
+                            if show_gen_node_labels:
+                                n.name = self.GEN_NODE_LABELS.get(n.name, None)
+                            else:
+                                n.name = self.NODE_LABELS.get(n.name, None)
+                        else:
+                            n.name = None
+                        if n.name:
+                            nodes_to_shift.append(n)
                         continue
                     raise e
                 node_name = n.name
@@ -174,10 +201,23 @@ class TreeInfo(object):
                         path = self.get_image_path(node_name))
                 if not show_tip_images:
                     n.name = " "
+                continue
+            if n.name in self.NODE_LABELS:
+                if show_node_labels:
+                    if show_gen_node_labels:
+                        n.name = self.GEN_NODE_LABELS.get(n.name, None)
+                    else:
+                        n.name = self.NODE_LABELS.get(n.name, None)
+                else:
+                    n.name = None
+                if n.name:
+                    nodes_to_shift.append(n)
+            else:
+                n.name = None
         node_v = tree.node(2)
         node_p = tree.node(8)
         node_g = tree.node(13)
-        node_root = tree.node(1)
+        # node_root = tree.node(1)
         if event_label_plots:
             node_root.name = r"\includegraphics[width={plot_width}mm]{{../../results/fixed-gen-gen-node-probs-root{plot_suffix}}}".format(
                     plot_width = plot_width,
@@ -193,12 +233,18 @@ class TreeInfo(object):
                     plot_suffix = plot_suffix)
         tg = treegram.TreeGram(tree, scale = scale, yScale = yscale) #, showNodeNums = True)
         tg.styleDict[self.LEAF_STYLE.name] = self.LEAF_STYLE
+        tg.styleDict[self.INTERNAL_NODE_STYLE.name] = self.INTERNAL_NODE_STYLE
         for p4_node in tree.iterLeavesNoRoot():
             p4_node.label.myStyle = self.LEAF_STYLE.name
         for n in nodes_to_shift:
             # tg.tree.node(n.nodeNum).label.xShift = -0.1
             # tg.tree.node(n.nodeNum).label.yShift = 0.05
-            tg.tree.node(n.nodeNum).label.myStyle = 'node right'
+            if event_label_plots:
+                tg.tree.node(n.nodeNum).label.myStyle = 'node right'
+            elif show_node_labels:
+                tg.tree.node(n.nodeNum).label.myStyle = 'simple_internal'
+        if show_node_labels:
+            tg.tree.node(node_root.nodeNum).label.xShift = 0.1
         tg.latexUsePackages.append('sfmath')
         tg.latexUsePackages.append('color')
         tg.latexOtherPreambleCommands.extend([
@@ -1307,7 +1353,8 @@ def main_cli():
             show_events = True,
             show_event_labels = True,
             event_labels_top = True,
-            show_node_labels = True,
+            show_node_labels = False,
+            show_gen_node_labels = False,
             event_label_plots = True,
             plot_width = 16,
             plot_y_shift = -1.55,
@@ -1330,7 +1377,8 @@ def main_cli():
             # event_indices = (0, 1),
             show_event_labels = True,
             event_labels_top = True,
-            show_node_labels = True,
+            show_node_labels = False,
+            show_gen_node_labels = False,
             event_label_plots = True,
             # show_tip_images = False,
             show_times = True,
@@ -1359,7 +1407,8 @@ def main_cli():
             # event_indices = (0, 1),
             show_event_labels = True,
             event_labels_top = True,
-            show_node_labels = True,
+            show_node_labels = False,
+            show_gen_node_labels = False,
             event_label_plots = True,
             # show_tip_images = False,
             show_times = True,
@@ -1387,13 +1436,41 @@ def main_cli():
             # event_indices = (0, 1),
             show_event_labels = True,
             event_labels_top = True,
-            show_node_labels = True,
+            show_node_labels = False,
+            show_gen_node_labels = False,
             event_label_plots = False,
             # show_tip_images = False,
             show_times = True,
             stagger_times = True,
             time_font_size = 'small',
             )
+    t.plot_tree(
+            base_name = 'gecko-generalized-tree-node-labels',
+            dir_name = out_dir,
+            scale = 1.0,
+            yscale = 0.7,
+            image_width = 10,
+            vmargin = 0,
+            lmargin = 0,
+            phylo_line_weight = 'ultra thick',
+            event_line_weight = 'thick',
+            event_line_color = 'black!50',
+            event_line_style = 'dashed',
+            show_title = False,
+            title_str = '{\\sffamily True history}',
+            show_events = True,
+            # event_indices = (0, 1),
+            show_event_labels = True,
+            event_labels_top = True,
+            show_node_labels = True,
+            show_gen_node_labels = True,
+            event_label_plots = False,
+            # show_tip_images = False,
+            show_times = True,
+            stagger_times = True,
+            time_font_size = 'small',
+            )
+
 
     t = TreeInfo(
             node_heights = {
@@ -1407,7 +1484,8 @@ def main_cli():
                     'root': 0.2,
                     },
             height_multiplier = 40.0,
-            tree = '(((({yv}:{lyv},{tv}:{ltv}):{lytv},{av}:{lav}):{lv},(({yp}:{lap},({tp}:{ltp},{ap}:{lyp}):{lytp}):{lp},(({yg}:{lyg},{tg}:{ltg}):{lytg},{ag}:{lag}):{lg}):{lgp}))root:{lroot};'
+            # tree = '(((({yv}:{lyv},{tv}:{ltv})n12:{lytv},{av}:{lav})n123:{lv},(({yp}:{lap},({tp}:{ltp},{ap}:{lyp}):{lytp}):{lp},(({yg}:{lyg},{tg}:{ltg}):{lytg},{ag}:{lag}):{lg}):{lgp}))root:{lroot};'
+            tree = '(((({yv}:{lyv},{tv}:{ltv})n12:{lytv},{av}:{lav})n123:{lv},((({yp}:{lyp},{tp}:{ltp})n45:{lytp},{ap}:{lap})n456:{lp},(({yg}:{lyg},{tg}:{ltg})n78:{lytg},{ag}:{lag})n789:{lg})n456789:{lgp}))root:{lroot};'
             )
     t.plot_tree(
             base_name = 'gecko-bifurcating-tree',
@@ -1426,7 +1504,34 @@ def main_cli():
             show_events = True,
             show_event_labels = True,
             event_labels_top = True,
+            event_font_size = 'Large',
             show_node_labels = False,
+            show_gen_node_labels = False,
+            show_tip_images = True,
+            show_times = True,
+            stagger_times = True,
+            time_font_size = 'small',
+            )
+    t.plot_tree(
+            base_name = 'gecko-bifurcating-tree-node-labels',
+            dir_name = out_dir,
+            scale = 1.0,
+            yscale = 0.7,
+            image_width = 10,
+            vmargin = 0,
+            lmargin = 0,
+            phylo_line_weight = 'ultra thick',
+            event_line_weight = 'thick',
+            event_line_color = 'black!50',
+            event_line_style = 'dashed',
+            show_title = False,
+            title_str = '{\\sffamily Current tree model}',
+            show_events = True,
+            show_event_labels = True,
+            event_labels_top = True,
+            event_font_size = 'Large',
+            show_node_labels = True,
+            show_gen_node_labels = False,
             show_tip_images = True,
             show_times = True,
             stagger_times = True,
