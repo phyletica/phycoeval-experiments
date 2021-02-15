@@ -1807,7 +1807,7 @@ function main_cli()::Cint
         v456 = get_split_violin_plot(
                 gen_max_456_subsplit_prob,
                 bif_max_456_subsplit_prob,
-                xlabels = [ "\$t_3\$" ],
+                xlabels = [ "Splitting \$t_3\$" ],
                 left_fill_colors = [ gen_col ],
                 left_marker_colors = [gen_col],
                 left_fill_alphas = [gen_fill_alpha],
@@ -1824,7 +1824,7 @@ function main_cli()::Cint
         v789 = get_split_violin_plot(
                 gen_max_789_subsplit_prob,
                 bif_max_789_subsplit_prob,
-                xlabels = [ "\$t_4\$" ],
+                xlabels = [ "Splitting \$t_4\$" ],
                 left_fill_colors = [ gen_col ],
                 left_marker_colors = [gen_col],
                 left_fill_alphas = [gen_fill_alpha],
@@ -2323,6 +2323,7 @@ function main_cli()::Cint
                 [ gen_marker_alpha bif_marker_alpha ],
                 y_buffer = 0.02,
                 show_labels_on_x = true)
+        Plots.ylabel!(p, "Euclidean distance from true tree")
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-all-sites-euclidean-distances.tex")
         write(stdout, "Writing to $(plot_path)\n")
         Plots.savefig(p, plot_path)
