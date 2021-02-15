@@ -18,6 +18,7 @@ DATA_DIR = Base.Filesystem.joinpath(PROJECT_DIR, "data")
 SIM_DIR = Base.Filesystem.joinpath(PROJECT_DIR, "simulations")
 SIM_SCRIPT_DIR = Base.Filesystem.joinpath(SCRIPT_DIR, "simphycoeval-scripts")
 RESULTS_DIR = Base.Filesystem.joinpath(PROJECT_DIR, "results")
+GEK_OUT_DIR = Base.Filesystem.joinpath(PROJECT_DIR, "gekkonid-output")
 
 function get_project_dir()::AbstractString
     return PROJECT_DIR
