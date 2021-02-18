@@ -4,7 +4,7 @@ set -e
 
 run=01
 nthreads=1
-config_file_prefix="cyrt-nodata"
+config_file_prefix="cyrt-nopoly"
 
 if [ -n "$PBS_JOBNAME" ]
 then
@@ -40,7 +40,7 @@ then
     mkdir "$output_dir"
 fi
 
-prefix="${output_dir}/run-${run}-threads-${nthreads}-"
+prefix="${output_dir}/nodata-run-${run}-threads-${nthreads}-"
 config_path="${config_dir}/${config_file_prefix}.yml"
 out_path="${prefix}${config_file_prefix}.out"
 
