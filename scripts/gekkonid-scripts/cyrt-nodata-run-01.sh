@@ -4,7 +4,7 @@ set -e
 
 run=01
 nthreads=1
-config_file_prefix="cyrt-nopoly"
+config_file_prefix="cyrt-nodata"
 
 if [ -n "$PBS_JOBNAME" ]
 then

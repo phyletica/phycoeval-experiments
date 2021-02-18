@@ -4,7 +4,7 @@ set -e
 
 run=01
 nthreads=1
-config_file_prefix="gekko-nopoly"
+config_file_prefix="gekko-nodata"
 
 if [ -n "$PBS_JOBNAME" ]
 then

@@ -1352,12 +1352,14 @@ def main_cli():
             title_str = '{\\sffamily True history}',
             show_events = True,
             show_event_labels = True,
-            event_labels_top = True,
+            # event_labels_top = True,
+            event_labels_top = False,
             show_node_labels = False,
             show_gen_node_labels = False,
             event_label_plots = True,
-            plot_width = 16,
-            plot_y_shift = -1.55,
+            plot_width = 12,
+            # plot_y_shift = -1.55,
+            plot_y_shift = 0.17,
             plot_suffix = "-vln-sans-cropped.pdf")
     t.plot_tree(
             base_name = 'gecko-generalized-tree-pp-hist',
