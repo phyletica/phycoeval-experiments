@@ -2,7 +2,7 @@
 
 set -e
 
-run=01
+run=10
 nthreads=1
 config_file_prefix="gekko-nopoly-long"
 

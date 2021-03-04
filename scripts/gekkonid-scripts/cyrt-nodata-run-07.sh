@@ -2,9 +2,9 @@
 
 set -e
 
-run=01
+run=07
 nthreads=1
-config_file_prefix="gekko-nopoly-long"
+config_file_prefix="cyrt-nopoly-long"
 
 if [ -n "$PBS_JOBNAME" ]
 then
