@@ -57,6 +57,20 @@ l_dark_orange_col = RGB(255/255, 135/255, 31/255)
 comp_orange_col = RGB(255/255, 181/255, 91/255)
 highlight_col = "red"
 
+# terminal.sexy
+#= dblue_col = RGB(95/255, 129/255, 157/255) =#
+dblue_col = RGB(90/255, 122/255, 148/255)
+#= lblue_col = RGB(129/255, 162/255, 190/255) =#
+lblue_col = RGB(142/255, 178/255, 209/255)
+#= dpurp_col = RGB(133/255, 103/255, 143/255) =#
+#= dpurp_col = RGB(117/255, 90/255, 126/255) =#
+dpurp_col = RGB(113/255, 74/255, 126/255)
+#= lpurp_col = RGB(178/255, 148/255, 187/255) =#
+#= lpurp_col = RGB(189/255, 157/255, 199/255) =#
+lpurp_col = RGB(182/255, 132/255, 199/255)
+dgreen_col = RGB(94/255, 141/255, 135/255)
+lgreen_col = RGB(138/255, 190/255, 183/255)
+
 # How I got these colors from matplotlib:
 # from matplotlib import cm
 # v = cm.get_cmap("viridis")
@@ -83,19 +97,23 @@ viridis090 = RGB(189/255, 222/255, 38/255)
 viridis095 = RGB(223/255, 227/255, 24/255)
 
 
-gen_col = dark_blue_col
-vo_gen_col = comp_blue_col
+#= gen_col = dark_blue_col =#
+#= vo_gen_col = comp_blue_col =#
+gen_col = dpurp_col
+vo_gen_col = lpurp_col
 #= gen_col = viridis020 =#
 #= vo_gen_col = viridis035 =# 
 #= vo_gen_col = dark_blue_col =#
-bif_col = dark_orange_col 
-vo_bif_col = comp_orange_col 
+#= bif_col = dark_orange_col =# 
+#= vo_bif_col = comp_orange_col =# 
+bif_col = dblue_col
+vo_bif_col = lblue_col 
 #= bif_col = viridis065 =#
 #= vo_bif_col = viridis080 =#
 #= vo_bif_col = dark_orange_col =# 
 
-marker_alpha = 0.8
-fill_alpha = 0.5
+marker_alpha = 0.9
+fill_alpha = 0.75
 
 gen_marker_alpha = marker_alpha
 #= vo_gen_marker_alpha = marker_alpha - 0.3 =#
@@ -106,8 +124,10 @@ vo_gen_fill_alpha = fill_alpha
 
 bif_marker_alpha = marker_alpha
 vo_bif_marker_alpha = marker_alpha
+#= vo_bif_marker_alpha = 0.8 =#
 bif_fill_alpha = fill_alpha
 vo_bif_fill_alpha = fill_alpha
+#= vo_bif_fill_alpha = 0.65 =#
 
 scatter_marker_col = RGB(96/250, 96/250, 96/250)
 scatter_marker_alpha = 0.8
