@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -q gen28
-#PBS -l nodes=1:ppn=2
+#PBS -l nodes=1:ppn=10
 #PBS -l pmem=1gb
 #PBS -l walltime=300:00:00
 #PBS -j oe
@@ -12,7 +12,7 @@
 set -e
 
 run=04
-nthreads=2
+nthreads=10
 config_file_prefix="cyrt-nopoly"
 
 if [ -n "$PBS_JOBNAME" ]
