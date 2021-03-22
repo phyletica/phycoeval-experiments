@@ -261,7 +261,9 @@ function get_groups_by_y(
         group_mean_line_alpha = 0.8,
         group_mean_line_width = 2.0,
         show_labels_on_x = false,
-        x_label_size = 8)::Plots.Plot
+        x_label_size = 8,
+        comparisons = (),
+        comparison_positions = ())::Plots.Plot
     @assert ndims(y) == 2
     @assert size(y) == size(y_lower) 
     @assert size(y) == size(y_upper) 
@@ -280,7 +282,61 @@ function get_groups_by_y(
     #= y_limits = [y_extremes[1] - y_buf, y_extremes[2] + y_buf] =#
     y_limits = [0.0, y_extremes[2] + y_buf]
     x_limits = [0, x_val + 1]
+
+    # Get empty plot
     plt = Plots.plot(
+            legend = false,
+            xlims = x_limits,
+            ylims = y_limits)
+
+    # Handle WSR comparison tests and P-value labels first so that error bars
+    # will be placed above the labels
+    if (! isempty(comparisons))
+        if isempty(comparison_positions)
+            comparison_positions = Tuple(0.98 for i in comparisons)
+        else
+            @assert length(comparisons) == length(comparison_positions)
+        end
+    end
+    for (comp_idx, comp) in enumerate(comparisons)
+        @assert length(comp) == 2
+        comp_pos = comparison_positions[comp_idx]
+        y_range = y_limits[2] - y_limits[1]
+        y_pval = y_limits[1] + (comp_pos * y_range)
+        y_bracket_ln = y_pval - (0.025 * y_range)
+        y_bracket_tick = y_bracket_ln - (0.01 * y_range)
+        pval_aln = :bottom
+        if comp_pos < 0.5
+            y_bracket_ln = y_pval + (0.03 * y_range)
+            y_bracket_tick = y_bracket_ln + (0.01 * y_range)
+            pval_aln = :top
+        end
+        wsr_test = HypothesisTests.SignedRankTest(
+                y[:,comp[1]],
+                y[:,comp[2]])
+        pval = HypothesisTests.pvalue(wsr_test, tail = :both)
+        #= mid_1 = Statistics.mean(x[:,comp[1]]) =#
+        #= mid_2 = Statistics.mean(x[:,comp[2]]) =#
+        mid_1 = Statistics.quantile(x[:,comp[1]], 0.8)
+        mid_2 = Statistics.quantile(x[:,comp[2]], 0.2)
+        x_position = mid_1 + ((mid_2 - mid_1) / 2)
+        annotate!(plt, x_position, y_pval,
+                  text("\$p = $(@sprintf("%.2g", pval))\$",
+                       :center,
+                       pval_aln,
+                       x_label_size),
+                  annotation_clip = false)
+        Plots.plot!(plt,
+                [mid_1, mid_1, mid_2, mid_2],
+                [y_bracket_tick, y_bracket_ln, y_bracket_ln, y_bracket_tick],
+                seriestype = :line,
+                legend = false,
+                linecolor = "black",
+                linealpha = 1.0,
+                linewidth = 1.0)
+    end
+
+    Plots.plot!(plt,
             x[:,1],
             y[:,1],
             yerror = (y[:,1] - y_lower[:,1], y_upper[:,1] - y[:,1]),
@@ -383,6 +439,7 @@ function get_groups_by_y(
         end
     end
     Plots.xaxis!(plt, false)
+
     return plt
 end
 
@@ -2325,7 +2382,10 @@ function main_cli()::Cint
                 [ gen_col bif_col vo_gen_col vo_bif_col ],
                 [ gen_marker_alpha bif_marker_alpha vo_gen_marker_alpha vo_bif_marker_alpha ],
                 y_buffer = 0.02,
-                show_labels_on_x = true)
+                show_labels_on_x = true,
+                comparisons = ((1, 2), (3, 4), (1, 3), (2, 4)),
+                comparison_positions = (0.995, 0.995, 0.86, 0.02)
+               )
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-euclidean-distances.tex")
         write(stdout, "Writing to $(plot_path)\n")
         Plots.savefig(p, plot_path)
