@@ -332,7 +332,7 @@ function get_groups_by_y(
                 seriestype = :line,
                 legend = false,
                 linecolor = "black",
-                linealpha = 1.0,
+                linealpha = 0.3,
                 linewidth = 1.0)
     end
 
@@ -2386,6 +2386,7 @@ function main_cli()::Cint
                 comparisons = ((1, 2), (3, 4), (1, 3), (2, 4)),
                 comparison_positions = (0.995, 0.995, 0.86, 0.02)
                )
+        Plots.ylabel!(p, "Euclidean distance from true tree")
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-euclidean-distances.tex")
         write(stdout, "Writing to $(plot_path)\n")
         Plots.savefig(p, plot_path)
@@ -2432,7 +2433,10 @@ function main_cli()::Cint
                 [ gen_col bif_col vo_gen_col vo_bif_col ],
                 [ gen_marker_alpha bif_marker_alpha vo_gen_marker_alpha vo_bif_marker_alpha ],
                 y_buffer = 0.02,
-                show_labels_on_x = true)
+                show_labels_on_x = true,
+                comparisons = ((1, 2), (3, 4), (1, 3), (2, 4)),
+                comparison_positions = (0.995, 0.995, 0.09, 0.03)
+               )
         Plots.ylabel!(p, "Euclidean distance from true tree")
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-bif-euclidean-distances.tex")
         write(stdout, "Writing to $(plot_path)\n")
