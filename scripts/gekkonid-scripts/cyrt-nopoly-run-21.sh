@@ -42,7 +42,7 @@ fi
 source "${project_dir}/modules-to-load.sh" >/dev/null 2>&1 || echo "    No modules loaded"
 
 config_dir="${project_dir}/configs"
-output_dir="${project_dir}/cyrtnid-output"
+output_dir="${project_dir}/gekkonid-output"
 
 if [ ! -e "$output_dir" ]
 then
