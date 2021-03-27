@@ -1004,6 +1004,180 @@ function process_tex(path::String;
     return cropped_pdf_path
 end
 
+function make_legends()
+    plt = Plots.plot(
+            [1],
+            [2],
+            seriestype = :scatter,
+            legend = false,
+            markershape = :circle,
+            markersize = 8.0,
+            markercolor = gen_col,
+            markeralpha = gen_marker_alpha,
+            markerstrokecolor = gen_col,
+            markerstrokealpha = 0.0)
+    Plots.plot!(plt,
+            [2],
+            [2],
+            seriestype = :scatter,
+            markershape = :circle,
+            markersize = 8.0,
+            markercolor = vo_gen_col,
+            markeralpha = vo_gen_marker_alpha,
+            markerstrokecolor = vo_gen_col,
+            markerstrokealpha = 0.0)
+    Plots.plot!(plt,
+            [1],
+            [1],
+            seriestype = :scatter,
+            legend = false,
+            axis = nothing,
+            markershape = :circle,
+            markersize = 8.0,
+            markercolor = bif_col,
+            markeralpha = bif_marker_alpha,
+            markerstrokecolor = bif_col,
+            markerstrokealpha = 0.0)
+    Plots.plot!(plt,
+            [2],
+            [1],
+            seriestype = :scatter,
+            markershape = :circle,
+            markersize = 8.0,
+            markercolor = vo_bif_col,
+            markeralpha = vo_bif_marker_alpha,
+            markerstrokecolor = vo_bif_col,
+            markerstrokealpha = 0.0)
+    annotate!(plt, 1, 0.2,
+              text("All sites",
+                   :center,
+                   :top,
+                   8),
+              annotation_clip = false)
+    annotate!(plt, 2, 0.18,
+              text("Variable-only",
+                   :center,
+                   :top,
+                   8),
+              annotation_clip = false)
+    annotate!(plt, 2.1, 2,
+              text("Generalized model",
+                   :left,
+                   :vcenter,
+                   8),
+              annotation_clip = false)
+    annotate!(plt, 2.1, 1,
+              text("Independent-bifurcating model",
+                   :left,
+                   :vcenter,
+                   8),
+              annotation_clip = false)
+    Plots.plot!(plt, size = (135, 90), grid = false, ticks = false)
+    Plots.xaxis!(plt, false)
+    Plots.yaxis!(plt, false)
+    plot_path = joinpath(ProjectUtil.RESULTS_DIR, "legend.tex")
+    Plots.savefig(plt, plot_path)
+    process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+    plt = Plots.plot(
+            [1],
+            [4],
+            seriestype = :scatter,
+            legend = false,
+            markershape = :circle,
+            markersize = 6.0,
+            markercolor = gen_col,
+            markeralpha = gen_marker_alpha,
+            markerstrokecolor = gen_col,
+            markerstrokealpha = 0.0)
+    Plots.plot!(plt,
+            [1],
+            [3],
+            seriestype = :scatter,
+            markershape = :circle,
+            markersize = 6.0,
+            markercolor = vo_gen_col,
+            markeralpha = vo_gen_marker_alpha,
+            markerstrokecolor = vo_gen_col,
+            markerstrokealpha = 0.0)
+    Plots.plot!(plt,
+            [1],
+            [2],
+            seriestype = :scatter,
+            legend = false,
+            axis = nothing,
+            markershape = :circle,
+            markersize = 6.0,
+            markercolor = bif_col,
+            markeralpha = bif_marker_alpha,
+            markerstrokecolor = bif_col,
+            markerstrokealpha = 0.0)
+    Plots.plot!(plt,
+            [1],
+            [1],
+            seriestype = :scatter,
+            markershape = :circle,
+            markersize = 6.0,
+            markercolor = vo_bif_col,
+            markeralpha = vo_bif_marker_alpha,
+            markerstrokecolor = vo_bif_col,
+            markerstrokealpha = 0.0)
+    annotate!(plt, 0.85, 4.9,
+              text(LaTeXString("\\textbf{Sites}"),
+                   :right,
+                   :bottom,
+                   8),
+              annotation_clip = false)
+    annotate!(plt, 0.85, 4,
+              text("All",
+                   :right,
+                   :vcenter,
+                   8),
+              annotation_clip = false)
+    annotate!(plt, 0.85, 3,
+              text("Variable",
+                   :right,
+                   :vcenter,
+                   8),
+              annotation_clip = false)
+    annotate!(plt, 0.85, 2,
+              text("All",
+                   :right,
+                   :vcenter,
+                   8),
+              annotation_clip = false)
+    annotate!(plt, 0.85, 1,
+              text("Variable",
+                   :right,
+                   :vcenter,
+                   8),
+              annotation_clip = false)
+    annotate!(plt, 1.15, 4.9,
+              text(LaTeXString("\\textbf{Model}"),
+                   :left,
+                   :bottom,
+                   8),
+              annotation_clip = false)
+    annotate!(plt, 1.15, 4,
+              text("Generalized",
+                   :left,
+                   :vcenter,
+                   8),
+              annotation_clip = false)
+    annotate!(plt, 1.15, 2,
+              text("Independent-bifurcating",
+                   :left,
+                   :vcenter,
+                   8),
+              annotation_clip = false)
+    Plots.plot!(plt, size = (100, 115), grid = false, ticks = false)
+    Plots.xaxis!(plt, false)
+    Plots.yaxis!(plt, false)
+    plot_path = joinpath(ProjectUtil.RESULTS_DIR, "legend-vertical.tex")
+    Plots.savefig(plt, plot_path)
+    process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+    return nothing
+end
 
 function main_cli()::Cint
     if ! Base.Filesystem.ispath(ProjectUtil.RESULTS_DIR)
@@ -1011,6 +1185,8 @@ function main_cli()::Cint
     end
 
     write(stdout, "Plotting backend: $(backend())\n")
+
+    make_legends()
 
     brooks_gelman_1998_recommended_psrf = 1.2
     ess_threshold = 200.0
@@ -1028,6 +1204,7 @@ function main_cli()::Cint
     nrows = size(results.df)[1]
 
     locus_sizes = [1, 100]
+
 
     for locus_size in locus_sizes
         locus_prefix = ""
@@ -1677,23 +1854,25 @@ function main_cli()::Cint
         blank_pdf(pdf_path)
 
         v = get_split_violin_plot(
-                hcat(root_node_probs,
+                hcat(
+                     height_123_456_probs,
+                     height_12_789_probs,
+                     root_node_probs,
                      node_789_probs,
                      node_456_probs,
                      node_12_3_probs,
-                     height_12_789_probs,
-                     height_123_456_probs,
-                     split_12_probs,
-                     true_topo_probs),
-                hcat(vo_root_node_probs,
+                     split_12_probs),
+                     #= true_topo_probs), =#
+                hcat(
+                     vo_height_123_456_probs,
+                     vo_height_12_789_probs,
+                     vo_root_node_probs,
                      vo_node_789_probs,
                      vo_node_456_probs,
                      vo_node_12_3_probs,
-                     vo_height_12_789_probs,
-                     vo_height_123_456_probs,
-                     vo_split_12_probs,
-                     vo_true_topo_probs),
-                xlabels = [ "Root node" "Node 789" "Node 456" "Node 12-3" "Height 12-789" "Height 123-456" "Split 12" "True topology" ],
+                     vo_split_12_probs),
+                     #= vo_true_topo_probs), =#
+                xlabels = [ "\$\\tau_2\$" "\$\\tau_1\$" "\$t_5\$" "\$t_4\$" "\$t_3\$" "\$t_2\$" "\$t_1\$" ],
                 left_fill_colors = gen_col,
                 left_marker_colors = gen_col,
                 left_fill_alphas = gen_fill_alpha,
@@ -1706,7 +1885,7 @@ function main_cli()::Cint
                 right_labels = [ "Variable sites" ],
                 legend = :best,
                 dot_legend = false)
-        Plots.plot!(v, size = (1200, 300))
+        Plots.plot!(v, size = (650, 220), xtickfontsize = 16)
         Plots.ylims!(v, (-0.02, 1.02))
         Plots.ylabel!(v, "Posterior probability")
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-gen-true-tree-probs.tex")
@@ -1815,7 +1994,9 @@ function main_cli()::Cint
         v = get_split_violin_plot(
                 hcat(gen_max_456_subsplit_prob, vo_gen_max_456_subsplit_prob),
                 hcat(bif_max_456_subsplit_prob, vo_bif_max_456_subsplit_prob),
-                xlabels = ["All sites" "Variable sites"],
+                #= xlabels = ["All sites" "Variable sites"], =#
+                xlabels = [ "Splitting \$t_3\$" "\\ Splitting \$t_3\$\\ " ],
+                #= xlabels = [ latexstring("\\begin{tabular}{c} {\\Large \$t_3\$} \\\\ All \\\\ sites \\end{tabular}") latexstring( "\\begin{tabular}{c} {\\Large \$t_3\$} \\\\ Variable \\\\ sites \\end{tabular}") ], =#
                 left_fill_colors = [gen_col vo_gen_col],
                 left_marker_colors = [gen_col vo_gen_col],
                 left_fill_alphas = [gen_fill_alpha vo_gen_fill_alpha],
@@ -1828,6 +2009,10 @@ function main_cli()::Cint
                 right_labels = "Bifurcating",
                 legend = false,
                 dot_legend = false)
+        #= Plots.plot!(v, size = (250, 220), xtickfontsize = 16) =#
+        Plots.plot!(v, size = (250, 220))
+        Plots.ylims!(v, (-0.02, 1.02))
+        Plots.ylabel!(v, "Posterior probability")
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-max-456-subsplit-probs.tex")
         Plots.savefig(v, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
@@ -1841,7 +2026,9 @@ function main_cli()::Cint
         v = get_split_violin_plot(
                 hcat(gen_max_789_subsplit_prob, vo_gen_max_789_subsplit_prob),
                 hcat(bif_max_789_subsplit_prob, vo_bif_max_789_subsplit_prob),
-                xlabels = ["All sites" "Variable sites"],
+                #= xlabels = ["All sites" "Variable sites"], =#
+                xlabels = [ "Splitting \$t_4\$" "\\ Splitting \$t_4\$\\ " ],
+                #= xlabels = [ latexstring("\\begin{tabular}{c} {\\Large \$t_4\$} \\\\ All \\\\ sites \\end{tabular}") latexstring( "\\begin{tabular}{c} {\\Large \$t_4\$} \\\\ Variable \\\\ sites \\end{tabular}") ], =#
                 left_fill_colors = [gen_col vo_gen_col],
                 left_marker_colors = [gen_col vo_gen_col],
                 left_fill_alphas = [gen_fill_alpha vo_gen_fill_alpha],
@@ -1854,7 +2041,35 @@ function main_cli()::Cint
                 right_labels = "Bifurcating",
                 legend = false,
                 dot_legend = false)
+        #= Plots.plot!(v, size = (250, 220), xtickfontsize = 16) =#
+        Plots.plot!(v, size = (250, 220))
+        Plots.ylims!(v, (-0.02, 1.02))
+        Plots.ylabel!(v, "Posterior probability")
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-max-789-subsplit-probs.tex")
+        Plots.savefig(v, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        v = get_split_violin_plot(
+                hcat(gen_max_456_subsplit_prob, vo_gen_max_456_subsplit_prob, gen_max_789_subsplit_prob, vo_gen_max_789_subsplit_prob),
+                hcat(bif_max_456_subsplit_prob, vo_bif_max_456_subsplit_prob, bif_max_789_subsplit_prob, vo_bif_max_789_subsplit_prob),
+                xlabels = [ "Splitting \$t_3\$" "\\ Splitting \$t_3\$\\ " "Splitting \$t_4\$" "\\ Splitting \$t_4\$\\ " ],
+                left_fill_colors =   [gen_col vo_gen_col gen_col vo_gen_col],
+                left_marker_colors = [gen_col vo_gen_col gen_col vo_gen_col],
+                left_fill_alphas = [gen_fill_alpha vo_gen_fill_alpha gen_fill_alpha vo_gen_fill_alpha],
+                left_marker_alphas = [gen_marker_alpha vo_gen_marker_alpha gen_marker_alpha vo_gen_marker_alpha],
+                left_labels = "Generalized",
+                right_fill_colors = [bif_col vo_bif_col bif_col vo_bif_col],
+                right_marker_colors = [bif_col vo_bif_col bif_col vo_bif_col],
+                right_fill_alphas = [bif_fill_alpha vo_bif_fill_alpha bif_fill_alpha vo_bif_fill_alpha],
+                right_marker_alphas = [bif_marker_alpha vo_bif_marker_alpha bif_marker_alpha vo_bif_marker_alpha],
+                right_labels = "Bifurcating",
+                legend = false,
+                dot_legend = false)
+        #= Plots.plot!(v, size = (250, 220), xtickfontsize = 16) =#
+        Plots.plot!(v, size = (450, 220), xtickfontsize = 12)
+        Plots.ylims!(v, (-0.02, 1.02))
+        Plots.ylabel!(v, "Posterior probability")
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-max-poly-subsplit-probs.tex")
         Plots.savefig(v, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
@@ -1875,7 +2090,8 @@ function main_cli()::Cint
                 right_labels = "Bifurcating",
                 legend = :top,
                 dot_legend = false)
-        Plots.plot!(v, size = (320, 280))
+        Plots.plot!(v, size = (250, 220), xtickfontsize = 16)
+        Plots.ylims!(v, (-0.02, 1.02))
         Plots.ylabel!(v, "Posterior probability")
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-max-poly-subsplit-probs-all-sites.tex")
         Plots.savefig(v, plot_path)
@@ -1975,7 +2191,7 @@ function main_cli()::Cint
                      vo_bif_gen_root_node_probs),
                 hcat(bif_bif_root_node_probs,
                      vo_bif_bif_root_node_probs),
-                xlabels = [ "Generalized" "Bifurcating" ],
+                xlabels = [ "All sites" "Variable sites" ],
                 left_fill_colors = [ gen_col  vo_gen_col ],
                 left_marker_colors = [ gen_col  vo_gen_col ],
                 left_fill_alphas = [ gen_fill_alpha  vo_gen_fill_alpha ],
@@ -2001,20 +2217,22 @@ function main_cli()::Cint
                      vo_bif_gen_true_topo_probs),
                 hcat(bif_bif_true_topo_probs,
                      vo_bif_bif_true_topo_probs),
-                xlabels = [ "Generalized" "Bifurcating" ],
+                #= xlabels = [ "All sites" "Variable sites" ], =#
+                xlabels = [ "True topology" "\\ True topology\\ " ],
+                #= xlabels = [ latexstring("\\begin{tabular}{c} True topology \\\\ All sites \\end{tabular}") latexstring( "\\begin{tabular}{c} True topology \\\\ Variable sites \\end{tabular}") ], =#
                 left_fill_colors = [ gen_col  vo_gen_col ],
                 left_marker_colors = [ gen_col  vo_gen_col ],
                 left_fill_alphas = [ gen_fill_alpha  vo_gen_fill_alpha ],
                 left_marker_alphas = [ gen_marker_alpha  vo_gen_marker_alpha ],
-                left_labels = [ "All sites" ],
+                left_labels = [ "Generalized" ],
                 right_fill_colors = [bif_col vo_bif_col],
                 right_marker_colors = [bif_col vo_bif_col],
                 right_fill_alphas = [bif_fill_alpha vo_bif_fill_alpha],
                 right_marker_alphas = [bif_marker_alpha vo_bif_marker_alpha],
-                right_labels = [ "Variable sites" ],
+                right_labels = [ "Bifurcating" ],
                 legend = :best,
                 dot_legend = false)
-        Plots.plot!(v, size = (1200, 300))
+        Plots.plot!(v, size = (250, 220))
         Plots.ylims!(v, (-0.02, 1.02))
         Plots.ylabel!(v, "Posterior probability")
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-bif-true-topo-probs.tex")
@@ -2039,7 +2257,7 @@ function main_cli()::Cint
                 right_labels = [ "Bifurcating" ],
                 legend = :top,
                 dot_legend = false)
-        Plots.plot!(v, size = (220, 280))
+        Plots.plot!(v, size = (180, 220))
         Plots.ylims!(v, (-0.02, 1.02))
         Plots.ylabel!(v, "Posterior probability")
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-bif-true-topo-probs-all-sites.tex")
@@ -2052,20 +2270,20 @@ function main_cli()::Cint
                      vo_bif_gen_true_split_prob_mean),
                 hcat(bif_bif_true_split_prob_mean,
                      vo_bif_bif_true_split_prob_mean),
-                xlabels = [ "Generalized" "Bifurcating" ],
+                xlabels = [ "All sites" "Variable sites" ],
                 left_fill_colors = [ gen_col  vo_gen_col ],
                 left_marker_colors = [ gen_col  vo_gen_col ],
                 left_fill_alphas = [ gen_fill_alpha  vo_gen_fill_alpha ],
                 left_marker_alphas = [ gen_marker_alpha  vo_gen_marker_alpha ],
-                left_labels = [ "All sites" ],
+                left_labels = [ "Generalized" ],
                 right_fill_colors = [bif_col vo_bif_col],
                 right_marker_colors = [bif_col vo_bif_col],
                 right_fill_alphas = [bif_fill_alpha vo_bif_fill_alpha],
                 right_marker_alphas = [bif_marker_alpha vo_bif_marker_alpha],
-                right_labels = [ "Variable sites" ],
+                right_labels = [ "Bifurcating" ],
                 legend = :best,
                 dot_legend = false)
-        Plots.plot!(v, size = (1200, 300))
+        Plots.plot!(v, size = (250, 220))
         Plots.ylims!(v, (-0.02, 1.02))
         Plots.ylabel!(v, "Posterior probability")
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-bif-true-split-prob-means.tex")
@@ -2076,7 +2294,7 @@ function main_cli()::Cint
         v = get_split_violin_plot(
                 bif_gen_true_split_prob_mean,
                 bif_bif_true_split_prob_mean,
-                xlabels = [ LaTeXString("\\begin{tabular}{c} Independent bifurcating \\\\ model (true model) \\end{tabular}") ],
+                xlabels = [ latexstring("\\begin{tabular}{c} independent bifurcating \\\\ model (true model) \\end{tabular}") ],
                 left_fill_colors = [ gen_col ],
                 left_marker_colors = [ gen_col ],
                 left_fill_alphas = [ gen_fill_alpha ],
@@ -2098,19 +2316,23 @@ function main_cli()::Cint
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
         v = get_split_violin_plot(
-                hcat(bif_gen_ht_12_78_prob,
-                     bif_gen_ht_45_789_prob,
+                hcat(
+                     bif_gen_nd_123_456_789_prob,
                      bif_gen_ht_456_789_prob,
-                     bif_gen_nd_1_2_3_prob,
                      bif_gen_nd_4_5_6_prob,
-                     bif_gen_nd_123_456_789_prob),
-                hcat(vo_bif_gen_ht_12_78_prob,
-                     vo_bif_gen_ht_45_789_prob,
+                     bif_gen_ht_45_789_prob,
+                     bif_gen_nd_1_2_3_prob,
+                     bif_gen_ht_12_78_prob,
+                    ),
+                hcat(
+                     vo_bif_gen_nd_123_456_789_prob,
                      vo_bif_gen_ht_456_789_prob,
-                     vo_bif_gen_nd_1_2_3_prob,
                      vo_bif_gen_nd_4_5_6_prob,
-                     vo_bif_gen_nd_123_456_789_prob),
-                xlabels = [ "\$t_1 = t_5\$" "\$t_3 = t_6\$" "\$t_4 = t_6\$" "\$t_1 = t_2\$" "\$t_3 = t_4\$" "\$t_7 = t_8\$" ],
+                     vo_bif_gen_ht_45_789_prob,
+                     vo_bif_gen_nd_1_2_3_prob,
+                     vo_bif_gen_ht_12_78_prob,
+                    ),
+                xlabels = [ "\$t_7 = t_8\$" "\$t_4 = t_6\$" "\$t_3 = t_4\$" "\$t_3 = t_6\$" "\$t_1 = t_2\$" "\$t_1 = t_5\$" ],
                 left_fill_colors = gen_col,
                 left_marker_colors = gen_col,
                 left_fill_alphas = gen_fill_alpha,
@@ -2123,7 +2345,7 @@ function main_cli()::Cint
                 right_labels = [ "Variable sites" ],
                 legend = :best,
                 dot_legend = false)
-        Plots.plot!(v, size = (1200, 300))
+        Plots.plot!(v, size = (650, 220), xtickfontsize = 16)
         Plots.ylims!(v, (-0.02, 1.02))
         Plots.ylabel!(v, "Posterior probability")
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-bif-gen-wrong-probs.tex")
