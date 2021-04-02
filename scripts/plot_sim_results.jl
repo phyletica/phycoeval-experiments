@@ -2049,6 +2049,34 @@ function main_cli()::Cint
         Plots.savefig(v, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
+        fixed_gen_gen_max_wrong_root_prob = get_floats(results, true, true, true, false, :max_wrong_root_prob, locus_size)
+        vo_fixed_gen_gen_max_wrong_root_prob = get_floats(results, true, true, true, true, :max_wrong_root_prob, locus_size)
+        fixed_gen_bif_max_wrong_root_prob = get_floats(results, true, true, false, false, :max_wrong_root_prob, locus_size)
+        vo_fixed_gen_bif_max_wrong_root_prob = get_floats(results, true, true, false, true, :max_wrong_root_prob, locus_size)
+
+        v = get_split_violin_plot(
+                hcat(fixed_gen_gen_max_wrong_root_prob, vo_fixed_gen_gen_max_wrong_root_prob),
+                hcat(fixed_gen_bif_max_wrong_root_prob, vo_fixed_gen_bif_max_wrong_root_prob),
+                xlabels = [ "Wrong \$t_5\$" "\\ Wrong \$t_5\$\\ " ],
+                left_fill_colors = [gen_col vo_gen_col],
+                left_marker_colors = [gen_col vo_gen_col],
+                left_fill_alphas = [gen_fill_alpha vo_gen_fill_alpha],
+                left_marker_alphas = [gen_marker_alpha vo_gen_marker_alpha],
+                left_labels = "Generalized",
+                right_fill_colors = [bif_col vo_bif_col],
+                right_marker_colors = [bif_col vo_bif_col],
+                right_fill_alphas = [bif_fill_alpha vo_bif_fill_alpha],
+                right_marker_alphas = [bif_marker_alpha vo_bif_marker_alpha],
+                right_labels = "Bifurcating",
+                legend = false,
+                dot_legend = false)
+        Plots.plot!(v, size = (250, 220))
+        Plots.ylims!(v, (-0.02, 1.02))
+        Plots.ylabel!(v, "Posterior probability")
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-max-wrong-root-probs.tex")
+        Plots.savefig(v, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
         v = get_split_violin_plot(
                 hcat(gen_max_456_subsplit_prob, vo_gen_max_456_subsplit_prob, gen_max_789_subsplit_prob, vo_gen_max_789_subsplit_prob),
                 hcat(bif_max_456_subsplit_prob, vo_bif_max_456_subsplit_prob, bif_max_789_subsplit_prob, vo_bif_max_789_subsplit_prob),
@@ -2070,6 +2098,29 @@ function main_cli()::Cint
         Plots.ylims!(v, (-0.02, 1.02))
         Plots.ylabel!(v, "Posterior probability")
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-max-poly-subsplit-probs.tex")
+        Plots.savefig(v, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        v = get_split_violin_plot(
+                hcat(fixed_gen_gen_max_wrong_root_prob, vo_fixed_gen_gen_max_wrong_root_prob, gen_max_456_subsplit_prob, vo_gen_max_456_subsplit_prob, gen_max_789_subsplit_prob, vo_gen_max_789_subsplit_prob),
+                hcat(fixed_gen_bif_max_wrong_root_prob, vo_fixed_gen_bif_max_wrong_root_prob, bif_max_456_subsplit_prob, vo_bif_max_456_subsplit_prob, bif_max_789_subsplit_prob, vo_bif_max_789_subsplit_prob),
+                xlabels = [ "Wrong \$t_5\$" "\\ Wrong \$t_5\$\\ " "Splitting \$t_3\$" "\\ Splitting \$t_3\$\\ " "Splitting \$t_4\$" "\\ Splitting \$t_4\$\\ " ],
+                left_fill_colors =   [gen_col vo_gen_col gen_col vo_gen_col gen_col vo_gen_col],
+                left_marker_colors = [gen_col vo_gen_col gen_col vo_gen_col gen_col vo_gen_col],
+                left_fill_alphas = [gen_fill_alpha vo_gen_fill_alpha gen_fill_alpha vo_gen_fill_alpha gen_fill_alpha vo_gen_fill_alpha],
+                left_marker_alphas = [gen_marker_alpha vo_gen_marker_alpha gen_marker_alpha vo_gen_marker_alpha gen_marker_alpha vo_gen_marker_alpha],
+                left_labels = "Generalized",
+                right_fill_colors = [bif_col vo_bif_col bif_col vo_bif_col bif_col vo_bif_col],
+                right_marker_colors = [bif_col vo_bif_col bif_col vo_bif_col bif_col vo_bif_col],
+                right_fill_alphas = [bif_fill_alpha vo_bif_fill_alpha bif_fill_alpha vo_bif_fill_alpha bif_fill_alpha vo_bif_fill_alpha],
+                right_marker_alphas = [bif_marker_alpha vo_bif_marker_alpha bif_marker_alpha vo_bif_marker_alpha bif_marker_alpha vo_bif_marker_alpha],
+                right_labels = "Bifurcating",
+                legend = false,
+                dot_legend = false)
+        Plots.plot!(v, size = (650, 220), xtickfontsize = 12)
+        Plots.ylims!(v, (-0.02, 1.02))
+        Plots.ylabel!(v, "Posterior probability")
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-max-wrong-root-poly-subsplit-probs.tex")
         Plots.savefig(v, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 

@@ -290,6 +290,16 @@ function parse_sim_results(
                 true_shared_height_prob_median = Statistics.median(true_shared_height_probs)
             end
 
+            root_node_true_is_map = treesum["summary_of_target_tree"]["splits"]["root"]["node"]["is_a_map_node_given_split"]
+            max_wrong_root_prob = treesum["splits"]["root"]["nodes"][1]["frequency"]
+            if root_node_true_is_map
+                if length(treesum["splits"]["root"]["nodes"]) > 1
+                    max_wrong_root_prob = treesum["splits"]["root"]["nodes"][1]["frequency"]
+                else
+                    max_wrong_root_prob = 0
+                end
+            end
+
             row = DataFrame(
              number_of_runs = number_of_runs,
              number_of_samples = number_of_samples,
@@ -356,7 +366,8 @@ function parse_sim_results(
              root_pop_size_ess = treesum["splits"]["root"]["pop_size_ess"],
              root_pop_size_psrf = treesum["splits"]["root"]["pop_size_psrf"],
              root_node_true_prob = treesum["summary_of_target_tree"]["splits"]["root"]["node"]["frequency"],
-             root_node_true_is_map = treesum["summary_of_target_tree"]["splits"]["root"]["node"]["is_a_map_node_given_split"],
+             root_node_true_is_map = root_node_true_is_map,
+             max_wrong_root_prob = max_wrong_root_prob,
              euclidean_distance_mean = treesum["summary_of_target_tree"]["euclidean_distance"]["mean"],
              euclidean_distance_median = treesum["summary_of_target_tree"]["euclidean_distance"]["median"],
              euclidean_distance_eti_95_lower = treesum["summary_of_target_tree"]["euclidean_distance"]["eti_95"][1],
