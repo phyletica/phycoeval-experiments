@@ -294,7 +294,7 @@ function parse_sim_results(
             max_wrong_root_prob = treesum["splits"]["root"]["nodes"][1]["frequency"]
             if root_node_true_is_map
                 if length(treesum["splits"]["root"]["nodes"]) > 1
-                    max_wrong_root_prob = treesum["splits"]["root"]["nodes"][1]["frequency"]
+                    max_wrong_root_prob = treesum["splits"]["root"]["nodes"][2]["frequency"]
                 else
                     max_wrong_root_prob = 0
                 end
