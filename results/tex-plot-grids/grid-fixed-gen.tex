@@ -1,6 +1,8 @@
 \documentclass[border=10pt,varwidth=30cm]{standalone}
 \usepackage{graphicx,capt-of}
 \usepackage{subcaption}
+\usepackage[cm]{sfmath}
+\usepackage[T1]{fontenc}
 
 \renewcommand{\familydefault}{\sfdefault}
 
@@ -11,44 +13,53 @@
 
 \begin{figure}
     \centering
-    \begin{subfigure}[b][][l]{\textwidth}
-        \huge \textbf{A}
+    \begin{subfigure}[c][][c]{0.49\textwidth}
+        \centering
+        \Huge $M_{G}$ = Generalized model
     \end{subfigure}
+    \hfill
+    \begin{subfigure}[c][][c]{0.49\textwidth}
+        \centering
+        \Huge $M_{IB}$ = Independent-bifurcating model
+    \end{subfigure}
+    \vspace{2mm}
     \begin{subfigure}[c][][c]{\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../../tex/trees/generalized-tree-cropped.pdf}
+        \includegraphics[width=\textwidth]{../legend-horizontal-short-sans-cropped.pdf}
+    \end{subfigure}
+    \vspace{2mm}
+    \begin{subfigure}[b][][l]{0.39\textwidth}
+        \huge \textbf{A}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b][][l]{0.59\textwidth}
+        \huge \textbf{B}
+    \end{subfigure}
+    \vspace{2mm}
+    \begin{subfigure}[c][][c]{0.39\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../../tex/trees/generalized-tree-tall-cropped.pdf}
         % \caption{}
         \label{fig:gentree}
     \end{subfigure}
-    \begin{subfigure}[b][][l]{0.34\textwidth}
-        \huge \textbf{B}
-    \end{subfigure}
     \hfill
-    \begin{subfigure}[b][][l]{0.64\textwidth}
+    \begin{subfigure}[c][][c]{0.59\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../fixed-gen-euclidean-distances-sans-cropped.pdf}
+    \end{subfigure}
+    \begin{subfigure}[b][][l]{\textwidth}
         \huge \textbf{C}
     \end{subfigure}
-    \begin{subfigure}[c][][c]{0.34\textwidth}
+    \begin{subfigure}[c][][c]{\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../legend-vertical-sans-cropped.pdf}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[c][][c]{0.64\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../fixed-gen-max-poly-subsplit-probs-sans-cropped.pdf}
+        \includegraphics[width=\textwidth]{../fixed-gen-gen-true-tree-probs-sans-cropped.pdf}
     \end{subfigure}
     \begin{subfigure}[b][][l]{\textwidth}
         \huge \textbf{D}
     \end{subfigure}
-    \begin{subfigure}[c][][c]{1\textwidth}
+    \begin{subfigure}[c][][c]{\textwidth}
         \centering
-        \includegraphics[width=1\textwidth]{../fixed-gen-gen-true-tree-probs-sans-cropped.pdf}
-    \end{subfigure}
-    \begin{subfigure}[b][][l]{\textwidth}
-        \huge \textbf{E}
-    \end{subfigure}
-    \begin{subfigure}[c][][c]{1\textwidth}
-        \centering
-        \includegraphics[width=1\textwidth]{../fixed-gen-euclidean-distances-sans-cropped.pdf}
+        \includegraphics[width=\textwidth]{../fixed-gen-max-wrong-root-poly-subsplit-probs-sans-cropped.pdf}
     \end{subfigure}
 \end{figure}
 

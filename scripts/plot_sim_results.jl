@@ -115,6 +115,19 @@ vo_bif_col = lblue_col
 marker_alpha = 0.9
 fill_alpha = 0.75
 
+gen_shape = :circle
+bif_shape = :diamond
+vo_gen_shape = gen_shape
+vo_bif_shape = bif_shape
+
+gen_marker_size = 3.0
+bif_marker_size = 3.5
+vo_gen_marker_size = gen_marker_size
+vo_bif_marker_size = bif_marker_size
+
+gen_model = L"$M_{G}$"
+bif_model = L"$M_{IB}$"
+
 gen_marker_alpha = marker_alpha
 #= vo_gen_marker_alpha = marker_alpha - 0.3 =#
 vo_gen_marker_alpha = marker_alpha
@@ -255,6 +268,8 @@ function get_groups_by_y(
         labels,
         colors,
         alphas;
+        marker_shapes = nothing,
+        marker_sizes = nothing,
         y_buffer = 0.02,
         error_bar_alpha = 0.2,
         show_group_means = true,
@@ -262,13 +277,24 @@ function get_groups_by_y(
         group_mean_line_width = 2.0,
         show_labels_on_x = false,
         x_label_size = 8,
+        x_label_offset = 0.1,
         comparisons = (),
-        comparison_positions = ())::Plots.Plot
+        comparison_positions = (),
+        p_val_size = 8)::Plots.Plot
     @assert ndims(y) == 2
     @assert size(y) == size(y_lower) 
     @assert size(y) == size(y_upper) 
     @assert size(y)[2] == size(colors)[2]
     @assert size(y)[2] == size(labels)[2]
+    if isnothing(marker_shapes)
+        marker_shapes = fill(:circle, 1, size(y)[2])
+    end
+    if isnothing(marker_sizes)
+        marker_sizes = fill(4.0, 1, size(y)[2])
+    end
+    @assert size(y)[2] == size(marker_shapes)[2]
+    @assert size(y)[2] == size(marker_sizes)[2]
+
     nsamples = size(y)[1]
     ngroups = size(y)[2]
     x = Array{Int64}(undef, size(y)...)
@@ -324,7 +350,8 @@ function get_groups_by_y(
                   text("\$p = $(@sprintf("%.2g", pval))\$",
                        :center,
                        pval_aln,
-                       x_label_size),
+                       p_val_size,
+                       rotation = 0),
                   annotation_clip = false)
         Plots.plot!(plt,
                 [mid_1, mid_1, mid_2, mid_2],
@@ -360,6 +387,8 @@ function get_groups_by_y(
             xlims = x_limits,
             ylims = y_limits,
             label = labels[:,1],
+            markershape = marker_shapes[:,1],
+            markersize = marker_sizes[:,1],
             markercolor = colors[:,1],
             markeralpha = alphas[:,1],
             markerstrokecolor = colors[:,1],
@@ -380,12 +409,13 @@ function get_groups_by_y(
     if show_labels_on_x
         x_position = Statistics.mean(x[:,1])
         #= y_position = y_limits[1] =#
-        y_position = y_limits[1] - (0.1 * (y_limits[2] - y_limits[1]))
+        y_position = y_limits[1] - (x_label_offset * (y_limits[2] - y_limits[1]))
         annotate!(plt, x_position, y_position,
                   text(labels[1,1],
                        :center,
                        :top,
-                       x_label_size),
+                       x_label_size,
+                       rotation = 0),
                   annotation_clip = false)
     end
     for i in 2:ngroups
@@ -409,6 +439,8 @@ function get_groups_by_y(
                 seriestype = :scatter,
                 legend = false,
                 label = labels[:,i],
+                markershape = marker_shapes[:,i],
+                markersize = marker_sizes[:,i],
                 markercolor = colors[:,i],
                 markeralpha = alphas[:,i],
                 markerstrokecolor = colors[:,i],
@@ -429,12 +461,13 @@ function get_groups_by_y(
         if show_labels_on_x
             x_position = Statistics.mean(x[:,i])
             #= y_position = y_limits[1] =#
-            y_position = y_limits[1] - (0.1 * (y_limits[2] - y_limits[1]))
+            y_position = y_limits[1] - (x_label_offset * (y_limits[2] - y_limits[1]))
             annotate!(plt, x_position, y_position,
                       text(labels[1,i],
                            :center,
                            :top,
-                           x_label_size),
+                           x_label_size,
+                           rotation = 0),
                       annotation_clip = false)
         end
     end
@@ -490,10 +523,27 @@ function get_split_violin_plot(
         right_marker_alphas,
         right_labels,
         legend = false,
-        dot_legend = false)::Plots.Plot
+        dot_legend = false,
+        left_marker_shapes = nothing,
+        left_marker_sizes = nothing,
+        right_marker_shapes = nothing,
+        right_marker_sizes = nothing
+       )::Plots.Plot
     xlabs = xlabels
     for i in eachindex(xlabs)
         xlabs[i] = "\\textrm{\\sffamily $(xlabs[i])}"
+    end
+    if isnothing(left_marker_shapes)
+        left_marker_shapes = fill(:circle, 1, length(left_values))
+    end
+    if isnothing(right_marker_shapes)
+        right_marker_shapes = fill(:circle, 1, length(right_values))
+    end
+    if isnothing(left_marker_sizes)
+        left_marker_sizes = fill(4.0, 1, length(left_values))
+    end
+    if isnothing(right_marker_sizes)
+        right_marker_sizes = fill(4.0, 1, length(right_values))
     end
     vln = StatsPlots.violin(
             xlabs,
@@ -511,6 +561,10 @@ function get_split_violin_plot(
             side = :left,
             markercolor = left_marker_colors,
             markeralpha = left_marker_alphas,
+            markershape = left_marker_shapes,
+            #= markerstrokecolor = left_marker_colors, =#
+            #= markerstrokealpha = left_marker_alphas, =#
+            markersize = left_marker_sizes,
             label = left_labels
     )
     StatsPlots.violin!(vln,
@@ -529,6 +583,10 @@ function get_split_violin_plot(
             side = :right,
             markercolor = right_marker_colors,
             markeralpha = right_marker_alphas,
+            markershape = right_marker_shapes,
+            #= markerstrokecolor = right_marker_colors, =#
+            #= markerstrokealpha = right_marker_alphas, =#
+            markersize = right_marker_sizes,
             label = right_labels
     )
     return vln
@@ -1010,7 +1068,7 @@ function make_legends()
             [2],
             seriestype = :scatter,
             legend = false,
-            markershape = :circle,
+            markershape = gen_shape,
             markersize = 8.0,
             markercolor = gen_col,
             markeralpha = gen_marker_alpha,
@@ -1020,7 +1078,7 @@ function make_legends()
             [2],
             [2],
             seriestype = :scatter,
-            markershape = :circle,
+            markershape = vo_gen_shape,
             markersize = 8.0,
             markercolor = vo_gen_col,
             markeralpha = vo_gen_marker_alpha,
@@ -1032,7 +1090,7 @@ function make_legends()
             seriestype = :scatter,
             legend = false,
             axis = nothing,
-            markershape = :circle,
+            markershape = bif_shape,
             markersize = 8.0,
             markercolor = bif_col,
             markeralpha = bif_marker_alpha,
@@ -1042,7 +1100,7 @@ function make_legends()
             [2],
             [1],
             seriestype = :scatter,
-            markershape = :circle,
+            markershape = vo_bif_shape,
             markersize = 8.0,
             markercolor = vo_bif_col,
             markeralpha = vo_bif_marker_alpha,
@@ -1081,10 +1139,85 @@ function make_legends()
 
     plt = Plots.plot(
             [1],
+            [2],
+            seriestype = :scatter,
+            legend = false,
+            markershape = gen_shape,
+            markersize = 8.0,
+            markercolor = gen_col,
+            markeralpha = gen_marker_alpha,
+            markerstrokecolor = gen_col,
+            markerstrokealpha = 0.0)
+    Plots.plot!(plt,
+            [2],
+            [2],
+            seriestype = :scatter,
+            legend = false,
+            axis = nothing,
+            markershape = bif_shape,
+            markersize = 8.0,
+            markercolor = bif_col,
+            markeralpha = bif_marker_alpha,
+            markerstrokecolor = bif_col,
+            markerstrokealpha = 0.0)
+    Plots.plot!(plt,
+            [1],
+            [1],
+            seriestype = :scatter,
+            markershape = vo_gen_shape,
+            markersize = 8.0,
+            markercolor = vo_gen_col,
+            markeralpha = vo_gen_marker_alpha,
+            markerstrokecolor = vo_gen_col,
+            markerstrokealpha = 0.0)
+    Plots.plot!(plt,
+            [2],
+            [1],
+            seriestype = :scatter,
+            markershape = vo_bif_shape,
+            markersize = 8.0,
+            markercolor = vo_bif_col,
+            markeralpha = vo_bif_marker_alpha,
+            markerstrokecolor = vo_bif_col,
+            markerstrokealpha = 0.0)
+    annotate!(plt, 1, 0.2,
+              text(gen_model,
+                   :center,
+                   :top,
+                   8),
+              annotation_clip = false)
+    annotate!(plt, 2, 0.18,
+              text(bif_model,
+                   :center,
+                   :top,
+                   8),
+              annotation_clip = false)
+    annotate!(plt, 2.15, 2,
+              text("All sites",
+                   :left,
+                   :vcenter,
+                   8),
+              annotation_clip = false)
+    annotate!(plt, 2.15, 1,
+              text("Variable sites",
+                   :left,
+                   :vcenter,
+                   8),
+              annotation_clip = false)
+    Plots.plot!(plt, size = (95, 90), grid = false, ticks = false)
+    Plots.xaxis!(plt, false)
+    Plots.yaxis!(plt, false)
+    plot_path = joinpath(ProjectUtil.RESULTS_DIR, "legend-short.tex")
+    Plots.savefig(plt, plot_path)
+    process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+
+    plt = Plots.plot(
+            [1],
             [4],
             seriestype = :scatter,
             legend = false,
-            markershape = :circle,
+            markershape = gen_shape,
             markersize = 6.0,
             markercolor = gen_col,
             markeralpha = gen_marker_alpha,
@@ -1094,7 +1227,7 @@ function make_legends()
             [1],
             [3],
             seriestype = :scatter,
-            markershape = :circle,
+            markershape = vo_gen_shape,
             markersize = 6.0,
             markercolor = vo_gen_col,
             markeralpha = vo_gen_marker_alpha,
@@ -1106,7 +1239,7 @@ function make_legends()
             seriestype = :scatter,
             legend = false,
             axis = nothing,
-            markershape = :circle,
+            markershape = bif_shape,
             markersize = 6.0,
             markercolor = bif_col,
             markeralpha = bif_marker_alpha,
@@ -1116,7 +1249,7 @@ function make_legends()
             [1],
             [1],
             seriestype = :scatter,
-            markershape = :circle,
+            markershape = vo_bif_shape,
             markersize = 6.0,
             markercolor = vo_bif_col,
             markeralpha = vo_bif_marker_alpha,
@@ -1174,6 +1307,154 @@ function make_legends()
     Plots.xaxis!(plt, false)
     Plots.yaxis!(plt, false)
     plot_path = joinpath(ProjectUtil.RESULTS_DIR, "legend-vertical.tex")
+    Plots.savefig(plt, plot_path)
+    process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+    plt = Plots.plot(
+            [1],
+            [4],
+            seriestype = :scatter,
+            legend = false,
+            markershape = gen_shape,
+            markersize = 6.0,
+            markercolor = gen_col,
+            markeralpha = gen_marker_alpha,
+            markerstrokecolor = gen_col,
+            markerstrokealpha = 0.0)
+    Plots.plot!(plt,
+            [1],
+            [3],
+            seriestype = :scatter,
+            markershape = vo_gen_shape,
+            markersize = 6.0,
+            markercolor = vo_gen_col,
+            markeralpha = vo_gen_marker_alpha,
+            markerstrokecolor = vo_gen_col,
+            markerstrokealpha = 0.0)
+    Plots.plot!(plt,
+            [1],
+            [2],
+            seriestype = :scatter,
+            legend = false,
+            axis = nothing,
+            markershape = bif_shape,
+            markersize = 6.0,
+            markercolor = bif_col,
+            markeralpha = bif_marker_alpha,
+            markerstrokecolor = bif_col,
+            markerstrokealpha = 0.0)
+    Plots.plot!(plt,
+            [1],
+            [1],
+            seriestype = :scatter,
+            markershape = vo_bif_shape,
+            markersize = 6.0,
+            markercolor = vo_bif_col,
+            markeralpha = vo_bif_marker_alpha,
+            markerstrokecolor = vo_bif_col,
+            markerstrokealpha = 0.0)
+    annotate!(plt, 1.15, 4,
+              text(LaTeXString("$(gen_model), all sites"),
+                   :left,
+                   :vcenter,
+                   8),
+              annotation_clip = false)
+    annotate!(plt, 1.15, 3,
+              text(LaTeXString("$(gen_model), variable sites"),
+                   :left,
+                   :vcenter,
+                   8),
+              annotation_clip = false)
+    annotate!(plt, 1.15, 2,
+              text(LaTeXString("$(bif_model), all sites"),
+                   :left,
+                   :vcenter,
+                   8),
+              annotation_clip = false)
+    annotate!(plt, 1.15, 1,
+              text(LaTeXString("$(bif_model), variable sites"),
+                   :left,
+                   :vcenter,
+                   8),
+              annotation_clip = false)
+    Plots.plot!(plt, size = (100, 114), grid = false, ticks = false)
+    Plots.xaxis!(plt, false)
+    Plots.yaxis!(plt, false)
+    plot_path = joinpath(ProjectUtil.RESULTS_DIR, "legend-vertical-short.tex")
+    Plots.savefig(plt, plot_path)
+    process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+    plt = Plots.plot(
+            [0],
+            [0],
+            seriestype = :scatter,
+            legend = false,
+            markershape = gen_shape,
+            markersize = 6.0,
+            markercolor = gen_col,
+            markeralpha = gen_marker_alpha,
+            markerstrokecolor = gen_col,
+            markerstrokealpha = 0.0)
+    Plots.plot!(plt,
+            [0.8],
+            [0],
+            seriestype = :scatter,
+            markershape = vo_gen_shape,
+            markersize = 6.0,
+            markercolor = vo_gen_col,
+            markeralpha = vo_gen_marker_alpha,
+            markerstrokecolor = vo_gen_col,
+            markerstrokealpha = 0.0)
+    Plots.plot!(plt,
+            [1.85],
+            [0],
+            seriestype = :scatter,
+            legend = false,
+            axis = nothing,
+            markershape = bif_shape,
+            markersize = 6.0,
+            markercolor = bif_col,
+            markeralpha = bif_marker_alpha,
+            markerstrokecolor = bif_col,
+            markerstrokealpha = 0.0)
+    Plots.plot!(plt,
+            [2.65],
+            [0],
+            seriestype = :scatter,
+            markershape = vo_bif_shape,
+            markersize = 6.0,
+            markercolor = vo_bif_col,
+            markeralpha = vo_bif_marker_alpha,
+            markerstrokecolor = vo_bif_col,
+            markerstrokealpha = 0.0)
+    annotate!(plt, 0.03, 0,
+              text(LaTeXString("$(gen_model), all sites"),
+                   :left,
+                   :vcenter,
+                   8),
+              annotation_clip = false)
+    annotate!(plt, 0.83, 0,
+              text(LaTeXString("$(gen_model), variable sites"),
+                   :left,
+                   :vcenter,
+                   8),
+              annotation_clip = false)
+    annotate!(plt, 1.88, 0,
+              text(LaTeXString("$(bif_model), all sites"),
+                   :left,
+                   :vcenter,
+                   8),
+              annotation_clip = false)
+    annotate!(plt, 2.68, 0,
+              text(LaTeXString("$(bif_model), variable sites"),
+                   :left,
+                   :vcenter,
+                   8),
+              annotation_clip = false)
+    Plots.plot!(plt, size = (380, 80), grid = false, ticks = false)
+    Plots.xaxis!(plt, false)
+    Plots.yaxis!(plt, false)
+    plot_path = joinpath(ProjectUtil.RESULTS_DIR, "legend-horizontal-short.tex")
     Plots.savefig(plt, plot_path)
     process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
     return nothing
@@ -1877,11 +2158,15 @@ function main_cli()::Cint
                 left_marker_colors = gen_col,
                 left_fill_alphas = gen_fill_alpha,
                 left_marker_alphas = gen_marker_alpha,
+                left_marker_shapes = gen_shape,
+                left_marker_sizes = gen_marker_size,
                 left_labels = [ "All sites" ],
                 right_fill_colors = vo_gen_col,
                 right_marker_colors = vo_gen_col,
                 right_fill_alphas = vo_gen_fill_alpha,
                 right_marker_alphas = vo_gen_marker_alpha,
+                right_marker_shapes = vo_gen_shape,
+                right_marker_sizes = vo_gen_marker_size,
                 right_labels = [ "Variable sites" ],
                 legend = :best,
                 dot_legend = false)
@@ -2109,11 +2394,15 @@ function main_cli()::Cint
                 left_marker_colors = [gen_col vo_gen_col gen_col vo_gen_col gen_col vo_gen_col],
                 left_fill_alphas = [gen_fill_alpha vo_gen_fill_alpha gen_fill_alpha vo_gen_fill_alpha gen_fill_alpha vo_gen_fill_alpha],
                 left_marker_alphas = [gen_marker_alpha vo_gen_marker_alpha gen_marker_alpha vo_gen_marker_alpha gen_marker_alpha vo_gen_marker_alpha],
+                left_marker_shapes = [gen_shape vo_gen_shape gen_shape vo_gen_shape gen_shape vo_gen_shape],
+                left_marker_sizes = [gen_marker_size vo_gen_marker_size gen_marker_size vo_gen_marker_size gen_marker_size vo_gen_marker_size],
                 left_labels = "Generalized",
                 right_fill_colors = [bif_col vo_bif_col bif_col vo_bif_col bif_col vo_bif_col],
                 right_marker_colors = [bif_col vo_bif_col bif_col vo_bif_col bif_col vo_bif_col],
                 right_fill_alphas = [bif_fill_alpha vo_bif_fill_alpha bif_fill_alpha vo_bif_fill_alpha bif_fill_alpha vo_bif_fill_alpha],
                 right_marker_alphas = [bif_marker_alpha vo_bif_marker_alpha bif_marker_alpha vo_bif_marker_alpha bif_marker_alpha vo_bif_marker_alpha],
+                right_marker_shapes = [bif_shape vo_bif_shape bif_shape vo_bif_shape bif_shape vo_bif_shape],
+                right_marker_sizes = [bif_marker_size vo_bif_marker_size bif_marker_size vo_bif_marker_size bif_marker_size vo_bif_marker_size],
                 right_labels = "Bifurcating",
                 legend = false,
                 dot_legend = false)
@@ -2275,15 +2564,19 @@ function main_cli()::Cint
                 left_marker_colors = [ gen_col  vo_gen_col ],
                 left_fill_alphas = [ gen_fill_alpha  vo_gen_fill_alpha ],
                 left_marker_alphas = [ gen_marker_alpha  vo_gen_marker_alpha ],
+                left_marker_shapes = [ gen_shape vo_gen_shape ],
+                left_marker_sizes = [ gen_marker_size vo_gen_marker_size ],
                 left_labels = [ "Generalized" ],
                 right_fill_colors = [bif_col vo_bif_col],
                 right_marker_colors = [bif_col vo_bif_col],
                 right_fill_alphas = [bif_fill_alpha vo_bif_fill_alpha],
                 right_marker_alphas = [bif_marker_alpha vo_bif_marker_alpha],
+                right_marker_shapes = [ bif_shape vo_bif_shape ],
+                right_marker_sizes = [ bif_marker_size vo_bif_marker_size ],
                 right_labels = [ "Bifurcating" ],
                 legend = :best,
                 dot_legend = false)
-        Plots.plot!(v, size = (250, 220))
+        Plots.plot!(v, size = (250, 220), xtickfontsize = 12)
         Plots.ylims!(v, (-0.02, 1.02))
         Plots.ylabel!(v, "Posterior probability")
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-bif-true-topo-probs.tex")
@@ -2388,11 +2681,15 @@ function main_cli()::Cint
                 left_marker_colors = gen_col,
                 left_fill_alphas = gen_fill_alpha,
                 left_marker_alphas = gen_marker_alpha,
+                left_marker_shapes = gen_shape,
+                left_marker_sizes = gen_marker_size,
                 left_labels = [ "All sites" ],
                 right_fill_colors = vo_gen_col,
                 right_marker_colors = vo_gen_col,
                 right_fill_alphas = vo_gen_fill_alpha,
                 right_marker_alphas = vo_gen_marker_alpha,
+                right_marker_shapes = vo_gen_shape,
+                right_marker_sizes = vo_gen_marker_size,
                 right_labels = [ "Variable sites" ],
                 legend = :best,
                 dot_legend = false)
@@ -2651,15 +2948,21 @@ function main_cli()::Cint
                      fixed_gen_bif_dist_upper,
                      vo_fixed_gen_gen_dist_upper,
                      vo_fixed_gen_bif_dist_upper),
-                [ LaTeXString("\\begin{tabular}{c} Generalized model \\\\ (true model) \\\\ All sites \\end{tabular}") LaTeXString("\\begin{tabular}{c} Independent bifurcating \\\\ model \\\\ All sites \\end{tabular}") LaTeXString("\\begin{tabular}{c} Generalized model \\\\ (true model) \\\\ Only SNPs \\end{tabular}") LaTeXString("\\begin{tabular}{c} Independent bifurcating \\\\ model \\\\ Only SNPs \\end{tabular}") ],
+                #= [ LaTeXString("\\begin{tabular}{c} Generalized model \\\\ (true model) \\\\ All sites \\end{tabular}") LaTeXString("\\begin{tabular}{c} Independent bifurcating \\\\ model \\\\ All sites \\end{tabular}") LaTeXString("\\begin{tabular}{c} Generalized model \\\\ (true model) \\\\ Only SNPs \\end{tabular}") LaTeXString("\\begin{tabular}{c} Independent bifurcating \\\\ model \\\\ Only SNPs \\end{tabular}") ], =#
+                [ gen_model bif_model gen_model bif_model ],
                 [ gen_col bif_col vo_gen_col vo_bif_col ],
                 [ gen_marker_alpha bif_marker_alpha vo_gen_marker_alpha vo_bif_marker_alpha ],
+                marker_shapes = [ gen_shape bif_shape vo_gen_shape vo_bif_shape ],
+                marker_sizes = [ gen_marker_size bif_marker_size vo_gen_marker_size vo_bif_marker_size ],
                 y_buffer = 0.02,
+                x_label_size = 10.0,
+                x_label_offset = 0.05,
                 show_labels_on_x = true,
                 comparisons = ((1, 2), (3, 4), (1, 3), (2, 4)),
                 comparison_positions = (0.995, 0.995, 0.86, 0.02)
                )
         Plots.ylabel!(p, "Euclidean distance from true tree")
+        Plots.plot!(p, size = (375, 290))
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-euclidean-distances.tex")
         write(stdout, "Writing to $(plot_path)\n")
         Plots.savefig(p, plot_path)
@@ -2702,15 +3005,22 @@ function main_cli()::Cint
                      fixed_bif_bif_dist_upper,
                      vo_fixed_bif_gen_dist_upper,
                      vo_fixed_bif_bif_dist_upper),
-                [ LaTeXString("\\begin{tabular}{c} Generalized model \\\\ All sites \\end{tabular}") LaTeXString("\\begin{tabular}{c} Independent bifurcating \\\\ model (true model) \\\\ All sites \\end{tabular}") LaTeXString("\\begin{tabular}{c} Generalized model \\\\ Only SNPs \\end{tabular}") LaTeXString("\\begin{tabular}{c} Independent bifurcating \\\\ model (true model) \\\\ Only SNPs \\end{tabular}") ],
+                #= [ LaTeXString("\\begin{tabular}{c} Generalized model \\\\ All sites \\end{tabular}") LaTeXString("\\begin{tabular}{c} Independent bifurcating \\\\ model (true model) \\\\ All sites \\end{tabular}") LaTeXString("\\begin{tabular}{c} Generalized model \\\\ Only SNPs \\end{tabular}") LaTeXString("\\begin{tabular}{c} Independent bifurcating \\\\ model (true model) \\\\ Only SNPs \\end{tabular}") ], =#
+                [ gen_model bif_model gen_model bif_model ],
                 [ gen_col bif_col vo_gen_col vo_bif_col ],
                 [ gen_marker_alpha bif_marker_alpha vo_gen_marker_alpha vo_bif_marker_alpha ],
+                marker_shapes = [ gen_shape bif_shape vo_gen_shape vo_bif_shape ],
+                marker_sizes = [ gen_marker_size bif_marker_size vo_gen_marker_size vo_bif_marker_size ],
                 y_buffer = 0.02,
+                x_label_size = 10.0,
+                x_label_offset = 0.05,
                 show_labels_on_x = true,
                 comparisons = ((1, 2), (3, 4), (1, 3), (2, 4)),
                 comparison_positions = (0.995, 0.995, 0.09, 0.03)
                )
         Plots.ylabel!(p, "Euclidean distance from true tree")
+        #= Plots.plot!(p, size = (600, 350)) =#
+        Plots.plot!(p, size = (375, 290))
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-bif-euclidean-distances.tex")
         write(stdout, "Writing to $(plot_path)\n")
         Plots.savefig(p, plot_path)
