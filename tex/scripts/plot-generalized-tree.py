@@ -1278,6 +1278,33 @@ def main_cli():
             time_font_size = 'small',
             include_time_zero = False,
             )
+    t.plot_tree(
+            base_name = 'bifurcating-tree-tall',
+            dir_name = out_dir,
+            scale = 0.9,
+            yscale = 0.6,
+            vmargin = 0,
+            lmargin = 0,
+            phylo_line_weight = 'ultra thick',
+            event_line_weight = 'thick',
+            event_line_color = 'black!50',
+            event_line_style = 'dashed',
+            show_title = False,
+            title_str = '{\\sffamily True history}',
+            show_events = True,
+            event_indices_to_labels = None,
+            show_event_labels = True,
+            remove_event_labels = False,
+            event_labels_top = True,
+            # event_labels_top = False,
+            show_node_labels = True,
+            show_gen_node_labels = False,
+            event_font_size = 'Large',
+            show_event_times = True,
+            show_tip_labels = True,
+            time_font_size = 'small',
+            include_time_zero = False,
+            )
 
     t = SimpleTreeInfo(
             node_heights = {

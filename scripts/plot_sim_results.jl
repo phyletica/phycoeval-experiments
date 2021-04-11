@@ -2576,7 +2576,7 @@ function main_cli()::Cint
                 right_labels = [ "Bifurcating" ],
                 legend = :best,
                 dot_legend = false)
-        Plots.plot!(v, size = (250, 220), xtickfontsize = 12)
+        Plots.plot!(v, size = (210, 220), xtickfontsize = 8)
         Plots.ylims!(v, (-0.02, 1.02))
         Plots.ylabel!(v, "Posterior probability")
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-bif-true-topo-probs.tex")
@@ -2693,7 +2693,7 @@ function main_cli()::Cint
                 right_labels = [ "Variable sites" ],
                 legend = :best,
                 dot_legend = false)
-        Plots.plot!(v, size = (650, 220), xtickfontsize = 16)
+        Plots.plot!(v, size = (650, 200), xtickfontsize = 16)
         Plots.ylims!(v, (-0.02, 1.02))
         Plots.ylabel!(v, "Posterior probability")
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-bif-gen-wrong-probs.tex")
@@ -3022,6 +3022,12 @@ function main_cli()::Cint
         #= Plots.plot!(p, size = (600, 350)) =#
         Plots.plot!(p, size = (375, 290))
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-bif-euclidean-distances.tex")
+        write(stdout, "Writing to $(plot_path)\n")
+        Plots.savefig(p, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        Plots.plot!(p, size = (600, 290))
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-bif-euclidean-distances-large.tex")
         write(stdout, "Writing to $(plot_path)\n")
         Plots.savefig(p, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
