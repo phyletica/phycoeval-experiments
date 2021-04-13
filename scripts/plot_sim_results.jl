@@ -155,15 +155,22 @@ axis_replace = "\\begin{axis}[clip=false, "
 
 struct SimResults
     df::DataFrame
-    function SimResults()
-        main_tsv_path = joinpath(ProjectUtil.RESULTS_DIR, "results.tsv")
+    suffix::AbstractString
+    function SimResults(; suffix = "")
+        main_tsv_path = joinpath(ProjectUtil.RESULTS_DIR, "results$(suffix).tsv")
         if Base.Filesystem.isfile(main_tsv_path * ".gz")
             results = ProjectUtil.get_data_frame_from_gz([main_tsv_path * ".gz"])
-            return new(results)
+            return new(results, suffix)
+        end
+        sim_conditions = ["bifurcating", "generalized"]
+        analysis_conditions = ["bifurcating", "generalized"]
+        if length(suffix) > 0
+            sim_conditions = ["generalized"]
+            analysis_conditions = ["generalized"]
         end
         results = DataFrame()
         for is_fixed in [true, false]
-            for sim_condition in ["bifurcating", "generalized"]
+            for sim_condition in sim_conditions
                 for locus_size in [1, 100]
                     locus_conditions = [""]
                     if locus_size > 1
@@ -178,7 +185,7 @@ struct SimResults
                         end
                         sim_dir = joinpath(ProjectUtil.SIM_DIR, sim_dir_name)
                         for batch_dir in ProjectUtil.batch_dir_iter(sim_dir)
-                            for analysis_condition in ["bifurcating", "generalized"]
+                            for analysis_condition in analysis_conditions
                                 var_only_bools = [true, false]
                                 if endswith(locus_condition, "-linked-")
                                     var_only_bools = [false]
@@ -186,9 +193,9 @@ struct SimResults
                                     var_only_bools = [true]
                                 end
                                 for is_var_only in var_only_bools
-                                    result_file_name = "results-species-9-genomes-2-$analysis_condition-tree-random.tsv.gz"
+                                    result_file_name = "results$(suffix)-species-9-genomes-2-$analysis_condition-tree-random.tsv.gz"
                                     if is_var_only & (locus_condition != "locus-100-unlinked-")
-                                        result_file_name = "results-var-only-species-9-genomes-2-$analysis_condition-tree-random.tsv.gz"
+                                        result_file_name = "results$(suffix)-var-only-species-9-genomes-2-$analysis_condition-tree-random.tsv.gz"
                                     end
                                     result_path = joinpath(batch_dir, result_file_name)
                                     df = ProjectUtil.get_data_frame_from_gz([result_path])
@@ -211,10 +218,10 @@ struct SimResults
                   delim = '\t',
                   append = false)
         run(`gzip $main_tsv_path`)
-        return new(results)
+        return new(results, suffix)
     end
-    function SimResults(data_frame::DataFrame)
-        return new(data_frame)
+    function SimResults(data_frame::DataFrame; suffix = "")
+        return new(data_frame, suffix)
     end
 end
 
@@ -1484,14 +1491,99 @@ function main_cli()::Cint
     results = SimResults()
     nrows = size(results.df)[1]
 
-    locus_sizes = [1, 100]
+    shared_div_results = SimResults(suffix = "-true-shared-height-probs")
+    polytomy_results = SimResults(suffix = "-true-polytomy-probs")
 
+    locus_sizes = [1, 100]
 
     for locus_size in locus_sizes
         locus_prefix = ""
         if locus_size > 1
             locus_prefix = "locus-$locus_size-"
         end
+
+        true_shared_div_probs = get_floats(shared_div_results,
+                false,
+                true,
+                true,
+                false,
+                :shared_height_prob,
+                locus_size)
+        vo_true_shared_div_probs = get_floats(shared_div_results,
+                false,
+                true,
+                true,
+                true,
+                :shared_height_prob,
+                locus_size)
+        true_polytomy_probs = get_floats(polytomy_results,
+                false,
+                true,
+                true,
+                false,
+                :polytomy_node_prob,
+                locus_size)
+        vo_true_polytomy_probs = get_floats(polytomy_results,
+                false,
+                true,
+                true,
+                true,
+                :polytomy_node_prob,
+                locus_size)
+
+        v_shared_div_probs = get_split_violin_plot(
+                true_shared_div_probs,
+                vo_true_shared_div_probs,
+                xlabels = [ "True shared divs" ],
+                left_fill_colors = gen_col,
+                left_marker_colors = gen_col,
+                left_fill_alphas = gen_fill_alpha,
+                left_marker_alphas = gen_marker_alpha,
+                left_marker_shapes = gen_shape,
+                left_marker_sizes = gen_marker_size - 1,
+                left_labels = [ "All sites" ],
+                right_fill_colors = vo_gen_col,
+                right_marker_colors = vo_gen_col,
+                right_fill_alphas = vo_gen_fill_alpha,
+                right_marker_alphas = vo_gen_marker_alpha,
+                right_marker_shapes = vo_gen_shape,
+                right_marker_sizes = vo_gen_marker_size - 1,
+                right_labels = [ "Variable sites" ],
+                legend = false,
+                dot_legend = false)
+        Plots.plot!(v_shared_div_probs, size = (190, 220))
+        Plots.ylims!(v_shared_div_probs, (-0.02, 1.02))
+        Plots.ylabel!(v_shared_div_probs, "Posterior probability")
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-true-shared-height-probs.tex")
+        Plots.savefig(v_shared_div_probs, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        v_poly_probs = get_split_violin_plot(
+                true_polytomy_probs,
+                vo_true_polytomy_probs,
+                xlabels = [ "True polytomies" ],
+                left_fill_colors = gen_col,
+                left_marker_colors = gen_col,
+                left_fill_alphas = gen_fill_alpha,
+                left_marker_alphas = gen_marker_alpha,
+                left_marker_shapes = gen_shape,
+                left_marker_sizes = gen_marker_size - 1,
+                left_labels = [ "All sites" ],
+                right_fill_colors = vo_gen_col,
+                right_marker_colors = vo_gen_col,
+                right_fill_alphas = vo_gen_fill_alpha,
+                right_marker_alphas = vo_gen_marker_alpha,
+                right_marker_shapes = vo_gen_shape,
+                right_marker_sizes = vo_gen_marker_size - 1,
+                right_labels = [ "Variable sites" ],
+                legend = false,
+                dot_legend = false)
+        Plots.plot!(v_poly_probs, size = (190, 220))
+        Plots.ylims!(v_poly_probs, (-0.02, 1.02))
+        Plots.ylabel!(v_poly_probs, "Posterior probability")
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-true-polytomy-probs.tex")
+        Plots.savefig(v_poly_probs, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
         sum_stats = DataFrame()
         bools = [true, false]
@@ -3520,7 +3612,7 @@ function main_cli()::Cint
         Plots.plot!(v, size = (200, 200))
         Plots.ylims!(v, (-0.02, 1.02))
         Plots.ylabel!(v, "Posterior probability")
-        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-true-shared-height-probs.tex")
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-mean-true-shared-height-probs.tex")
         Plots.savefig(v, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
@@ -3535,7 +3627,7 @@ function main_cli()::Cint
         Plots.plot!(v, size = (200, 200))
         Plots.ylims!(v, (-0.02, 1.02))
         Plots.ylabel!(v, "Posterior probability")
-        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-true-shared-height-probs-all-sites.tex")
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-mean-true-shared-height-probs-all-sites.tex")
         Plots.savefig(v, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
