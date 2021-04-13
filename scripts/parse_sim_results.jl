@@ -133,6 +133,8 @@ function parse_sim_results(
         extract_sim_files(batch_dir)
     end
 
+    extra_results_paths = Vector{AbstractString}()
+
     # Get what output files to expect
     sim_output_patterns = get_sim_output_patterns(
             batch_dir)
@@ -242,6 +244,13 @@ function parse_sim_results(
                 leaf_label_map[item.second] = item.first
             end
 
+            true_polytomy_probs_path = Base.Filesystem.joinpath(
+                    batch_dir,
+                    "results-true-polytomy-probs-$(sim_pattern.var_only)$(sim_pattern.config_name).tsv")
+            true_shared_probs_path = Base.Filesystem.joinpath(
+                    batch_dir,
+                    "results-true-shared-height-probs-$(sim_pattern.var_only)$(sim_pattern.config_name).tsv")
+
             true_split_probs::Vector{Float64} = []
             true_node_probs::Vector{Float64} = []
             for true_split in treesum["summary_of_target_tree"]["splits"]["nontrivial_splits"]
@@ -250,15 +259,51 @@ function parse_sim_results(
                 true_node_freq = true_split_freq
                 if haskey(true_split, "node")
                     true_node_freq = true_split["node"]["frequency"]
+                    num_descendants::Int = true_split["node"]["number_of_descendants"]
+                    if num_descendants > 2
+                        if ! Base.Filesystem.ispath(true_polytomy_probs_path)
+                            open(true_polytomy_probs_path, "w") do out
+                                write(out, "polytomy_node_prob\tnum_descendants\tis_root\n")
+                            end
+                            push!(extra_results_paths, true_polytomy_probs_path)
+                        end
+                        open(true_polytomy_probs_path, "a") do out
+                            write(out, "$(true_node_freq)\t$(num_descendants)\t0\n")
+                        end
+                    end
                 end
                 push!(true_node_probs, true_node_freq)
             end
+
+            n_root_descendants::Int = treesum["summary_of_target_tree"]["splits"]["root"]["node"]["number_of_descendants"]
+            if n_root_descendants > 2
+                root_node_freq::Float64 = treesum["summary_of_target_tree"]["splits"]["root"]["node"]["frequency"]
+                if ! Base.Filesystem.ispath(true_polytomy_probs_path)
+                    open(true_polytomy_probs_path, "w") do out
+                        write(out, "polytomy_node_prob\tnum_descendants\tis_root\n")
+                    end
+                    push!(extra_results_paths, true_polytomy_probs_path)
+                end
+                open(true_polytomy_probs_path, "a") do out
+                    write(out, "$(root_node_freq)\t$(n_root_descendants)\t1\n")
+                end
+            end
+
             true_height_probs::Vector{Float64} = []
             true_shared_height_probs::Vector{Float64} = []
             for true_height in treesum["summary_of_target_tree"]["heights"]
                 push!(true_height_probs, true_height["frequency"])
                 if length(true_height["splits"]) > 1
                     push!(true_shared_height_probs, true_height["frequency"])
+                    if ! Base.Filesystem.ispath(true_shared_probs_path)
+                        open(true_shared_probs_path, "w") do out
+                            write(out, "shared_height_prob\tnum_splits\n")
+                        end
+                        push!(extra_results_paths, true_shared_probs_path)
+                    end
+                    open(true_shared_probs_path, "a") do out
+                        write(out, "$(true_height["frequency"])\t$(length(true_height["splits"]))\n")
+                    end
                 end
             end
 
@@ -737,6 +782,9 @@ function parse_sim_results(
                   delim = '\t',
                   append = false)
         run(`gzip $res_path`)
+    end
+    for path in extra_results_paths
+        run(`gzip $path`)
     end
     if extract_sim_archives
         write(Base.stdout, "Cleaning up extracted files...\n")
