@@ -348,13 +348,22 @@ function get_groups_by_y(
                 y[:,comp[1]],
                 y[:,comp[2]])
         pval = HypothesisTests.pvalue(wsr_test, tail = :both)
+        pval_str = @sprintf("%.2g", pval)
+        m = match(ProjectUtil.SCI_NOTATION_PATTERN, pval_str)
+        if ! isnothing(m)
+            e_sign = ""
+            if m[:sign] == "-"
+                e_sign = "-"
+            end
+            pval_str = "$(m[:digits]) \\times 10^{$(e_sign)$(m[:exponent])}"
+        end
         #= mid_1 = Statistics.mean(x[:,comp[1]]) =#
         #= mid_2 = Statistics.mean(x[:,comp[2]]) =#
         mid_1 = Statistics.quantile(x[:,comp[1]], 0.8)
         mid_2 = Statistics.quantile(x[:,comp[2]], 0.2)
         x_position = mid_1 + ((mid_2 - mid_1) / 2)
         annotate!(plt, x_position, y_pval,
-                  text("\$p = $(@sprintf("%.2g", pval))\$",
+                  text(L"p = %$(pval_str)",
                        :center,
                        pval_aln,
                        p_val_size,
@@ -3332,6 +3341,14 @@ function main_cli()::Cint
                 rmse_str = "\\textrm{\\sffamily RMSE}"
                 cov_str = L"$p(%$(parameter_symbol) \in %$(ci_str)) = %$(coverage_stats[i])$"
                 rmse_val_str = @sprintf("%5.3g", rmse_stats[i])
+                m = match(ProjectUtil.SCI_NOTATION_PATTERN, rmse_val_str)
+                if ! isnothing(m)
+                    e_sign = ""
+                    if m[:sign] == "-"
+                        e_sign = "-"
+                    end
+                    rmse_val_str = "$(m[:digits]) \\times 10^{$(e_sign)$(m[:exponent])}"
+                end
                 rmse_str = L"$ %$(rmse_str) = %$(rmse_val_str)$"
                 Plots.plot!(true_v_est_plots[i], size = (290, 250))
                 #= Plots.plot!(true_v_est_plots[i], =#

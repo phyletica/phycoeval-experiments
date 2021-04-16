@@ -39,6 +39,15 @@ SIMPHYCOEVAL_CONFIG_NAME_PATTERN = Regex(join([
         raw"$"
        ]))
 
+SCI_NOTATION_STR = (
+        raw"(?<digits>[\d.]+)[Ee](?<sign>[+-])?[0]*(?<exponent>\d+)"
+        )
+SCI_NOTATION_PATTERN = Regex(join([
+        raw"^",
+        SCI_NOTATION_STR,
+        raw"$"
+       ]))
+
 SIM_STATE_LOG_PATTERN_STR = (
         raw"run-(?<run_num>\d+)-" *
         raw"(?<var_only>var-only-)?" *
