@@ -278,6 +278,7 @@ function get_groups_by_y(
         marker_shapes = nothing,
         marker_sizes = nothing,
         y_buffer = 0.02,
+        y_axis_max = -1.0,
         error_bar_alpha = 0.2,
         show_group_means = true,
         group_mean_line_alpha = 0.8,
@@ -311,6 +312,9 @@ function get_groups_by_y(
         x[i] = x_val
     end
     y_extremes = (minimum(y_lower), maximum(y_upper))
+    if (y_axis_max > 0.0) & (y_axis_max > y_extremes[1])
+        y_extremes = (minimum(y_lower), y_axis_max)
+    end
     y_buf = (y_extremes[2] - y_extremes[1]) * y_buffer
     #= y_limits = [y_extremes[1] - y_buf, y_extremes[2] + y_buf] =#
     y_limits = [0.0, y_extremes[2] + y_buf]
@@ -336,12 +340,12 @@ function get_groups_by_y(
         comp_pos = comparison_positions[comp_idx]
         y_range = y_limits[2] - y_limits[1]
         y_pval = y_limits[1] + (comp_pos * y_range)
-        y_bracket_ln = y_pval - (0.025 * y_range)
-        y_bracket_tick = y_bracket_ln - (0.01 * y_range)
+        y_bracket_ln = y_pval - (0.03 * y_range)
+        y_bracket_tick = y_bracket_ln - (0.015 * y_range)
         pval_aln = :bottom
         if comp_pos < 0.5
-            y_bracket_ln = y_pval + (0.03 * y_range)
-            y_bracket_tick = y_bracket_ln + (0.01 * y_range)
+            y_bracket_ln = y_pval + (0.035 * y_range)
+            y_bracket_tick = y_bracket_ln + (0.015 * y_range)
             pval_aln = :top
         end
         wsr_test = HypothesisTests.SignedRankTest(
@@ -1505,97 +1509,9 @@ function main_cli()::Cint
 
     locus_sizes = [1, 100]
 
+    sum_stats = DataFrame()
+    bools = [true, false]
     for locus_size in locus_sizes
-        locus_prefix = ""
-        if locus_size > 1
-            locus_prefix = "locus-$locus_size-"
-        end
-
-        true_shared_div_probs = get_floats(shared_div_results,
-                false,
-                true,
-                true,
-                false,
-                :shared_height_prob,
-                locus_size)
-        vo_true_shared_div_probs = get_floats(shared_div_results,
-                false,
-                true,
-                true,
-                true,
-                :shared_height_prob,
-                locus_size)
-        true_polytomy_probs = get_floats(polytomy_results,
-                false,
-                true,
-                true,
-                false,
-                :polytomy_node_prob,
-                locus_size)
-        vo_true_polytomy_probs = get_floats(polytomy_results,
-                false,
-                true,
-                true,
-                true,
-                :polytomy_node_prob,
-                locus_size)
-
-        v_shared_div_probs = get_split_violin_plot(
-                true_shared_div_probs,
-                vo_true_shared_div_probs,
-                xlabels = [ "True shared divs" ],
-                left_fill_colors = gen_col,
-                left_marker_colors = gen_col,
-                left_fill_alphas = gen_fill_alpha,
-                left_marker_alphas = gen_marker_alpha,
-                left_marker_shapes = gen_shape,
-                left_marker_sizes = gen_marker_size - 1,
-                left_labels = [ "All sites" ],
-                right_fill_colors = vo_gen_col,
-                right_marker_colors = vo_gen_col,
-                right_fill_alphas = vo_gen_fill_alpha,
-                right_marker_alphas = vo_gen_marker_alpha,
-                right_marker_shapes = vo_gen_shape,
-                right_marker_sizes = vo_gen_marker_size - 1,
-                right_labels = [ "Variable sites" ],
-                legend = false,
-                dot_legend = false)
-        Plots.plot!(v_shared_div_probs, size = (190, 220))
-        Plots.ylims!(v_shared_div_probs, (-0.02, 1.02))
-        Plots.ylabel!(v_shared_div_probs, "Posterior probability")
-        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-true-shared-height-probs.tex")
-        Plots.savefig(v_shared_div_probs, plot_path)
-        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
-
-        v_poly_probs = get_split_violin_plot(
-                true_polytomy_probs,
-                vo_true_polytomy_probs,
-                xlabels = [ "True polytomies" ],
-                left_fill_colors = gen_col,
-                left_marker_colors = gen_col,
-                left_fill_alphas = gen_fill_alpha,
-                left_marker_alphas = gen_marker_alpha,
-                left_marker_shapes = gen_shape,
-                left_marker_sizes = gen_marker_size - 1,
-                left_labels = [ "All sites" ],
-                right_fill_colors = vo_gen_col,
-                right_marker_colors = vo_gen_col,
-                right_fill_alphas = vo_gen_fill_alpha,
-                right_marker_alphas = vo_gen_marker_alpha,
-                right_marker_shapes = vo_gen_shape,
-                right_marker_sizes = vo_gen_marker_size - 1,
-                right_labels = [ "Variable sites" ],
-                legend = false,
-                dot_legend = false)
-        Plots.plot!(v_poly_probs, size = (190, 220))
-        Plots.ylims!(v_poly_probs, (-0.02, 1.02))
-        Plots.ylabel!(v_poly_probs, "Posterior probability")
-        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-true-polytomy-probs.tex")
-        Plots.savefig(v_poly_probs, plot_path)
-        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
-
-        sum_stats = DataFrame()
-        bools = [true, false]
         for sim_fixed in bools
             for sim_generalized in bools
                 for analysis_generalized in bools
@@ -1740,8 +1656,11 @@ function main_cli()::Cint
                 end
             end
         end
+    end
 
-        sum_results = SimResults(sum_stats)
+    sum_results = SimResults(sum_stats)
+
+    for locus_size in locus_sizes
         for sim_fixed in bools
             for sim_generalized in bools
                 for analysis_generalized in bools
@@ -1805,6 +1724,96 @@ function main_cli()::Cint
                 end
             end
         end
+    end
+
+    for locus_size in locus_sizes
+        locus_prefix = ""
+        if locus_size > 1
+            locus_prefix = "locus-$locus_size-"
+        end
+
+        true_shared_div_probs = get_floats(shared_div_results,
+                false,
+                true,
+                true,
+                false,
+                :shared_height_prob,
+                locus_size)
+        vo_true_shared_div_probs = get_floats(shared_div_results,
+                false,
+                true,
+                true,
+                true,
+                :shared_height_prob,
+                locus_size)
+        true_polytomy_probs = get_floats(polytomy_results,
+                false,
+                true,
+                true,
+                false,
+                :polytomy_node_prob,
+                locus_size)
+        vo_true_polytomy_probs = get_floats(polytomy_results,
+                false,
+                true,
+                true,
+                true,
+                :polytomy_node_prob,
+                locus_size)
+
+        v_shared_div_probs = get_split_violin_plot(
+                true_shared_div_probs,
+                vo_true_shared_div_probs,
+                xlabels = [ "True shared divs" ],
+                left_fill_colors = gen_col,
+                left_marker_colors = gen_col,
+                left_fill_alphas = gen_fill_alpha,
+                left_marker_alphas = gen_marker_alpha,
+                left_marker_shapes = gen_shape,
+                left_marker_sizes = gen_marker_size - 1,
+                left_labels = [ "All sites" ],
+                right_fill_colors = vo_gen_col,
+                right_marker_colors = vo_gen_col,
+                right_fill_alphas = vo_gen_fill_alpha,
+                right_marker_alphas = vo_gen_marker_alpha,
+                right_marker_shapes = vo_gen_shape,
+                right_marker_sizes = vo_gen_marker_size - 1,
+                right_labels = [ "Variable sites" ],
+                legend = false,
+                dot_legend = false)
+        Plots.plot!(v_shared_div_probs, size = (190, 220))
+        Plots.ylims!(v_shared_div_probs, (-0.02, 1.02))
+        Plots.ylabel!(v_shared_div_probs, "Posterior probability")
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-true-shared-height-probs.tex")
+        Plots.savefig(v_shared_div_probs, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        v_poly_probs = get_split_violin_plot(
+                true_polytomy_probs,
+                vo_true_polytomy_probs,
+                xlabels = [ "True polytomies" ],
+                left_fill_colors = gen_col,
+                left_marker_colors = gen_col,
+                left_fill_alphas = gen_fill_alpha,
+                left_marker_alphas = gen_marker_alpha,
+                left_marker_shapes = gen_shape,
+                left_marker_sizes = gen_marker_size - 1,
+                left_labels = [ "All sites" ],
+                right_fill_colors = vo_gen_col,
+                right_marker_colors = vo_gen_col,
+                right_fill_alphas = vo_gen_fill_alpha,
+                right_marker_alphas = vo_gen_marker_alpha,
+                right_marker_shapes = vo_gen_shape,
+                right_marker_sizes = vo_gen_marker_size - 1,
+                right_labels = [ "Variable sites" ],
+                legend = false,
+                dot_legend = false)
+        Plots.plot!(v_poly_probs, size = (190, 220))
+        Plots.ylims!(v_poly_probs, (-0.02, 1.02))
+        Plots.ylabel!(v_poly_probs, "Posterior probability")
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-true-polytomy-probs.tex")
+        Plots.savefig(v_poly_probs, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
 
         root_node_probs = get_floats(results, true, true, true, false, :root_node_true_prob, locus_size)
@@ -3036,6 +3045,10 @@ function main_cli()::Cint
         write(stdout, "mean diff = $(Statistics.mean(vo_unfixed_bif_gen_dist_mean - vo_unfixed_bif_bif_dist_mean))\n")
         write(stdout, "\n")
 
+        comparison_positions = (0.995, 0.995, 0.86, 0.02)
+        if length(locus_prefix) > 0
+            comparison_positions = (0.998, 0.998, 0.80, 0.9)
+        end
         p = get_groups_by_y(
                 hcat(fixed_gen_gen_dist_mean,
                      fixed_gen_bif_dist_mean,
@@ -3060,7 +3073,7 @@ function main_cli()::Cint
                 x_label_offset = 0.05,
                 show_labels_on_x = true,
                 comparisons = ((1, 2), (3, 4), (1, 3), (2, 4)),
-                comparison_positions = (0.995, 0.995, 0.86, 0.02)
+                comparison_positions = comparison_positions
                )
         Plots.ylabel!(p, "Euclidean distance from true tree")
         Plots.plot!(p, size = (375, 290))
@@ -3068,6 +3081,40 @@ function main_cli()::Cint
         write(stdout, "Writing to $(plot_path)\n")
         Plots.savefig(p, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        if length(locus_prefix) > 0
+            l_100_unfixed_gen_gen_dist_mean = get_floats(results,
+                    false, true, true, false,
+                    :euclidean_distance_mean, 100)
+            l_100_unfixed_gen_gen_dist_lower = get_floats(results,
+                    false, true, true, false,
+                    :euclidean_distance_eti_95_lower, 100)
+            l_100_unfixed_gen_gen_dist_upper = get_floats(results,
+                    false, true, true, false,
+                    :euclidean_distance_eti_95_upper, 100)
+            p = get_groups_by_y(
+                    hcat(unfixed_gen_gen_dist_mean,
+                         l_100_unfixed_gen_gen_dist_mean),
+                    hcat(unfixed_gen_gen_dist_lower,
+                         l_100_unfixed_gen_gen_dist_lower),
+                    hcat(unfixed_gen_gen_dist_upper,
+                         l_100_unfixed_gen_gen_dist_upper),
+                    [ "$(gen_model), unlinked characters" "$(gen_model), 100bp loci" ],
+                    [ gen_col gen_col ],
+                    [ gen_marker_alpha gen_marker_alpha ],
+                    marker_shapes = [ gen_shape gen_shape ],
+                    marker_sizes = [ gen_marker_size gen_marker_size ],
+                    y_buffer = 0.02,
+                    x_label_size = 8.0,
+                    x_label_offset = 0.05,
+                    show_labels_on_x = true)
+            Plots.ylabel!(p, "Euclidean distance from true tree")
+            Plots.plot!(p, size = (350, 340))
+            plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-euclidean-distances-unlinked-v-linked.tex")
+            write(stdout, "Writing to $(plot_path)\n")
+            Plots.savefig(p, plot_path)
+            process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+        end
 
         p = get_groups_by_y(
                 hcat(fixed_gen_gen_dist_mean,
@@ -3093,6 +3140,10 @@ function main_cli()::Cint
         Plots.savefig(p, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
+        comparison_positions = (0.995, 0.995, 0.09, 0.03)
+        if length(locus_prefix) > 0
+            comparison_positions = (0.998, 0.998, 0.83, 0.92)
+        end
         p = get_groups_by_y(
                 hcat(fixed_bif_gen_dist_mean,
                      fixed_bif_bif_dist_mean,
@@ -3117,7 +3168,7 @@ function main_cli()::Cint
                 x_label_offset = 0.05,
                 show_labels_on_x = true,
                 comparisons = ((1, 2), (3, 4), (1, 3), (2, 4)),
-                comparison_positions = (0.995, 0.995, 0.09, 0.03)
+                comparison_positions = comparison_positions
                )
         Plots.ylabel!(p, "Euclidean distance from true tree")
         #= Plots.plot!(p, size = (600, 350)) =#
@@ -3152,6 +3203,11 @@ function main_cli()::Cint
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
 
+        y_axis_max = -1.0
+        if length(locus_prefix) > 0
+            y_axis_max = 0.03
+        end
+        comparison_positions = (0.995, 0.995)
         p = get_groups_by_y(
                 hcat(unfixed_gen_gen_dist_mean,
                      unfixed_gen_bif_dist_mean,
@@ -3165,11 +3221,22 @@ function main_cli()::Cint
                      unfixed_gen_bif_dist_upper,
                      vo_unfixed_gen_gen_dist_upper,
                      vo_unfixed_gen_bif_dist_upper),
-                [ LaTeXString("\\begin{tabular}{c} Generalized model \\\\ (true model) \\\\ All sites \\end{tabular}") LaTeXString("\\begin{tabular}{c} Independent bifurcating \\\\ model \\\\ All sites \\end{tabular}") LaTeXString("\\begin{tabular}{c} Generalized model \\\\ (true model) \\\\ Only SNPs \\end{tabular}") LaTeXString("\\begin{tabular}{c} Independent bifurcating \\\\ model \\\\ Only SNPs \\end{tabular}") ],
+                #= [ LaTeXString("\\begin{tabular}{c} Generalized model \\\\ (true model) \\\\ All sites \\end{tabular}") LaTeXString("\\begin{tabular}{c} Independent bifurcating \\\\ model \\\\ All sites \\end{tabular}") LaTeXString("\\begin{tabular}{c} Generalized model \\\\ (true model) \\\\ Only SNPs \\end{tabular}") LaTeXString("\\begin{tabular}{c} Independent bifurcating \\\\ model \\\\ Only SNPs \\end{tabular}") ], =#
+                [ gen_model bif_model gen_model bif_model ],
                 [ gen_col bif_col vo_gen_col vo_bif_col ],
                 [ gen_marker_alpha bif_marker_alpha vo_gen_marker_alpha vo_bif_marker_alpha ],
+                marker_shapes = [ gen_shape bif_shape vo_gen_shape vo_bif_shape ],
+                marker_sizes = [ gen_marker_size bif_marker_size vo_gen_marker_size vo_bif_marker_size ],
                 y_buffer = 0.02,
-                show_labels_on_x = true)
+                y_axis_max = y_axis_max,
+                x_label_size = 10.0,
+                x_label_offset = 0.05,
+                show_labels_on_x = true,
+                comparisons = ((1, 2), (3, 4)),
+                comparison_positions = comparison_positions
+               )
+        Plots.ylabel!(p, "Euclidean distance from true tree")
+        Plots.plot!(p, size = (600, 340))
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-euclidean-distances.tex")
         write(stdout, "Writing to $(plot_path)\n")
         Plots.savefig(p, plot_path)
@@ -3209,6 +3276,7 @@ function main_cli()::Cint
         Plots.savefig(p, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
+        comparison_positions = (0.995, 0.995)
         p = get_groups_by_y(
                 hcat(unfixed_bif_gen_dist_mean,
                      unfixed_bif_bif_dist_mean,
@@ -3222,12 +3290,21 @@ function main_cli()::Cint
                      unfixed_bif_bif_dist_upper,
                      vo_unfixed_bif_gen_dist_upper,
                      vo_unfixed_bif_bif_dist_upper),
-                [ LaTeXString("\\begin{tabular}{c} Generalized model \\\\ All sites \\end{tabular}") LaTeXString("\\begin{tabular}{c} Independent bifurcating \\\\ model (true model) \\\\ All sites \\end{tabular}") LaTeXString("\\begin{tabular}{c} Generalized model \\\\ Only SNPs \\end{tabular}") LaTeXString("\\begin{tabular}{c} Independent bifurcating \\\\ model (true model) \\\\ Only SNPs \\end{tabular}") ],
+                #= [ LaTeXString("\\begin{tabular}{c} Generalized model \\\\ (true model) \\\\ All sites \\end{tabular}") LaTeXString("\\begin{tabular}{c} Independent bifurcating \\\\ model \\\\ All sites \\end{tabular}") LaTeXString("\\begin{tabular}{c} Generalized model \\\\ (true model) \\\\ Only SNPs \\end{tabular}") LaTeXString("\\begin{tabular}{c} Independent bifurcating \\\\ model \\\\ Only SNPs \\end{tabular}") ], =#
+                [ gen_model bif_model gen_model bif_model ],
                 [ gen_col bif_col vo_gen_col vo_bif_col ],
                 [ gen_marker_alpha bif_marker_alpha vo_gen_marker_alpha vo_bif_marker_alpha ],
+                marker_shapes = [ gen_shape bif_shape vo_gen_shape vo_bif_shape ],
+                marker_sizes = [ gen_marker_size bif_marker_size vo_gen_marker_size vo_bif_marker_size ],
                 y_buffer = 0.02,
-                show_labels_on_x = true)
+                x_label_size = 10.0,
+                x_label_offset = 0.05,
+                show_labels_on_x = true,
+                comparisons = ((1, 2), (3, 4)),
+                comparison_positions = comparison_positions
+               )
         Plots.ylabel!(p, "Euclidean distance from true tree")
+        Plots.plot!(p, size = (600, 340))
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-bif-euclidean-distances.tex")
         write(stdout, "Writing to $(plot_path)\n")
         Plots.savefig(p, plot_path)
@@ -3268,148 +3345,6 @@ function main_cli()::Cint
         write(stdout, "Writing to $(plot_path)\n")
         Plots.savefig(p, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
-
-
-        parameters_to_plot = ["tree_length", "root_height", "root_pop_size"]
-        parameter_symbols = ["\\textrm{\\sffamily TL}", "\\tau_{n(\\tau)}", "N_e"]
-        for param_index in 1:length(parameters_to_plot)
-            parameter = parameters_to_plot[param_index]
-            parameter_symbol = parameter_symbols[param_index]
-            true_v_est_plots = []
-            coverage_stats = Vector{Float64}()
-            rmse_stats = Vector{Float64}()
-            plot_labels = Vector{String}()
-            for sim_fixed in [false]
-                for sim_generalized in [true, false]
-                    for analysis_generalized in [true, false]
-                        for only_var_sites in [false, true]
-                            plot_title = "$(sim_fixed ? "fixed" : "free")"
-                            plot_title *= "$(sim_generalized ? "-gen" : "-bif")"
-                            plot_title *= "$(analysis_generalized ? "-gen" : "-bif")"
-                            plot_title *= "$(only_var_sites ? "-var" : "-all")"
-                            plot_label = "$(locus_prefix)$(plot_title)"
-                            scatter_plot = get_true_v_est_plot(
-                                    results,
-                                    sim_fixed,
-                                    sim_generalized,
-                                    analysis_generalized,
-                                    only_var_sites,
-                                    parameter,
-                                    locus_size,
-                                    false,
-                                    0.05,
-                                    brooks_gelman_1998_recommended_psrf,
-                                    ess_threshold,
-                                    "red")
-                            # Plots.title!(scatter_plot, plot_title) 
-                            #= Plots.plot!(scatter_plot, margin = 0px) =#
-                            coverage = get_floats(
-                                    sum_results,
-                                    sim_fixed,
-                                    sim_generalized,
-                                    analysis_generalized,
-                                    only_var_sites,
-                                    "coverage_$(parameter)",
-                                    locus_size)[1]
-                            rmse = get_floats(
-                                    sum_results,
-                                    sim_fixed,
-                                    sim_generalized,
-                                    analysis_generalized,
-                                    only_var_sites,
-                                    "rmse_$(parameter)",
-                                    locus_size)[1]
-                            push!(true_v_est_plots, scatter_plot)
-                            push!(coverage_stats, coverage)
-                            push!(rmse_stats, rmse)
-                            push!(plot_labels, plot_label)
-                        end
-                    end
-                end
-            end
-
-            xy_lims = share_xy_limits!(true_v_est_plots...)
-            add_identity_line!(true_v_est_plots...)
-            coverage_position = relative_xy(true_v_est_plots[1], 0.03, 0.98)
-            rmse_position = relative_xy(true_v_est_plots[1], 0.03, 0.91)
-
-            for i in 1:length(true_v_est_plots)
-                if xy_lims[2] < 0.01
-                    Plots.plot!(true_v_est_plots[i], ticks = optimize_ticks(xy_lims..., k_min = 2, k_max = 4)[1])
-                end
-                ci_str = "\\textrm{\\sffamily CI}"
-                rmse_str = "\\textrm{\\sffamily RMSE}"
-                cov_str = L"$p(%$(parameter_symbol) \in %$(ci_str)) = %$(coverage_stats[i])$"
-                rmse_val_str = @sprintf("%5.3g", rmse_stats[i])
-                m = match(ProjectUtil.SCI_NOTATION_PATTERN, rmse_val_str)
-                if ! isnothing(m)
-                    e_sign = ""
-                    if m[:sign] == "-"
-                        e_sign = "-"
-                    end
-                    rmse_val_str = "$(m[:digits]) \\times 10^{$(e_sign)$(m[:exponent])}"
-                end
-                rmse_str = L"$ %$(rmse_str) = %$(rmse_val_str)$"
-                Plots.plot!(true_v_est_plots[i], size = (290, 250))
-                #= Plots.plot!(true_v_est_plots[i], =#
-                #=         bottom_margin = -2.5mm, =#
-                #=         left_margin = -1mm, =#
-                #=         top_margin = -1mm, =#
-                #=         right_marin = -2mm) =#
-                annotate!(true_v_est_plots[i],
-                        coverage_position...,
-                        #= text(L"$p(\textrm{TL} \in \textrm{CI}) = %$tree_len_coverage$", =#
-                        #= text("\$\\textrm{\\sffamily\\it p}(\\textrm{\\sffamily TL} \\in \\textrm{\\sffamily CI}) = $(tree_len_coverage)\$", =#
-                        #= text(L"$\textrm{\sffamily\it p}(\textrm{\sffamily TL} \in \textrm{\sffamily CI}) = %$(tree_len_coverage)$", =#
-                        #= text("p(TL in CI) = $(tree_len_coverage[i])", =#
-                        #= text(L"p(\textrm{TL} \in \textrm{CI}) = %$(tree_len_coverage[i])", =#
-                        #= text(L"p(\textrm{TL} \in \textrm{CI}) = %$(tree_len_coverage[i])", =#
-                        text(cov_str,
-                                :left,
-                                :top,
-                                8),
-                        annotation_clip = false)
-                annotate!(true_v_est_plots[i],
-                        rmse_position...,
-                        text(rmse_str,
-                                :left,
-                                :top,
-                                8),
-                        annotation_clip = false)
-                plot_path = joinpath(ProjectUtil.RESULTS_DIR,
-                        "$(plot_labels[i])-$(parameter).tex")
-                Plots.savefig(true_v_est_plots[i], plot_path)
-                process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
-
-                x_label = "True $(replace(parameter, "_" => " "))"
-                y_label = "Estimated $(replace(parameter, "_" => " "))"
-                if parameter == "root_pop_size"
-                    x_label = "True population size"
-                    y_label = "Estimated population size"
-                end
-                Plots.plot!(true_v_est_plots[i], xlabel = x_label, ylabel = y_label)
-                plot_path = joinpath(ProjectUtil.RESULTS_DIR,
-                        "$(plot_labels[i])-$(parameter)-axis-labels.tex")
-                Plots.savefig(true_v_est_plots[i], plot_path)
-                process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
-                Plots.plot!(true_v_est_plots[i], xlabel = "", ylabel = "")
-            end
-
-            plot_grid = Plots.plot(
-                    true_v_est_plots...,
-                    layout = (4, 2),
-                    legend = false,
-                    size = (700, 1200),
-                    link = :all,
-                    xlabel = "True $(parameter)",
-                    ylabel = "Posterior mean $(parameter)",
-                    )
-            share_xy_axes!(plot_grid)
-            plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-$(parameter).tex")
-            write(stdout, "Writing to $(plot_path)\n")
-            Plots.savefig(plot_grid, plot_path)
-            # process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
-        end
 
 
         # Plot ASDSF
@@ -3836,6 +3771,153 @@ function main_cli()::Cint
         Plots.savefig(v, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
+    end
+
+    parameters_to_plot = ["tree_length", "root_height", "root_pop_size"]
+    parameter_symbols = ["\\textrm{\\sffamily TL}", "\\tau_{n(\\tau)}", "N_e"]
+    for param_index in 1:length(parameters_to_plot)
+        parameter = parameters_to_plot[param_index]
+        parameter_symbol = parameter_symbols[param_index]
+        true_v_est_plots = []
+        coverage_stats = Vector{Float64}()
+        rmse_stats = Vector{Float64}()
+        plot_labels = Vector{String}()
+        for locus_size in locus_sizes
+            locus_prefix = ""
+            if locus_size > 1
+                locus_prefix = "locus-$locus_size-"
+            end
+            for sim_fixed in [false]
+                for sim_generalized in [true, false]
+                    for analysis_generalized in [true, false]
+                        for only_var_sites in [false, true]
+                            plot_title = "$(sim_fixed ? "fixed" : "free")"
+                            plot_title *= "$(sim_generalized ? "-gen" : "-bif")"
+                            plot_title *= "$(analysis_generalized ? "-gen" : "-bif")"
+                            plot_title *= "$(only_var_sites ? "-var" : "-all")"
+                            plot_label = "$(locus_prefix)$(plot_title)"
+                            scatter_plot = get_true_v_est_plot(
+                                    results,
+                                    sim_fixed,
+                                    sim_generalized,
+                                    analysis_generalized,
+                                    only_var_sites,
+                                    parameter,
+                                    locus_size,
+                                    false,
+                                    0.05,
+                                    brooks_gelman_1998_recommended_psrf,
+                                    ess_threshold,
+                                    "red")
+                            # Plots.title!(scatter_plot, plot_title) 
+                            #= Plots.plot!(scatter_plot, margin = 0px) =#
+                            coverage = get_floats(
+                                    sum_results,
+                                    sim_fixed,
+                                    sim_generalized,
+                                    analysis_generalized,
+                                    only_var_sites,
+                                    "coverage_$(parameter)",
+                                    locus_size)[1]
+                            rmse = get_floats(
+                                    sum_results,
+                                    sim_fixed,
+                                    sim_generalized,
+                                    analysis_generalized,
+                                    only_var_sites,
+                                    "rmse_$(parameter)",
+                                    locus_size)[1]
+                            push!(true_v_est_plots, scatter_plot)
+                            push!(coverage_stats, coverage)
+                            push!(rmse_stats, rmse)
+                            push!(plot_labels, plot_label)
+                        end
+                    end
+                end
+            end
+        end
+
+        xy_lims = share_xy_limits!(true_v_est_plots...)
+        add_identity_line!(true_v_est_plots...)
+        coverage_position = relative_xy(true_v_est_plots[1], 0.03, 0.98)
+        rmse_position = relative_xy(true_v_est_plots[1], 0.03, 0.91)
+
+        for i in 1:length(true_v_est_plots)
+            if xy_lims[2] < 0.01
+                Plots.plot!(true_v_est_plots[i], ticks = optimize_ticks(xy_lims..., k_min = 2, k_max = 4)[1])
+            end
+            ci_str = "\\textrm{\\sffamily CI}"
+            rmse_str = "\\textrm{\\sffamily RMSE}"
+            cov_str = L"$p(%$(parameter_symbol) \in %$(ci_str)) = %$(coverage_stats[i])$"
+            rmse_val_str = @sprintf("%5.3g", rmse_stats[i])
+            m = match(ProjectUtil.SCI_NOTATION_PATTERN, rmse_val_str)
+            if ! isnothing(m)
+                e_sign = ""
+                if m[:sign] == "-"
+                    e_sign = "-"
+                end
+                rmse_val_str = "$(m[:digits]) \\times 10^{$(e_sign)$(m[:exponent])}"
+            end
+            rmse_str = L"$ %$(rmse_str) = %$(rmse_val_str)$"
+            Plots.plot!(true_v_est_plots[i], size = (290, 250))
+            #= Plots.plot!(true_v_est_plots[i], =#
+            #=         bottom_margin = -2.5mm, =#
+            #=         left_margin = -1mm, =#
+            #=         top_margin = -1mm, =#
+            #=         right_marin = -2mm) =#
+            annotate!(true_v_est_plots[i],
+                    coverage_position...,
+                    #= text(L"$p(\textrm{TL} \in \textrm{CI}) = %$tree_len_coverage$", =#
+                    #= text("\$\\textrm{\\sffamily\\it p}(\\textrm{\\sffamily TL} \\in \\textrm{\\sffamily CI}) = $(tree_len_coverage)\$", =#
+                    #= text(L"$\textrm{\sffamily\it p}(\textrm{\sffamily TL} \in \textrm{\sffamily CI}) = %$(tree_len_coverage)$", =#
+                    #= text("p(TL in CI) = $(tree_len_coverage[i])", =#
+                    #= text(L"p(\textrm{TL} \in \textrm{CI}) = %$(tree_len_coverage[i])", =#
+                    #= text(L"p(\textrm{TL} \in \textrm{CI}) = %$(tree_len_coverage[i])", =#
+                    text(cov_str,
+                            :left,
+                            :top,
+                            8),
+                    annotation_clip = false)
+            annotate!(true_v_est_plots[i],
+                    rmse_position...,
+                    text(rmse_str,
+                            :left,
+                            :top,
+                            8),
+                    annotation_clip = false)
+            plot_path = joinpath(ProjectUtil.RESULTS_DIR,
+                    "$(plot_labels[i])-$(parameter).tex")
+            Plots.savefig(true_v_est_plots[i], plot_path)
+            process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+            x_label = "True $(replace(parameter, "_" => " "))"
+            y_label = "Estimated $(replace(parameter, "_" => " "))"
+            if parameter == "root_pop_size"
+                x_label = "True population size"
+                y_label = "Estimated population size"
+            end
+            Plots.plot!(true_v_est_plots[i], xlabel = x_label, ylabel = y_label)
+            plot_path = joinpath(ProjectUtil.RESULTS_DIR,
+                    "$(plot_labels[i])-$(parameter)-axis-labels.tex")
+            Plots.savefig(true_v_est_plots[i], plot_path)
+            process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+            Plots.plot!(true_v_est_plots[i], xlabel = "", ylabel = "")
+        end
+
+        plot_grid = Plots.plot(
+                true_v_est_plots...,
+                layout = (4, 4),
+                legend = false,
+                size = (700, 1200),
+                link = :all,
+                xlabel = "True $(parameter)",
+                ylabel = "Posterior mean $(parameter)",
+                )
+        share_xy_axes!(plot_grid)
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "unfixed-$(parameter).tex")
+        write(stdout, "Writing to $(plot_path)\n")
+        Plots.savefig(plot_grid, plot_path)
+        # process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
     end
 
     return 0
