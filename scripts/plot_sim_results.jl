@@ -288,6 +288,7 @@ function get_groups_by_y(
         x_label_offset = 0.1,
         comparisons = (),
         comparison_positions = (),
+        comparisons_are_paired = false,
         p_val_size = 8)::Plots.Plot
     @assert ndims(y) == 2
     @assert size(y) == size(y_lower) 
@@ -314,11 +315,28 @@ function get_groups_by_y(
     y_extremes = (minimum(y_lower), maximum(y_upper))
     if (y_axis_max > 0.0) & (y_axis_max > y_extremes[1])
         y_extremes = (minimum(y_lower), y_axis_max)
+        @assert y_axis_max >= maximum(y)
     end
     y_buf = (y_extremes[2] - y_extremes[1]) * y_buffer
     #= y_limits = [y_extremes[1] - y_buf, y_extremes[2] + y_buf] =#
     y_limits = [0.0, y_extremes[2] + y_buf]
     x_limits = [0, x_val + 1]
+
+    error_bar_overflows_x = []
+    error_bar_overflows_y = []
+    for group_idx in 1:ngroups
+        overflows_x = []
+        overflows_y = []
+        for val_idx in eachindex(y_upper[:, group_idx])
+            if (y_axis_max > 0.0) & (y_upper[val_idx, group_idx] > y_axis_max)
+                y_upper[val_idx, group_idx] = y_axis_max
+                push!(overflows_x, x[val_idx, group_idx])
+                push!(overflows_y, y_upper[val_idx, group_idx])
+            end
+        end
+        push!(error_bar_overflows_x, overflows_x)
+        push!(error_bar_overflows_y, overflows_y)
+    end
 
     # Get empty plot
     plt = Plots.plot(
@@ -348,10 +366,16 @@ function get_groups_by_y(
             y_bracket_tick = y_bracket_ln + (0.015 * y_range)
             pval_aln = :top
         end
-        wsr_test = HypothesisTests.SignedRankTest(
-                y[:,comp[1]],
-                y[:,comp[2]])
-        pval = HypothesisTests.pvalue(wsr_test, tail = :both)
+        if comparisons_are_paired
+            comp_test = HypothesisTests.SignedRankTest(
+                    y[:,comp[1]],
+                    y[:,comp[2]])
+        else
+            comp_test = HypothesisTests.MannWhitneyUTest(
+                    y[:,comp[1]],
+                    y[:,comp[2]])
+        end
+        pval = HypothesisTests.pvalue(comp_test, tail = :both)
         pval_str = @sprintf("%.2g", pval)
         m = match(ProjectUtil.SCI_NOTATION_PATTERN, pval_str)
         if ! isnothing(m)
@@ -414,6 +438,19 @@ function get_groups_by_y(
             markerstrokecolor = colors[:,1],
             markerstrokealpha = 0.0)
             #= markerstrokealpha = alphas[:,1]) =#
+    if length(error_bar_overflows_x[1]) > 0
+        Plots.plot!(plt,
+                error_bar_overflows_x[1],
+                error_bar_overflows_y[1],
+                seriestype = :scatter,
+                legend = false,
+                markershape = :utriangle,
+                markersize = 2.0,
+                markercolor = colors[:,1],
+                markeralpha = error_bar_alpha,
+                markerstrokecolor = colors[:,1],
+                markerstrokealpha = error_bar_alpha)
+    end
     if show_group_means
         y_mean = Statistics.mean(y[:,1])
         #= write(stdout, "$y_mean\n") =#
@@ -466,6 +503,19 @@ function get_groups_by_y(
                 markerstrokecolor = colors[:,i],
                 markerstrokealpha = 0.0)
                 #= markerstrokealpha = alphas[:,i]) =#
+        if length(error_bar_overflows_x[i]) > 0
+            Plots.plot!(plt,
+                    error_bar_overflows_x[i],
+                    error_bar_overflows_y[i],
+                    seriestype = :scatter,
+                    legend = false,
+                    markershape = :utriangle,
+                    markersize = 2.0,
+                    markercolor = colors[:,i],
+                    markeralpha = error_bar_alpha,
+                    markerstrokecolor = colors[:,i],
+                    markerstrokealpha = error_bar_alpha)
+        end
         if show_group_means
             y_mean = Statistics.mean(y[:,i])
             #= write(stdout, "$y_mean\n") =#
@@ -2987,60 +3037,60 @@ function main_cli()::Cint
                 :euclidean_distance_eti_95_upper, locus_size)
 
         write(stdout, "\n")
-        wsr_test = HypothesisTests.SignedRankTest(
+        mwu_test = HypothesisTests.MannWhitneyUTest(
                 fixed_gen_gen_dist_mean,
                 fixed_gen_bif_dist_mean)
-        pval = HypothesisTests.pvalue(wsr_test, tail = :both)
+        pval = HypothesisTests.pvalue(mwu_test, tail = :both)
         write(stdout, "WSR test, fixed gen, all sites:\n$pval\n")
         write(stdout, "mean diff = $(Statistics.mean(fixed_gen_gen_dist_mean - fixed_gen_bif_dist_mean))\n")
         write(stdout, "\n")
-        wsr_test = HypothesisTests.SignedRankTest(
+        mwu_test = HypothesisTests.MannWhitneyUTest(
                 vo_fixed_gen_gen_dist_mean,
                 vo_fixed_gen_bif_dist_mean)
-        pval = HypothesisTests.pvalue(wsr_test, tail = :both)
+        pval = HypothesisTests.pvalue(mwu_test, tail = :both)
         write(stdout, "WSR test, fixed gen, var only:\n$pval\n")
         write(stdout, "mean diff = $(Statistics.mean(vo_fixed_gen_gen_dist_mean - vo_fixed_gen_bif_dist_mean))\n")
         write(stdout, "\n")
-        wsr_test = HypothesisTests.SignedRankTest(
+        mwu_test = HypothesisTests.MannWhitneyUTest(
                 fixed_bif_gen_dist_mean,
                 fixed_bif_bif_dist_mean)
-        pval = HypothesisTests.pvalue(wsr_test, tail = :both)
+        pval = HypothesisTests.pvalue(mwu_test, tail = :both)
         write(stdout, "WSR test, fixed bif, all sites:\n$pval\n")
         write(stdout, "mean diff = $(Statistics.mean(fixed_bif_gen_dist_mean - fixed_bif_bif_dist_mean))\n")
         write(stdout, "\n")
-        wsr_test = HypothesisTests.SignedRankTest(
+        mwu_test = HypothesisTests.MannWhitneyUTest(
                 vo_fixed_bif_gen_dist_mean,
                 vo_fixed_bif_bif_dist_mean)
-        pval = HypothesisTests.pvalue(wsr_test, tail = :both)
+        pval = HypothesisTests.pvalue(mwu_test, tail = :both)
         write(stdout, "WSR test, fixed bif, var only:\n$pval\n")
         write(stdout, "mean diff = $(Statistics.mean(vo_fixed_bif_gen_dist_mean - vo_fixed_bif_bif_dist_mean))\n")
         write(stdout, "\n")
 
-        wsr_test = HypothesisTests.SignedRankTest(
+        mwu_test = HypothesisTests.MannWhitneyUTest(
                 unfixed_gen_gen_dist_mean,
                 unfixed_gen_bif_dist_mean)
-        pval = HypothesisTests.pvalue(wsr_test, tail = :both)
+        pval = HypothesisTests.pvalue(mwu_test, tail = :both)
         write(stdout, "WSR test, unfixed gen, all sites:\n$pval\n")
         write(stdout, "mean diff = $(Statistics.mean(unfixed_gen_gen_dist_mean - unfixed_gen_bif_dist_mean))\n")
         write(stdout, "\n")
-        wsr_test = HypothesisTests.SignedRankTest(
+        mwu_test = HypothesisTests.MannWhitneyUTest(
                 vo_unfixed_gen_gen_dist_mean,
                 vo_unfixed_gen_bif_dist_mean)
-        pval = HypothesisTests.pvalue(wsr_test, tail = :both)
+        pval = HypothesisTests.pvalue(mwu_test, tail = :both)
         write(stdout, "WSR test, unfixed gen, var only:\n$pval\n")
         write(stdout, "mean diff = $(Statistics.mean(vo_unfixed_gen_gen_dist_mean - vo_unfixed_gen_bif_dist_mean))\n")
         write(stdout, "\n")
-        wsr_test = HypothesisTests.SignedRankTest(
+        mwu_test = HypothesisTests.MannWhitneyUTest(
                 unfixed_bif_gen_dist_mean,
                 unfixed_bif_bif_dist_mean)
-        pval = HypothesisTests.pvalue(wsr_test, tail = :both)
+        pval = HypothesisTests.pvalue(mwu_test, tail = :both)
         write(stdout, "WSR test, unfixed bif, all sites:\n$pval\n")
         write(stdout, "mean diff = $(Statistics.mean(unfixed_bif_gen_dist_mean - unfixed_bif_bif_dist_mean))\n")
         write(stdout, "\n")
-        wsr_test = HypothesisTests.SignedRankTest(
+        mwu_test = HypothesisTests.MannWhitneyUTest(
                 vo_unfixed_bif_gen_dist_mean,
                 vo_unfixed_bif_bif_dist_mean)
-        pval = HypothesisTests.pvalue(wsr_test, tail = :both)
+        pval = HypothesisTests.pvalue(mwu_test, tail = :both)
         write(stdout, "WSR test, unfixed bif, var only:\n$pval\n")
         write(stdout, "mean diff = $(Statistics.mean(vo_unfixed_bif_gen_dist_mean - vo_unfixed_bif_bif_dist_mean))\n")
         write(stdout, "\n")
@@ -3073,7 +3123,8 @@ function main_cli()::Cint
                 x_label_offset = 0.05,
                 show_labels_on_x = true,
                 comparisons = ((1, 2), (3, 4), (1, 3), (2, 4)),
-                comparison_positions = comparison_positions
+                comparison_positions = comparison_positions,
+                comparisons_are_paired = true,
                )
         Plots.ylabel!(p, "Euclidean distance from true tree")
         Plots.plot!(p, size = (375, 290))
@@ -3082,7 +3133,7 @@ function main_cli()::Cint
         Plots.savefig(p, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
-        if length(locus_prefix) > 0
+        if length(locus_prefix) == 0
             l_100_unfixed_gen_gen_dist_mean = get_floats(results,
                     false, true, true, false,
                     :euclidean_distance_mean, 100)
@@ -3099,7 +3150,7 @@ function main_cli()::Cint
                          l_100_unfixed_gen_gen_dist_lower),
                     hcat(unfixed_gen_gen_dist_upper,
                          l_100_unfixed_gen_gen_dist_upper),
-                    [ "$(gen_model), unlinked characters" "$(gen_model), 100bp loci" ],
+                    [ L"%$(gen_model), unlinked" L"%$(gen_model), 100bp loci" ],
                     [ gen_col gen_col ],
                     [ gen_marker_alpha gen_marker_alpha ],
                     marker_shapes = [ gen_shape gen_shape ],
@@ -3107,7 +3158,11 @@ function main_cli()::Cint
                     y_buffer = 0.02,
                     x_label_size = 8.0,
                     x_label_offset = 0.05,
-                    show_labels_on_x = true)
+                    show_labels_on_x = true,
+                    comparisons = ((1, 2),),
+                    comparison_positions = (0.995,),
+                    comparisons_are_paired = false,
+                   )
             Plots.ylabel!(p, "Euclidean distance from true tree")
             Plots.plot!(p, size = (350, 340))
             plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-euclidean-distances-unlinked-v-linked.tex")
@@ -3168,7 +3223,8 @@ function main_cli()::Cint
                 x_label_offset = 0.05,
                 show_labels_on_x = true,
                 comparisons = ((1, 2), (3, 4), (1, 3), (2, 4)),
-                comparison_positions = comparison_positions
+                comparison_positions = comparison_positions,
+                comparisons_are_paired = true,
                )
         Plots.ylabel!(p, "Euclidean distance from true tree")
         #= Plots.plot!(p, size = (600, 350)) =#
@@ -3204,7 +3260,7 @@ function main_cli()::Cint
 
 
         y_axis_max = -1.0
-        if length(locus_prefix) > 0
+        if length(locus_prefix) == 0
             y_axis_max = 0.03
         end
         comparison_positions = (0.995, 0.995)
@@ -3233,7 +3289,8 @@ function main_cli()::Cint
                 x_label_offset = 0.05,
                 show_labels_on_x = true,
                 comparisons = ((1, 2), (3, 4)),
-                comparison_positions = comparison_positions
+                comparison_positions = comparison_positions,
+                comparisons_are_paired = true,
                )
         Plots.ylabel!(p, "Euclidean distance from true tree")
         Plots.plot!(p, size = (600, 340))
