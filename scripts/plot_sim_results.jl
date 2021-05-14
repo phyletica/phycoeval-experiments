@@ -407,6 +407,7 @@ function get_groups_by_y(
                 linewidth = 1.0)
     end
 
+    xtick_pos = [x[end, 1]]
     Plots.plot!(plt,
             x[:,1],
             y[:,1],
@@ -476,6 +477,7 @@ function get_groups_by_y(
                   annotation_clip = false)
     end
     for i in 2:ngroups
+        push!(xtick_pos, x[end, i])
         Plots.plot!(plt,
                 x[:,i],
                 y[:,i],
@@ -541,6 +543,7 @@ function get_groups_by_y(
                       annotation_clip = false)
         end
     end
+    Plots.plot!(plt, xticks = xtick_pos)
     Plots.xaxis!(plt, false)
 
     return plt
@@ -1865,6 +1868,39 @@ function main_cli()::Cint
         Plots.savefig(v_poly_probs, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
+        # This doesn't work because the vectors have different lengths (i.e.,
+        # there are different numbers of shared divs and multifurctations
+        #= v = get_split_violin_plot( =#
+        #=         hcat( =#
+        #=              true_shared_div_probs, =#
+        #=              true_polytomy_probs), =#
+        #=         hcat( =#
+        #=              vo_true_shared_div_probs, =#
+        #=              vo_true_polytomy_probs), =#
+        #=         xlabels = [ "True shared divs" "True polytomies" ], =#
+        #=         left_fill_colors = gen_col, =#
+        #=         left_marker_colors = gen_col, =#
+        #=         left_fill_alphas = gen_fill_alpha, =#
+        #=         left_marker_alphas = gen_marker_alpha, =#
+        #=         left_marker_shapes = gen_shape, =#
+        #=         left_marker_sizes = gen_marker_size - 1, =#
+        #=         left_labels = [ "All sites" ], =#
+        #=         right_fill_colors = vo_gen_col, =#
+        #=         right_marker_colors = vo_gen_col, =#
+        #=         right_fill_alphas = vo_gen_fill_alpha, =#
+        #=         right_marker_alphas = vo_gen_marker_alpha, =#
+        #=         right_marker_shapes = vo_gen_shape, =#
+        #=         right_marker_sizes = vo_gen_marker_size - 1, =#
+        #=         right_labels = [ "Variable sites" ], =#
+        #=         legend = false, =#
+        #=         dot_legend = false) =#
+        #= Plots.plot!(v, size = (350, 220)) =#
+        #= Plots.ylims!(v, (-0.02, 1.02)) =#
+        #= Plots.ylabel!(v, "Posterior probability") =#
+        #= plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-true-event-probs.tex") =#
+        #= Plots.savefig(v, plot_path) =#
+        #= process_tex(plot_path, target = axis_pattern, replacement = axis_replace) =#
+
 
         root_node_probs = get_floats(results, true, true, true, false, :root_node_true_prob, locus_size)
         vo_root_node_probs = get_floats(results, true, true, true, true, :root_node_true_prob, locus_size)
@@ -3150,10 +3186,11 @@ function main_cli()::Cint
                          l_100_unfixed_gen_gen_dist_lower),
                     hcat(unfixed_gen_gen_dist_upper,
                          l_100_unfixed_gen_gen_dist_upper),
-                    [ L"%$(gen_model), unlinked" L"%$(gen_model), 100bp loci" ],
+                    #= [ LaTeXString("\\begin{tabular}{c} $(gen_model) \\\\ unlinked \\end{tabular}") LaTeXString("\\begin{tabular}{c} $(gen_model) \\\\ 100bp loci \\end{tabular}") ], =#
+                    [ LaTeXString("{\\normalsize $(gen_model) unlinked}") LaTeXString("{\\normalsize $(gen_model) 100bp loci}") ],
                     [ gen_col gen_col ],
                     [ gen_marker_alpha gen_marker_alpha ],
-                    marker_shapes = [ gen_shape gen_shape ],
+                    marker_shapes = [ gen_shape :pentagon ],
                     marker_sizes = [ gen_marker_size gen_marker_size ],
                     y_buffer = 0.02,
                     x_label_size = 8.0,
@@ -3164,7 +3201,7 @@ function main_cli()::Cint
                     comparisons_are_paired = false,
                    )
             Plots.ylabel!(p, "Euclidean distance from true tree")
-            Plots.plot!(p, size = (350, 340))
+            Plots.plot!(p, size = (300, 290), xtickfontsize = 8)
             plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-euclidean-distances-unlinked-v-linked.tex")
             write(stdout, "Writing to $(plot_path)\n")
             Plots.savefig(p, plot_path)
@@ -3293,7 +3330,8 @@ function main_cli()::Cint
                 comparisons_are_paired = true,
                )
         Plots.ylabel!(p, "Euclidean distance from true tree")
-        Plots.plot!(p, size = (600, 340))
+        #= Plots.plot!(p, size = (600, 340)) =#
+        Plots.plot!(p, size = (420, 290))
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-euclidean-distances.tex")
         write(stdout, "Writing to $(plot_path)\n")
         Plots.savefig(p, plot_path)
@@ -3361,7 +3399,8 @@ function main_cli()::Cint
                 comparison_positions = comparison_positions
                )
         Plots.ylabel!(p, "Euclidean distance from true tree")
-        Plots.plot!(p, size = (600, 340))
+        #= Plots.plot!(p, size = (600, 340)) =#
+        Plots.plot!(p, size = (420, 290))
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-bif-euclidean-distances.tex")
         write(stdout, "Writing to $(plot_path)\n")
         Plots.savefig(p, plot_path)
@@ -3586,16 +3625,16 @@ function main_cli()::Cint
 
         # Plot topology-related probs
 
-        true_topo_probs = get_floats(results, false, true, true, false, :topo_true_prob, locus_size)
-        vo_true_topo_probs = get_floats(results, false, true, true, true, :topo_true_prob, locus_size)
-        root_node_probs = get_floats(results, false, true, true, false, :root_node_true_prob, locus_size)
-        vo_root_node_probs = get_floats(results, false, true, true, true, :root_node_true_prob, locus_size)
-        true_split_prob_means = get_floats(results, false, true, true, false, :true_split_prob_mean, locus_size)
-        vo_true_split_prob_means = get_floats(results, false, true, true, true, :true_split_prob_mean, locus_size)
-        true_node_prob_means = get_floats(results, false, true, true, false, :true_node_prob_mean, locus_size)
-        vo_true_node_prob_means = get_floats(results, false, true, true, true, :true_node_prob_mean, locus_size)
-        true_height_prob_means = get_floats(results, false, true, true, false, :true_height_prob_mean, locus_size)
-        vo_true_height_prob_means = get_floats(results, false, true, true, true, :true_height_prob_mean, locus_size)
+        unfixed_gen_gen_true_topo_probs = get_floats(results, false, true, true, false, :topo_true_prob, locus_size)
+        unfixed_gen_gen_vo_true_topo_probs = get_floats(results, false, true, true, true, :topo_true_prob, locus_size)
+        unfixed_gen_gen_root_node_probs = get_floats(results, false, true, true, false, :root_node_true_prob, locus_size)
+        unfixed_gen_gen_vo_root_node_probs = get_floats(results, false, true, true, true, :root_node_true_prob, locus_size)
+        unfixed_gen_gen_true_split_prob_means = get_floats(results, false, true, true, false, :true_split_prob_mean, locus_size)
+        unfixed_gen_gen_vo_true_split_prob_means = get_floats(results, false, true, true, true, :true_split_prob_mean, locus_size)
+        unfixed_gen_gen_true_node_prob_means = get_floats(results, false, true, true, false, :true_node_prob_mean, locus_size)
+        unfixed_gen_gen_vo_true_node_prob_means = get_floats(results, false, true, true, true, :true_node_prob_mean, locus_size)
+        unfixed_gen_gen_true_height_prob_means = get_floats(results, false, true, true, false, :true_height_prob_mean, locus_size)
+        unfixed_gen_gen_vo_true_height_prob_means = get_floats(results, false, true, true, true, :true_height_prob_mean, locus_size)
 
         v = get_floats(results, false, true, true, false, :true_shared_height_prob_mean, locus_size)
         true_shared_height_prob_means = v[.!any.(isnan, v)]
@@ -3641,16 +3680,16 @@ function main_cli()::Cint
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
         v = get_split_violin_plot(
-                hcat(true_topo_probs,
-                     root_node_probs,
-                     true_split_prob_means,
-                     true_node_prob_means,
-                     true_height_prob_means),
-                hcat(vo_true_topo_probs,
-                     vo_root_node_probs,
-                     vo_true_split_prob_means,
-                     vo_true_node_prob_means,
-                     vo_true_height_prob_means),
+                hcat(unfixed_gen_gen_true_topo_probs,
+                     unfixed_gen_gen_root_node_probs,
+                     unfixed_gen_gen_true_split_prob_means,
+                     unfixed_gen_gen_true_node_prob_means,
+                     unfixed_gen_gen_true_height_prob_means),
+                hcat(unfixed_gen_gen_vo_true_topo_probs,
+                     unfixed_gen_gen_vo_root_node_probs,
+                     unfixed_gen_gen_vo_true_split_prob_means,
+                     unfixed_gen_gen_vo_true_node_prob_means,
+                     unfixed_gen_gen_vo_true_height_prob_means),
                 xlabels = [ "True topology" "Root node" "True split mean" "True node mean" "True height mean" ],
                 left_fill_colors = gen_col,
                 left_marker_colors = gen_col,
@@ -3672,28 +3711,28 @@ function main_cli()::Cint
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
 
-        true_topo_probs = get_floats(results, false, false, false, false, :topo_true_prob, locus_size)
-        vo_true_topo_probs = get_floats(results, false, false, false, true, :topo_true_prob, locus_size)
-        root_node_probs = get_floats(results, false, false, false, false, :root_node_true_prob, locus_size)
-        vo_root_node_probs = get_floats(results, false, false, false, true, :root_node_true_prob, locus_size)
-        true_split_prob_means = get_floats(results, false, false, false, false, :true_split_prob_mean, locus_size)
-        vo_true_split_prob_means = get_floats(results, false, false, false, true, :true_split_prob_mean, locus_size)
-        true_node_prob_means = get_floats(results, false, false, false, false, :true_node_prob_mean, locus_size)
-        vo_true_node_prob_means = get_floats(results, false, false, false, true, :true_node_prob_mean, locus_size)
-        true_height_prob_means = get_floats(results, false, false, false, false, :true_height_prob_mean, locus_size)
-        vo_true_height_prob_means = get_floats(results, false, false, false, true, :true_height_prob_mean, locus_size)
+        unfixed_bif_bif_true_topo_probs = get_floats(results, false, false, false, false, :topo_true_prob, locus_size)
+        unfixed_bif_bif_vo_true_topo_probs = get_floats(results, false, false, false, true, :topo_true_prob, locus_size)
+        unfixed_bif_bif_root_node_probs = get_floats(results, false, false, false, false, :root_node_true_prob, locus_size)
+        unfixed_bif_bif_vo_root_node_probs = get_floats(results, false, false, false, true, :root_node_true_prob, locus_size)
+        unfixed_bif_bif_true_split_prob_means = get_floats(results, false, false, false, false, :true_split_prob_mean, locus_size)
+        unfixed_bif_bif_vo_true_split_prob_means = get_floats(results, false, false, false, true, :true_split_prob_mean, locus_size)
+        unfixed_bif_bif_true_node_prob_means = get_floats(results, false, false, false, false, :true_node_prob_mean, locus_size)
+        unfixed_bif_bif_vo_true_node_prob_means = get_floats(results, false, false, false, true, :true_node_prob_mean, locus_size)
+        unfixed_bif_bif_true_height_prob_means = get_floats(results, false, false, false, false, :true_height_prob_mean, locus_size)
+        unfixed_bif_bif_vo_true_height_prob_means = get_floats(results, false, false, false, true, :true_height_prob_mean, locus_size)
 
         v = get_split_violin_plot(
-                hcat(true_topo_probs,
-                     root_node_probs,
-                     true_split_prob_means,
-                     true_node_prob_means,
-                     true_height_prob_means),
-                hcat(vo_true_topo_probs,
-                     vo_root_node_probs,
-                     vo_true_split_prob_means,
-                     vo_true_node_prob_means,
-                     vo_true_height_prob_means),
+                hcat(unfixed_bif_bif_true_topo_probs,
+                     unfixed_bif_bif_root_node_probs,
+                     unfixed_bif_bif_true_split_prob_means,
+                     unfixed_bif_bif_true_node_prob_means,
+                     unfixed_bif_bif_true_height_prob_means),
+                hcat(unfixed_bif_bif_vo_true_topo_probs,
+                     unfixed_bif_bif_vo_root_node_probs,
+                     unfixed_bif_bif_vo_true_split_prob_means,
+                     unfixed_bif_bif_vo_true_node_prob_means,
+                     unfixed_bif_bif_vo_true_height_prob_means),
                 xlabels = [ "True topology" "Root node" "True split mean" "True node mean" "True height mean" ],
                 left_fill_colors = gen_col,
                 left_marker_colors = gen_col,
@@ -3715,16 +3754,16 @@ function main_cli()::Cint
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
 
-        true_topo_probs = get_floats(results, false, true, false, false, :topo_true_prob, locus_size)
-        vo_true_topo_probs = get_floats(results, false, true, false, true, :topo_true_prob, locus_size)
-        root_node_probs = get_floats(results, false, true, false, false, :root_node_true_prob, locus_size)
-        vo_root_node_probs = get_floats(results, false, true, false, true, :root_node_true_prob, locus_size)
-        true_split_prob_means = get_floats(results, false, true, false, false, :true_split_prob_mean, locus_size)
-        vo_true_split_prob_means = get_floats(results, false, true, false, true, :true_split_prob_mean, locus_size)
-        true_node_prob_means = get_floats(results, false, true, false, false, :true_node_prob_mean, locus_size)
-        vo_true_node_prob_means = get_floats(results, false, true, false, true, :true_node_prob_mean, locus_size)
-        true_height_prob_means = get_floats(results, false, true, false, false, :true_height_prob_mean, locus_size)
-        vo_true_height_prob_means = get_floats(results, false, true, false, true, :true_height_prob_mean, locus_size)
+        unfixed_gen_bif_true_topo_probs = get_floats(results, false, true, false, false, :topo_true_prob, locus_size)
+        unfixed_gen_bif_vo_true_topo_probs = get_floats(results, false, true, false, true, :topo_true_prob, locus_size)
+        unfixed_gen_bif_root_node_probs = get_floats(results, false, true, false, false, :root_node_true_prob, locus_size)
+        unfixed_gen_bif_vo_root_node_probs = get_floats(results, false, true, false, true, :root_node_true_prob, locus_size)
+        unfixed_gen_bif_true_split_prob_means = get_floats(results, false, true, false, false, :true_split_prob_mean, locus_size)
+        unfixed_gen_bif_vo_true_split_prob_means = get_floats(results, false, true, false, true, :true_split_prob_mean, locus_size)
+        unfixed_gen_bif_true_node_prob_means = get_floats(results, false, true, false, false, :true_node_prob_mean, locus_size)
+        unfixed_gen_bif_vo_true_node_prob_means = get_floats(results, false, true, false, true, :true_node_prob_mean, locus_size)
+        unfixed_gen_bif_true_height_prob_means = get_floats(results, false, true, false, false, :true_height_prob_mean, locus_size)
+        unfixed_gen_bif_vo_true_height_prob_means = get_floats(results, false, true, false, true, :true_height_prob_mean, locus_size)
 
         v = get_floats(results, false, true, false, false, :true_shared_height_prob_mean, locus_size)
         true_shared_height_prob_means = v[.!any.(isnan, v)]
@@ -3755,16 +3794,16 @@ function main_cli()::Cint
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
         v = get_split_violin_plot(
-                hcat(true_topo_probs,
-                     root_node_probs,
-                     true_split_prob_means,
-                     true_node_prob_means,
-                     true_height_prob_means),
-                hcat(vo_true_topo_probs,
-                     vo_root_node_probs,
-                     vo_true_split_prob_means,
-                     vo_true_node_prob_means,
-                     vo_true_height_prob_means),
+                hcat(unfixed_gen_bif_true_topo_probs,
+                     unfixed_gen_bif_root_node_probs,
+                     unfixed_gen_bif_true_split_prob_means,
+                     unfixed_gen_bif_true_node_prob_means,
+                     unfixed_gen_bif_true_height_prob_means),
+                hcat(unfixed_gen_bif_vo_true_topo_probs,
+                     unfixed_gen_bif_vo_root_node_probs,
+                     unfixed_gen_bif_vo_true_split_prob_means,
+                     unfixed_gen_bif_vo_true_node_prob_means,
+                     unfixed_gen_bif_vo_true_height_prob_means),
                 xlabels = [ "True topology" "Root node" "True split mean" "True node mean" "True height mean" ],
                 left_fill_colors = gen_col,
                 left_marker_colors = gen_col,
@@ -3786,28 +3825,28 @@ function main_cli()::Cint
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
 
-        true_topo_probs = get_floats(results, false, false, true, false, :topo_true_prob, locus_size)
-        vo_true_topo_probs = get_floats(results, false, false, true, true, :topo_true_prob, locus_size)
-        root_node_probs = get_floats(results, false, false, true, false, :root_node_true_prob, locus_size)
-        vo_root_node_probs = get_floats(results, false, false, true, true, :root_node_true_prob, locus_size)
-        true_split_prob_means = get_floats(results, false, false, true, false, :true_split_prob_mean, locus_size)
-        vo_true_split_prob_means = get_floats(results, false, false, true, true, :true_split_prob_mean, locus_size)
-        true_node_prob_means = get_floats(results, false, false, true, false, :true_node_prob_mean, locus_size)
-        vo_true_node_prob_means = get_floats(results, false, false, true, true, :true_node_prob_mean, locus_size)
-        true_height_prob_means = get_floats(results, false, false, true, false, :true_height_prob_mean, locus_size)
-        vo_true_height_prob_means = get_floats(results, false, false, true, true, :true_height_prob_mean, locus_size)
+        unfixed_bif_gen_true_topo_probs = get_floats(results, false, false, true, false, :topo_true_prob, locus_size)
+        unfixed_bif_gen_vo_true_topo_probs = get_floats(results, false, false, true, true, :topo_true_prob, locus_size)
+        unfixed_bif_gen_root_node_probs = get_floats(results, false, false, true, false, :root_node_true_prob, locus_size)
+        unfixed_bif_gen_vo_root_node_probs = get_floats(results, false, false, true, true, :root_node_true_prob, locus_size)
+        unfixed_bif_gen_true_split_prob_means = get_floats(results, false, false, true, false, :true_split_prob_mean, locus_size)
+        unfixed_bif_gen_vo_true_split_prob_means = get_floats(results, false, false, true, true, :true_split_prob_mean, locus_size)
+        unfixed_bif_gen_true_node_prob_means = get_floats(results, false, false, true, false, :true_node_prob_mean, locus_size)
+        unfixed_bif_gen_vo_true_node_prob_means = get_floats(results, false, false, true, true, :true_node_prob_mean, locus_size)
+        unfixed_bif_gen_true_height_prob_means = get_floats(results, false, false, true, false, :true_height_prob_mean, locus_size)
+        unfixed_bif_gen_vo_true_height_prob_means = get_floats(results, false, false, true, true, :true_height_prob_mean, locus_size)
 
         v = get_split_violin_plot(
-                hcat(true_topo_probs,
-                     root_node_probs,
-                     true_split_prob_means,
-                     true_node_prob_means,
-                     true_height_prob_means),
-                hcat(vo_true_topo_probs,
-                     vo_root_node_probs,
-                     vo_true_split_prob_means,
-                     vo_true_node_prob_means,
-                     vo_true_height_prob_means),
+                hcat(unfixed_bif_gen_true_topo_probs,
+                     unfixed_bif_gen_root_node_probs,
+                     unfixed_bif_gen_true_split_prob_means,
+                     unfixed_bif_gen_true_node_prob_means,
+                     unfixed_bif_gen_true_height_prob_means),
+                hcat(unfixed_bif_gen_vo_true_topo_probs,
+                     unfixed_bif_gen_vo_root_node_probs,
+                     unfixed_bif_gen_vo_true_split_prob_means,
+                     unfixed_bif_gen_vo_true_node_prob_means,
+                     unfixed_bif_gen_vo_true_height_prob_means),
                 xlabels = [ "True topology" "Root node" "True split mean" "True node mean" "True height mean" ],
                 left_fill_colors = gen_col,
                 left_marker_colors = gen_col,
@@ -3825,6 +3864,35 @@ function main_cli()::Cint
         Plots.ylims!(v, (-0.02, 1.02))
         Plots.ylabel!(v, "Posterior probability")
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-bif-gen-true-tree-probs.tex")
+        Plots.savefig(v, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        v = get_split_violin_plot(
+                hcat(unfixed_bif_gen_true_split_prob_means,
+                     unfixed_bif_gen_vo_true_split_prob_means),
+                hcat(unfixed_bif_bif_true_split_prob_means,
+                     unfixed_bif_bif_vo_true_split_prob_means),
+                xlabels = [ "True split mean" " True split mean " ],
+                left_fill_colors = [ gen_col  vo_gen_col ],
+                left_marker_colors = [ gen_col  vo_gen_col ],
+                left_fill_alphas = [ gen_fill_alpha  vo_gen_fill_alpha ],
+                left_marker_alphas = [ gen_marker_alpha  vo_gen_marker_alpha ],
+                left_marker_shapes = [ gen_shape vo_gen_shape ],
+                left_marker_sizes = [ gen_marker_size vo_gen_marker_size ],
+                left_labels = [ "Generalized" ],
+                right_fill_colors = [bif_col vo_bif_col],
+                right_marker_colors = [bif_col vo_bif_col],
+                right_fill_alphas = [bif_fill_alpha vo_bif_fill_alpha],
+                right_marker_alphas = [bif_marker_alpha vo_bif_marker_alpha],
+                right_marker_shapes = [ bif_shape vo_bif_shape ],
+                right_marker_sizes = [ bif_marker_size vo_bif_marker_size ],
+                right_labels = [ "Bifurcating" ],
+                legend = false,
+                dot_legend = false)
+        Plots.plot!(v, size = (300, 220), xtickfontsize = 8)
+        Plots.ylims!(v, (-0.02, 1.02))
+        Plots.ylabel!(v, "Posterior probability")
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-bif-mean-split-probs.tex")
         Plots.savefig(v, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
