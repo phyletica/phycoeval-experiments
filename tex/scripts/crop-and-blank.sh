@@ -13,7 +13,7 @@ do
     fi
 done
 
-for tex_path in ../trees/4-leaf-tree*.tex
+for tex_path in ../trees/4-leaf-*.tex
 do
     path_prefix="${tex_path/\.tex/}"
     if [[ $path_prefix != *tikz ]]

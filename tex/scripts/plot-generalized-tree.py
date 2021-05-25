@@ -889,6 +889,194 @@ class SimpleFourLeafTreeInfo(object):
             '(((n1:{l1},n2:{l2})n12:{l12},(n3:{l3},n4:{l4})n34:{l34}))root:{lroot};',
             '(((n1:{l1},n2:{l2})n12:{l12},(n3:{l3},n4:{l4})n34:{l34}))root:{lroot};',
             ]
+    _TREE_TO_TIP_LABELS = [
+            [
+                {
+                'n1': '\\sffamily A',
+                'n2': '\\sffamily B',
+                'n3': '\\sffamily C',
+                'n4': '\\sffamily D',
+                },
+            ],
+            [
+                {
+                'n1': '\\sffamily A',
+                'n2': '\\sffamily B',
+                'n3': '\\sffamily C',
+                'n4': '\\sffamily D',
+                },
+                {
+                'n1': '\\sffamily A',
+                'n2': '\\sffamily C',
+                'n3': '\\sffamily B',
+                'n4': '\\sffamily D',
+                },
+                {
+                'n1': '\\sffamily A',
+                'n2': '\\sffamily D',
+                'n3': '\\sffamily B',
+                'n4': '\\sffamily C',
+                },
+                {
+                'n1': '\\sffamily B',
+                'n2': '\\sffamily C',
+                'n3': '\\sffamily A',
+                'n4': '\\sffamily D',
+                },
+                {
+                'n1': '\\sffamily B',
+                'n2': '\\sffamily D',
+                'n3': '\\sffamily A',
+                'n4': '\\sffamily C',
+                },
+                {
+                'n1': '\\sffamily C',
+                'n2': '\\sffamily D',
+                'n3': '\\sffamily A',
+                'n4': '\\sffamily B',
+                },
+            ],
+            [
+                {
+                'n1': '\\sffamily A',
+                'n2': '\\sffamily B',
+                'n3': '\\sffamily C',
+                'n4': '\\sffamily D',
+                },
+                {
+                'n1': '\\sffamily A',
+                'n2': '\\sffamily B',
+                'n3': '\\sffamily D',
+                'n4': '\\sffamily C',
+                },
+                {
+                'n1': '\\sffamily A',
+                'n2': '\\sffamily C',
+                'n3': '\\sffamily D',
+                'n4': '\\sffamily B',
+                },
+                {
+                'n1': '\\sffamily B',
+                'n2': '\\sffamily C',
+                'n3': '\\sffamily D',
+                'n4': '\\sffamily A',
+                },
+            ],
+            [
+                {
+                'n1': '\\sffamily A',
+                'n2': '\\sffamily B',
+                'n3': '\\sffamily C',
+                'n4': '\\sffamily D',
+                },
+                {
+                'n1': '\\sffamily A',
+                'n2': '\\sffamily B',
+                'n3': '\\sffamily D',
+                'n4': '\\sffamily C',
+                },
+                {
+                'n1': '\\sffamily A',
+                'n2': '\\sffamily C',
+                'n3': '\\sffamily B',
+                'n4': '\\sffamily D',
+                },
+                {
+                'n1': '\\sffamily A',
+                'n2': '\\sffamily C',
+                'n3': '\\sffamily D',
+                'n4': '\\sffamily B',
+                },
+                {
+                'n1': '\\sffamily A',
+                'n2': '\\sffamily D',
+                'n3': '\\sffamily B',
+                'n4': '\\sffamily C',
+                },
+                {
+                'n1': '\\sffamily A',
+                'n2': '\\sffamily D',
+                'n3': '\\sffamily C',
+                'n4': '\\sffamily B',
+                },
+                {
+                'n1': '\\sffamily B',
+                'n2': '\\sffamily C',
+                'n3': '\\sffamily A',
+                'n4': '\\sffamily D',
+                },
+                {
+                'n1': '\\sffamily B',
+                'n2': '\\sffamily C',
+                'n3': '\\sffamily D',
+                'n4': '\\sffamily A',
+                },
+                {
+                'n1': '\\sffamily B',
+                'n2': '\\sffamily D',
+                'n3': '\\sffamily A',
+                'n4': '\\sffamily C',
+                },
+                {
+                'n1': '\\sffamily B',
+                'n2': '\\sffamily D',
+                'n3': '\\sffamily C',
+                'n4': '\\sffamily A',
+                },
+                {
+                'n1': '\\sffamily C',
+                'n2': '\\sffamily D',
+                'n3': '\\sffamily A',
+                'n4': '\\sffamily B',
+                },
+                {
+                'n1': '\\sffamily C',
+                'n2': '\\sffamily D',
+                'n3': '\\sffamily B',
+                'n4': '\\sffamily A',
+                },
+            ],
+            [
+                {
+                'n1': '\\sffamily A',
+                'n2': '\\sffamily B',
+                'n3': '\\sffamily C',
+                'n4': '\\sffamily D',
+                },
+                {
+                'n1': '\\sffamily A',
+                'n2': '\\sffamily C',
+                'n3': '\\sffamily B',
+                'n4': '\\sffamily D',
+                },
+                {
+                'n1': '\\sffamily A',
+                'n2': '\\sffamily D',
+                'n3': '\\sffamily B',
+                'n4': '\\sffamily C',
+                },
+            ],
+            [
+                {
+                'n1': '\\sffamily A',
+                'n2': '\\sffamily B',
+                'n3': '\\sffamily C',
+                'n4': '\\sffamily D',
+                },
+                {
+                'n1': '\\sffamily A',
+                'n2': '\\sffamily C',
+                'n3': '\\sffamily B',
+                'n4': '\\sffamily D',
+                },
+                {
+                'n1': '\\sffamily A',
+                'n2': '\\sffamily D',
+                'n3': '\\sffamily B',
+                'n4': '\\sffamily C',
+                },
+            ],
+        ]
     _RAW_STEM_LENGTHS = [
             {
                 'l1' : 0.3,
@@ -1161,6 +1349,142 @@ class SimpleFourLeafTreeInfo(object):
                 l.colour = 'black!00'
         tg.epdf()
 
+    def plot_all_trees(self,
+            base_name = 'tree',
+            dir_name = 'gram',
+            scale = 1.0,
+            yscale = 1.0,
+            vmargin = 0,
+            lmargin = 15,
+            phylo_line_weight = 'ultra thick',
+            event_line_weight = 'thick',
+            event_line_color = 'black!50',
+            event_line_style = 'dashed',
+            title_str = None,
+            show_title = False,
+            title_font_size = 'huge',
+            show_events = False,
+            event_indices_to_labels = None,
+            show_event_labels = False,
+            remove_event_labels = False,
+            event_labels_top = True,
+            event_font_size = 'LARGE',
+            show_event_times = False,
+            time_font_size = 'small',
+            include_time_zero = False,
+            ):
+        for tree_index in range(len(self._TREES)):
+            self.tree = self._TREES[tree_index]
+            self.raw_node_heights = self._RAW_NODE_HEIGHTS[tree_index]
+            self.node_heights = self._NODE_HEIGHTS[tree_index]
+            self.raw_stem_lengths = self._RAW_STEM_LENGTHS[tree_index]
+            self.stem_lengths = self._STEM_LENGTHS[tree_index]
+
+            for labeled_index in range(len(self._TREE_TO_TIP_LABELS[tree_index])):
+                tip_labels = self._TREE_TO_TIP_LABELS[tree_index][labeled_index]
+                read(str(self))
+                sys.stderr.write("{0}\n".format(str(self)))
+                tree = var.trees[-1]
+                nodes_to_shift = []
+                node_root = None
+                for n in tree.iterNodes():
+                    if n.name == "root":
+                        node_root = n
+                    if n.isLeaf and (n.name != "root"):
+                        n.name = tip_labels[n.name]
+                    else:
+                        n.name = None
+                tg = treegram.TreeGram(tree, scale = scale, yScale = yscale) #, showNodeNums = True)
+                tg.styleDict[self.LEAF_STYLE.name] = self.LEAF_STYLE
+                tg.styleDict[self.INTERNAL_NODE_STYLE.name] = self.INTERNAL_NODE_STYLE
+                for p4_node in tree.iterLeavesNoRoot():
+                    p4_node.label.myStyle = self.LEAF_STYLE.name
+                # tg.tree.node(node_root.nodeNum).label.xShift = 0.1
+                tg.latexUsePackages.append('sfmath')
+                tg.latexUsePackages.append('color')
+                tg.latexOtherPreambleCommands.extend([
+                        "\definecolor{mygreen}{RGB}{50,162,81}",
+                        "\definecolor{myorange}{RGB}{255,127,15}",
+                        "\definecolor{myblue}{RGB}{60,183,204}",
+                        "\definecolor{myyellow}{RGB}{255,217,74}",
+                        "\definecolor{myteal}{RGB}{57,115,124}",
+                        "\definecolor{myauburn}{RGB}{184,90,13}",
+                        ])
+                # tg.latexOtherPreambleCommands()
+                # tg.internalNodeLabelSize = 'small' # 'tiny' is default
+                tg.tgDefaultLineThickness = phylo_line_weight
+                tg.baseName = "{0}-{1}-{2}".format(base_name, tree_index, labeled_index)
+                tg.dirName = dir_name
+                # tg.grid(0, 0, 8, 5)
+                height_set = set(self.node_heights.values())
+                if include_time_zero:
+                    height_set.add(0.0)
+                heights = sorted(height_set)
+                show_indices = [i for i, h in enumerate(heights)]
+                event_labels = self._get_event_labels(include_time_zero)
+                if event_indices_to_labels:
+                    show_indices = sorted(event_indices_to_labels.keys())
+                    event_labels = [event_indices_to_labels[i] for i in show_indices]
+                lines = []
+                line_labels = []
+                top = 3.3*yscale
+                bottom = -0.24
+                horizontal_center = scale*((self.node_heights['root'] + 0.1)/2.0)
+                if show_title:
+                    if title_str:
+                        title = tg.text(title_str, horizontal_center, top)
+                    else:
+                        title = tg.text('$n_{{\\tau}} = {0}$'.format(len(heights)), horizontal_center, top)
+                    title.anchor = "south"
+                    title.textSize = title_font_size
+                height_xs = []
+                for i, h in enumerate(heights):
+                    x = scale*((self.node_heights['root'] + 0.1) - h)
+                    height_xs.append(x)
+                    if not i in show_indices:
+                        continue
+                    l = tg.line(x, bottom, x, top)
+                    l.lineStyle = event_line_style
+                    l.lineThickness = event_line_weight
+                    l.colour = event_line_color
+                    if not remove_event_labels:
+                        event_label = event_labels[i]
+                        if event_labels_top:
+                            t = tg.text(event_label, x, top)
+                        else:
+                            t = tg.text(event_label, x, bottom)
+                        t.textSize = event_font_size
+                        if event_labels_top:
+                            t.anchor = "south"
+                            t.yShift = -0.1
+                            # t.rotate = 90
+                        else:
+                            t.anchor = "north"
+                            t.yShift = 0.18
+                            # t.rotate = 90
+                        line_labels.append(t)
+                    if show_event_times:
+                        if event_labels_top:
+                            split_t = tg.text("\\sffamily {0:.2f}".format(h / self.height_multiplier), x, bottom)
+                            split_t.rotate = 45
+                            split_t.anchor = "north east"
+                            split_t.yShift = 0.13
+                        else:
+                            split_t = tg.text("\\sffamily {0:.2f}".format(h / self.height_multiplier), x, top)
+                            split_t.rotate = 45
+                            split_t.anchor = "south west"
+                            split_t.yShift = -0.18
+                        split_t.textSize = time_font_size
+                        line_labels.append(split_t)
+                    lines.append(l)
+                if not show_events:
+                    for l in lines:
+                        l.colour = 'black!00'
+                if not show_event_labels:
+                    for l in line_labels:
+                        l.colour = 'black!00'
+                tg.epdf()
+
 
 def main_cli():
     out_dir = os.path.join(os.path.pardir, 'trees')
@@ -1430,6 +1754,28 @@ def main_cli():
                     time_font_size = 'small',
                     include_time_zero = False,
                     )
+    t.plot_all_trees(
+            base_name = '4-leaf-labeled-tree-bare',
+            dir_name = out_dir,
+            scale = 1.0,
+            yscale = 1.0,
+            vmargin = 0,
+            lmargin = 0,
+            phylo_line_weight = 'ultra thick',
+            event_line_weight = 'thick',
+            event_line_color = 'black!50',
+            event_line_style = 'dashed',
+            show_title = False,
+            show_events = True,
+            event_indices_to_labels = None,
+            show_event_labels = True,
+            remove_event_labels = True,
+            event_labels_top = False,
+            event_font_size = 'Large',
+            show_event_times = False,
+            time_font_size = 'small',
+            include_time_zero = False,
+            )
 
 
     t = TreeInfo(

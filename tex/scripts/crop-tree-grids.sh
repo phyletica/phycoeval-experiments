@@ -2,7 +2,7 @@
 
 set -e
 
-for pdf_path in ../images/four-leaf-tree-*.pdf
+for pdf_path in ../images/four-leaf-*grid.pdf
 do
     path_prefix="${pdf_path/\.pdf/}"
     if [[ $path_prefix != *cropped ]]
