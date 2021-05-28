@@ -1570,6 +1570,46 @@ function make_legends()
     plot_path = joinpath(ProjectUtil.RESULTS_DIR, "legend-horizontal-short-all-sites.tex")
     Plots.savefig(plt, plot_path)
     process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+    plt = Plots.plot(
+            [0],
+            [0],
+            seriestype = :scatter,
+            legend = false,
+            markershape = gen_shape,
+            markersize = 6.0,
+            markercolor = gen_col,
+            markeralpha = gen_marker_alpha,
+            markerstrokecolor = gen_col,
+            markerstrokealpha = 0.0)
+    Plots.plot!(plt,
+            [0.8],
+            [0],
+            seriestype = :scatter,
+            markershape = bif_shape,
+            markersize = 6.0,
+            markercolor = bif_col,
+            markeralpha = bif_marker_alpha,
+            markerstrokecolor = bif_col,
+            markerstrokealpha = 0.0)
+    annotate!(plt, 0.03, 0,
+              text(LaTeXString("$(gen_model) = Generalized model"),
+                   :left,
+                   :vcenter,
+                   8),
+              annotation_clip = false)
+    annotate!(plt, 0.83, 0,
+              text(LaTeXString("$(bif_model) = Independent-bifurcating model"),
+                   :left,
+                   :vcenter,
+                   8),
+              annotation_clip = false)
+    Plots.plot!(plt, size = (250, 80), grid = false, ticks = false)
+    Plots.xaxis!(plt, false)
+    Plots.yaxis!(plt, false)
+    plot_path = joinpath(ProjectUtil.RESULTS_DIR, "legend-horizontal-all-sites.tex")
+    Plots.savefig(plt, plot_path)
+    process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
     return nothing
 end
 
@@ -1881,6 +1921,21 @@ function main_cli()::Cint
         Plots.savefig(v_shared_div_probs, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
+        v_shared_div_probs_all_sites = get_violin_plot(
+                true_shared_div_probs,
+                xlabels = [ "True shared divs" ],
+                fill_colors = gen_col,
+                marker_colors = gen_col,
+                fill_alphas = gen_fill_alpha,
+                marker_alphas = gen_marker_alpha,
+                include_dots = true)
+        Plots.plot!(v_shared_div_probs_all_sites, size = (170, 220))
+        Plots.ylims!(v_shared_div_probs_all_sites, (-0.02, 1.02))
+        Plots.ylabel!(v_shared_div_probs_all_sites, "Posterior probability")
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-true-shared-height-probs-all-sites.tex")
+        Plots.savefig(v_shared_div_probs_all_sites, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
         v_poly_probs = get_split_violin_plot(
                 true_polytomy_probs,
                 vo_true_polytomy_probs,
@@ -1906,6 +1961,21 @@ function main_cli()::Cint
         Plots.ylabel!(v_poly_probs, "Posterior probability")
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-true-polytomy-probs.tex")
         Plots.savefig(v_poly_probs, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        v_polytomy_probs_all_sites = get_violin_plot(
+                true_polytomy_probs,
+                xlabels = [ "True polytomies" ],
+                fill_colors = gen_col,
+                marker_colors = gen_col,
+                fill_alphas = gen_fill_alpha,
+                marker_alphas = gen_marker_alpha,
+                include_dots = true)
+        Plots.plot!(v_polytomy_probs_all_sites, size = (170, 220))
+        Plots.ylims!(v_polytomy_probs_all_sites, (-0.02, 1.02))
+        Plots.ylabel!(v_polytomy_probs_all_sites, "Posterior probability")
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-true-polytomy-probs-all-sites.tex")
+        Plots.savefig(v_polytomy_probs_all_sites, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
         # This doesn't work because the vectors have different lengths (i.e.,
@@ -2413,6 +2483,28 @@ function main_cli()::Cint
         Plots.savefig(v, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
+        v = get_violin_plot(
+                hcat(
+                     height_123_456_probs,
+                     height_12_789_probs,
+                     root_node_probs,
+                     node_789_probs,
+                     node_456_probs,
+                     node_12_3_probs,
+                     split_12_probs),
+                xlabels = [ "\$\\tau_2\$" "\$\\tau_1\$" "\$t_5\$" "\$t_4\$" "\$t_3\$" "\$t_2\$" "\$t_1\$" ],
+                fill_colors = gen_col,
+                marker_colors = gen_col,
+                fill_alphas = gen_fill_alpha,
+                marker_alphas = gen_marker_alpha,
+                include_dots = true)
+        Plots.plot!(v, size = (580, 220), xtickfontsize = 16)
+        Plots.ylims!(v, (-0.02, 1.02))
+        Plots.ylabel!(v, "Posterior probability")
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-gen-true-tree-probs-all-sites.tex")
+        Plots.savefig(v, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
         # vln_root_node_probs = StatsPlots.violin(
         #         ["All sites" "SNPs"],
         #         hcat(prep_for_violin(rng, root_node_probs, violin_probability_jiggle),
@@ -2650,6 +2742,33 @@ function main_cli()::Cint
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
         v = get_split_violin_plot(
+                hcat(fixed_gen_gen_max_wrong_root_prob, gen_max_456_subsplit_prob, gen_max_789_subsplit_prob),
+                hcat(fixed_gen_bif_max_wrong_root_prob, bif_max_456_subsplit_prob, bif_max_789_subsplit_prob),
+                xlabels = [ "Wrong \$t_5\$" "\\ Splitting \$t_3\$\\ " "Splitting \$t_4\$" ],
+                left_fill_colors =   [gen_col gen_col gen_col ],
+                left_marker_colors = [gen_col gen_col gen_col ],
+                left_fill_alphas = [gen_fill_alpha gen_fill_alpha gen_fill_alpha],
+                left_marker_alphas = [gen_marker_alpha gen_marker_alpha gen_marker_alpha],
+                left_marker_shapes = [gen_shape gen_shape gen_shape],
+                left_marker_sizes = [gen_marker_size gen_marker_size gen_marker_size],
+                left_labels = "Generalized",
+                right_fill_colors = [bif_col bif_col bif_col],
+                right_marker_colors = [bif_col bif_col bif_col],
+                right_fill_alphas = [bif_fill_alpha bif_fill_alpha bif_fill_alpha],
+                right_marker_alphas = [bif_marker_alpha bif_marker_alpha bif_marker_alpha],
+                right_marker_shapes = [bif_shape bif_shape bif_shape],
+                right_marker_sizes = [bif_marker_size bif_marker_size bif_marker_size],
+                right_labels = "Bifurcating",
+                legend = false,
+                dot_legend = false)
+        Plots.plot!(v, size = (350, 220), xtickfontsize = 12)
+        Plots.ylims!(v, (-0.02, 1.02))
+        Plots.ylabel!(v, "Posterior probability")
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-max-wrong-root-poly-subsplit-probs-all-sites.tex")
+        Plots.savefig(v, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        v = get_split_violin_plot(
                 hcat(gen_max_456_subsplit_prob, gen_max_789_subsplit_prob),
                 hcat(bif_max_456_subsplit_prob, bif_max_789_subsplit_prob),
                 #= xlabels = [ "Node 456" "Node 789" ], =#
@@ -2853,7 +2972,7 @@ function main_cli()::Cint
                 right_labels = [ "Bifurcating" ],
                 legend = :top,
                 dot_legend = false)
-        Plots.plot!(v, size = (180, 220))
+        Plots.plot!(v, size = (140, 220))
         Plots.ylims!(v, (-0.02, 1.02))
         Plots.ylabel!(v, "Posterior probability")
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-bif-true-topo-probs-all-sites.tex")
@@ -2958,19 +3077,21 @@ function main_cli()::Cint
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
         v = get_violin_plot(
-                hcat(bif_gen_ht_12_78_prob,
-                     bif_gen_ht_45_789_prob,
+                hcat(
+                     bif_gen_nd_123_456_789_prob,
                      bif_gen_ht_456_789_prob,
-                     bif_gen_nd_1_2_3_prob,
                      bif_gen_nd_4_5_6_prob,
-                     bif_gen_nd_123_456_789_prob),
-                xlabels = [ "\$t_1 = t_5\$" "\$t_3 = t_6\$" "\$t_4 = t_6\$" "\$t_1 = t_2\$" "\$t_3 = t_4\$" "\$t_7 = t_8\$" ],
+                     bif_gen_ht_45_789_prob,
+                     bif_gen_nd_1_2_3_prob,
+                     bif_gen_ht_12_78_prob,
+                    ),
+                xlabels = [ "\$t_7 = t_8\$" "\$t_4 = t_6\$" "\$t_3 = t_4\$" "\$t_3 = t_6\$" "\$t_1 = t_2\$" "\$t_1 = t_5\$" ],
                 fill_colors = gen_col,
                 marker_colors = gen_col,
                 fill_alphas = gen_fill_alpha,
                 marker_alphas = gen_marker_alpha,
                 include_dots = true)
-        Plots.plot!(v, size = (800, 180))
+        Plots.plot!(v, size = (500, 200), xtickfontsize = 16)
         Plots.ylims!(v, (-0.02, 1.02))
         Plots.ylabel!(v, "Posterior probability")
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-bif-gen-wrong-probs-all-sites.tex")
@@ -3293,6 +3414,31 @@ function main_cli()::Cint
         Plots.savefig(p, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
+        p = get_groups_by_y(
+                hcat(fixed_gen_gen_dist_mean,
+                     fixed_gen_bif_dist_mean),
+                hcat(fixed_gen_gen_dist_lower,
+                     fixed_gen_bif_dist_lower),
+                hcat(fixed_gen_gen_dist_upper,
+                     fixed_gen_bif_dist_upper),
+                [ gen_model bif_model ],
+                [ gen_col bif_col ],
+                [ gen_marker_alpha bif_marker_alpha ],
+                marker_shapes = [ gen_shape bif_shape ],
+                marker_sizes = [ gen_marker_size bif_marker_size ],
+                y_buffer = 0.02,
+                show_labels_on_x = true,
+                comparisons = ((1, 2),),
+                comparison_positions = (0.995,),
+                comparisons_are_paired = true,
+               )
+        Plots.ylabel!(p, "Euclidean distance from true tree")
+        Plots.plot!(p, size = (220, 290))
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-all-sites-euclidean-distances-narrow.tex")
+        write(stdout, "Writing to $(plot_path)\n")
+        Plots.savefig(p, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
         Plots.plot!(p, legend = :top)
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-all-sites-euclidean-distances-with-legend.tex")
         write(stdout, "Writing to $(plot_path)\n")
@@ -3369,6 +3515,31 @@ function main_cli()::Cint
         Plots.savefig(p, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
+        p = get_groups_by_y(
+                hcat(fixed_bif_gen_dist_mean,
+                     fixed_bif_bif_dist_mean),
+                hcat(fixed_bif_gen_dist_lower,
+                     fixed_bif_bif_dist_lower),
+                hcat(fixed_bif_gen_dist_upper,
+                     fixed_bif_bif_dist_upper),
+                [ gen_model bif_model ],
+                [ gen_col bif_col ],
+                [ gen_marker_alpha bif_marker_alpha ],
+                marker_shapes = [ gen_shape bif_shape ],
+                marker_sizes = [ gen_marker_size bif_marker_size ],
+                y_buffer = 0.02,
+                show_labels_on_x = true,
+                comparisons = ((1, 2),),
+                comparison_positions = (0.995,),
+                comparisons_are_paired = true,
+               )
+        Plots.ylabel!(p, "Euclidean distance from true tree")
+        Plots.plot!(p, size = (220, 290))
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-bif-all-sites-euclidean-distances-narrow.tex")
+        write(stdout, "Writing to $(plot_path)\n")
+        Plots.savefig(p, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
 
         y_axis_max = -1.0
         if length(locus_prefix) == 0
@@ -3426,6 +3597,31 @@ function main_cli()::Cint
                 y_buffer = 0.02,
                 show_labels_on_x = true)
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-all-sites-euclidean-distances.tex")
+        write(stdout, "Writing to $(plot_path)\n")
+        Plots.savefig(p, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        p = get_groups_by_y(
+                hcat(unfixed_gen_gen_dist_mean,
+                     unfixed_gen_bif_dist_mean),
+                hcat(unfixed_gen_gen_dist_lower,
+                     unfixed_gen_bif_dist_lower),
+                hcat(unfixed_gen_gen_dist_upper,
+                     unfixed_gen_bif_dist_upper),
+                [ gen_model bif_model ],
+                [ gen_col bif_col ],
+                [ gen_marker_alpha bif_marker_alpha ],
+                marker_shapes = [ gen_shape bif_shape ],
+                marker_sizes = [ gen_marker_size bif_marker_size ],
+                y_buffer = 0.02,
+                show_labels_on_x = true,
+                comparisons = ((1, 2),),
+                comparison_positions = (0.995,),
+                comparisons_are_paired = true,
+               )
+        Plots.ylabel!(p, "Euclidean distance from true tree")
+        Plots.plot!(p, size = (220, 290))
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-all-sites-euclidean-distances-narrow.tex")
         write(stdout, "Writing to $(plot_path)\n")
         Plots.savefig(p, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
@@ -3503,6 +3699,31 @@ function main_cli()::Cint
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
         p = get_groups_by_y(
+                hcat(unfixed_bif_gen_dist_mean,
+                     unfixed_bif_bif_dist_mean),
+                hcat(unfixed_bif_gen_dist_lower,
+                     unfixed_bif_bif_dist_lower),
+                hcat(unfixed_bif_gen_dist_upper,
+                     unfixed_bif_bif_dist_upper),
+                [ gen_model bif_model ],
+                [ gen_col bif_col ],
+                [ gen_marker_alpha bif_marker_alpha ],
+                marker_shapes = [ gen_shape bif_shape ],
+                marker_sizes = [ gen_marker_size bif_marker_size ],
+                y_buffer = 0.02,
+                show_labels_on_x = true,
+                comparisons = ((1, 2),),
+                comparison_positions = (0.995,),
+                comparisons_are_paired = true,
+               )
+        Plots.ylabel!(p, "Euclidean distance from true tree")
+        Plots.plot!(p, size = (220, 290))
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-bif-all-sites-euclidean-distances-narrow.tex")
+        write(stdout, "Writing to $(plot_path)\n")
+        Plots.savefig(p, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        p = get_groups_by_y(
                 hcat(vo_unfixed_bif_gen_dist_mean,
                      vo_unfixed_bif_bif_dist_mean),
                 hcat(vo_unfixed_bif_gen_dist_lower,
@@ -3539,11 +3760,15 @@ function main_cli()::Cint
                 left_marker_colors = [gen_col vo_gen_col],
                 left_fill_alphas = [gen_fill_alpha vo_gen_fill_alpha],
                 left_marker_alphas = [gen_marker_alpha vo_gen_marker_alpha],
+                left_marker_shapes = [ gen_shape vo_gen_shape ],
+                left_marker_sizes = [ gen_marker_size vo_gen_marker_size],
                 left_labels = "Generalized",
                 right_fill_colors = [bif_col vo_bif_col],
                 right_marker_colors = [bif_col vo_bif_col],
                 right_fill_alphas = [bif_fill_alpha vo_bif_fill_alpha],
                 right_marker_alphas = [bif_marker_alpha vo_bif_marker_alpha],
+                right_marker_shapes = [ bif_shape vo_bif_shape ],
+                right_marker_sizes = [ bif_marker_size vo_bif_marker_size],
                 right_labels = "Bifurcating",
                 legend = false,
                 dot_legend = false)
@@ -3622,8 +3847,8 @@ function main_cli()::Cint
         Plots.savefig(vln_fixed_bif_asdsf, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
-        Plots.title!(vln_fixed_gen_asdsf, "Generalized")
-        Plots.title!(vln_fixed_bif_asdsf, "Bifurcating")
+        Plots.title!(vln_fixed_gen_asdsf, "True model = Figure 1A")
+        Plots.title!(vln_fixed_bif_asdsf, "True model = Figure 2A")
 
         vln_fixed_asdsf_grid = Plots.plot(
                 vln_fixed_gen_asdsf,
@@ -3698,8 +3923,8 @@ function main_cli()::Cint
         Plots.savefig(vln_unfixed_bif_asdsf, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
-        Plots.title!(vln_unfixed_gen_asdsf, "Generalized")
-        Plots.title!(vln_unfixed_bif_asdsf, "Bifurcating")
+        Plots.title!(vln_unfixed_gen_asdsf, LaTeXString("True model = $(gen_model)"))
+        Plots.title!(vln_unfixed_bif_asdsf, LaTeXString("True model = $(bif_model)"))
 
         vln_unfixed_asdsf_grid = Plots.plot(
                 vln_unfixed_gen_asdsf,
@@ -3714,6 +3939,23 @@ function main_cli()::Cint
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-asdsf.tex")
         write(stdout, "Writing to $(plot_path)\n")
         Plots.savefig(vln_unfixed_asdsf_grid, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        vln_asdsf_grid = Plots.plot(
+                vln_fixed_gen_asdsf,
+                vln_fixed_bif_asdsf,
+                vln_unfixed_gen_asdsf,
+                vln_unfixed_bif_asdsf,
+                layout = (2, 2),
+                #= legend = false, =#
+                size = (500, 400),
+                link = :all,
+        )
+        Plots.ylabel!(vln_asdsf_grid, "ASDSF")
+        share_xy_axes!(vln_asdsf_grid)
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)asdsf.tex")
+        write(stdout, "Writing to $(plot_path)\n")
+        Plots.savefig(vln_asdsf_grid, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
 
@@ -3987,6 +4229,33 @@ function main_cli()::Cint
         Plots.ylims!(v, (-0.02, 1.02))
         Plots.ylabel!(v, "Posterior probability")
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-bif-mean-split-probs.tex")
+        Plots.savefig(v, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        v = get_split_violin_plot(
+                unfixed_bif_gen_true_split_prob_means,
+                unfixed_bif_bif_true_split_prob_means,
+                xlabels = [ "True split mean" ],
+                left_fill_colors = [ gen_col ],
+                left_marker_colors = [ gen_col ],
+                left_fill_alphas = [ gen_fill_alpha ],
+                left_marker_alphas = [ gen_marker_alpha ],
+                left_marker_shapes = [ gen_shape ],
+                left_marker_sizes = [ gen_marker_size ],
+                left_labels = [ "Generalized" ],
+                right_fill_colors = [bif_col],
+                right_marker_colors = [bif_col],
+                right_fill_alphas = [bif_fill_alpha],
+                right_marker_alphas = [bif_marker_alpha],
+                right_marker_shapes = [ bif_shape ],
+                right_marker_sizes = [ bif_marker_size ],
+                right_labels = [ "Bifurcating" ],
+                legend = false,
+                dot_legend = false)
+        Plots.plot!(v, size = (170, 220), xtickfontsize = 8)
+        Plots.ylims!(v, (-0.02, 1.02))
+        Plots.ylabel!(v, "Posterior probability")
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-bif-mean-split-probs-all-sites.tex")
         Plots.savefig(v, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
