@@ -1530,6 +1530,46 @@ function make_legends()
     plot_path = joinpath(ProjectUtil.RESULTS_DIR, "legend-horizontal-short.tex")
     Plots.savefig(plt, plot_path)
     process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+    plt = Plots.plot(
+            [0],
+            [0],
+            seriestype = :scatter,
+            legend = false,
+            markershape = gen_shape,
+            markersize = 6.0,
+            markercolor = gen_col,
+            markeralpha = gen_marker_alpha,
+            markerstrokecolor = gen_col,
+            markerstrokealpha = 0.0)
+    Plots.plot!(plt,
+            [0.8],
+            [0],
+            seriestype = :scatter,
+            markershape = bif_shape,
+            markersize = 6.0,
+            markercolor = bif_col,
+            markeralpha = bif_marker_alpha,
+            markerstrokecolor = bif_col,
+            markerstrokealpha = 0.0)
+    annotate!(plt, 0.03, 0,
+              text(LaTeXString("Generalized"),
+                   :left,
+                   :vcenter,
+                   8),
+              annotation_clip = false)
+    annotate!(plt, 0.83, 0,
+              text(LaTeXString("Bifurcating"),
+                   :left,
+                   :vcenter,
+                   8),
+              annotation_clip = false)
+    Plots.plot!(plt, size = (170, 80), grid = false, ticks = false)
+    Plots.xaxis!(plt, false)
+    Plots.yaxis!(plt, false)
+    plot_path = joinpath(ProjectUtil.RESULTS_DIR, "legend-horizontal-short-all-sites.tex")
+    Plots.savefig(plt, plot_path)
+    process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
     return nothing
 end
 
@@ -1968,7 +2008,7 @@ function main_cli()::Cint
                 #= xlabel = "Posterior probability", =#
                 #= ylabel = "Frequency", =#
                 legend = false)
-        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1))
+        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1), tick_direction = :out)
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-gen-node-probs-root-all-sites-hist.tex")
         Plots.savefig(h, plot_path)
         pdf_path = process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
@@ -2021,7 +2061,7 @@ function main_cli()::Cint
                 #= xlabel = "Posterior probability", =#
                 #= ylabel = "Frequency", =#
                 legend = false)
-        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1))
+        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1), tick_direction = :out)
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-gen-node-probs-789-all-sites-hist.tex")
         Plots.savefig(h, plot_path)
         pdf_path = process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
@@ -2074,7 +2114,7 @@ function main_cli()::Cint
                 #= xlabel = "Posterior probability", =#
                 #= ylabel = "Frequency", =#
                 legend = false)
-        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1))
+        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1), tick_direction = :out)
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-gen-node-probs-456-all-sites-hist.tex")
         Plots.savefig(h, plot_path)
         pdf_path = process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
@@ -2127,7 +2167,7 @@ function main_cli()::Cint
                 #= xlabel = "Posterior probability", =#
                 #= ylabel = "Frequency", =#
                 legend = false)
-        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1))
+        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1), tick_direction = :out)
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-gen-node-probs-12-3-all-sites-hist.tex")
         Plots.savefig(h, plot_path)
         pdf_path = process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
@@ -2180,7 +2220,7 @@ function main_cli()::Cint
                 #= xlabel = "Posterior probability", =#
                 #= ylabel = "Frequency", =#
                 legend = false)
-        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1))
+        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1), tick_direction = :out)
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-gen-height-probs-12-789-all-sites-hist.tex")
         Plots.savefig(h, plot_path)
         pdf_path = process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
@@ -2233,7 +2273,7 @@ function main_cli()::Cint
                 #= xlabel = "Posterior probability", =#
                 #= ylabel = "Frequency", =#
                 legend = false)
-        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1))
+        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1), tick_direction = :out)
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-gen-height-probs-123-456-all-sites-hist.tex")
         Plots.savefig(h, plot_path)
         pdf_path = process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
@@ -2286,7 +2326,7 @@ function main_cli()::Cint
                 #= xlabel = "Posterior probability", =#
                 #= ylabel = "Frequency", =#
                 legend = false)
-        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1))
+        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1), tick_direction = :out)
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-gen-split-probs-12-all-sites-hist.tex")
         Plots.savefig(h, plot_path)
         pdf_path = process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
@@ -2324,7 +2364,7 @@ function main_cli()::Cint
                 #= xlabel = "Posterior probability", =#
                 #= ylabel = "Frequency", =#
                 legend = false)
-        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1))
+        Plots.plot!(h, size = (140, 120), yaxis = false, yticks = false, grid = :x, xticks = (0:0.5:1), tick_direction = :out)
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-gen-topo-probs-all-sites-hist.tex")
         Plots.savefig(h, plot_path)
         pdf_path = process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
@@ -2618,11 +2658,15 @@ function main_cli()::Cint
                 left_marker_colors = [gen_col gen_col],
                 left_fill_alphas = [gen_fill_alpha gen_fill_alpha],
                 left_marker_alphas = [gen_marker_alpha gen_marker_alpha],
+                left_marker_shapes = [ gen_shape gen_shape ],
+                left_marker_sizes = [ gen_marker_size gen_marker_size],
                 left_labels = "Generalized",
                 right_fill_colors = [bif_col bif_col],
                 right_marker_colors = [bif_col bif_col],
                 right_fill_alphas = [bif_fill_alpha bif_fill_alpha],
                 right_marker_alphas = [bif_marker_alpha bif_marker_alpha],
+                right_marker_shapes = [ bif_shape bif_shape ],
+                right_marker_sizes = [ bif_marker_size bif_marker_size],
                 right_labels = "Bifurcating",
                 legend = :top,
                 dot_legend = false)
@@ -2641,11 +2685,15 @@ function main_cli()::Cint
                 left_marker_colors = [gen_col],
                 left_fill_alphas = [gen_fill_alpha],
                 left_marker_alphas = [gen_marker_alpha],
+                left_marker_shapes = [gen_shape],
+                left_marker_sizes = [gen_marker_size],
                 left_labels = "Generalized",
                 right_fill_colors = [bif_col],
                 right_marker_colors = [bif_col],
                 right_fill_alphas = [bif_fill_alpha],
                 right_marker_alphas = [bif_marker_alpha],
+                right_marker_shapes = [bif_shape],
+                right_marker_sizes = [bif_marker_size],
                 right_labels = "Bifurcating",
                 legend = :top,
                 dot_legend = false)
@@ -2658,11 +2706,15 @@ function main_cli()::Cint
                 left_marker_colors = [gen_col],
                 left_fill_alphas = [gen_fill_alpha],
                 left_marker_alphas = [gen_marker_alpha],
+                left_marker_shapes = [gen_shape],
+                left_marker_sizes = [gen_marker_size],
                 left_labels = "Generalized",
                 right_fill_colors = [bif_col],
                 right_marker_colors = [bif_col],
                 right_fill_alphas = [bif_fill_alpha],
                 right_marker_alphas = [bif_marker_alpha],
+                right_marker_shapes = [bif_shape],
+                right_marker_sizes = [bif_marker_size],
                 right_labels = "Bifurcating",
                 legend = :top,
                 dot_legend = false)
@@ -2789,11 +2841,15 @@ function main_cli()::Cint
                 left_marker_colors = [ gen_col ],
                 left_fill_alphas = [ gen_fill_alpha ],
                 left_marker_alphas = [ gen_marker_alpha ],
+                left_marker_shapes = [gen_shape],
+                left_marker_sizes = [gen_marker_size],
                 left_labels = [ "Generalized" ],
                 right_fill_colors = [bif_col],
                 right_marker_colors = [bif_col],
                 right_fill_alphas = [bif_fill_alpha],
                 right_marker_alphas = [bif_marker_alpha],
+                right_marker_shapes = [bif_shape],
+                right_marker_sizes = [bif_marker_size],
                 right_labels = [ "Bifurcating" ],
                 legend = :top,
                 dot_legend = false)
@@ -2839,11 +2895,15 @@ function main_cli()::Cint
                 left_marker_colors = [ gen_col ],
                 left_fill_alphas = [ gen_fill_alpha ],
                 left_marker_alphas = [ gen_marker_alpha ],
+                left_marker_shapes = [gen_shape],
+                left_marker_sizes = [gen_marker_size],
                 left_labels = [ "Generalized" ],
                 right_fill_colors = [bif_col],
                 right_marker_colors = [bif_col],
                 right_fill_alphas = [bif_fill_alpha],
                 right_marker_alphas = [bif_marker_alpha],
+                right_marker_shapes = [bif_shape],
+                right_marker_sizes = [bif_marker_size],
                 right_labels = [ "Bifurcating" ],
                 legend = :best,
                 dot_legend = false)
@@ -3218,9 +3278,16 @@ function main_cli()::Cint
                 [ LaTeXString("\\begin{tabular}{c} Generalized model \\\\ (true model) \\end{tabular}") LaTeXString("\\begin{tabular}{c} Independent bifurcating \\\\ model \\end{tabular}") ],
                 [ gen_col bif_col ],
                 [ gen_marker_alpha bif_marker_alpha ],
+                marker_shapes = [ gen_shape bif_shape ],
+                marker_sizes = [ gen_marker_size bif_marker_size ],
                 y_buffer = 0.02,
-                show_labels_on_x = true)
+                show_labels_on_x = true,
+                comparisons = ((1, 2),),
+                comparison_positions = (0.995,),
+                comparisons_are_paired = true,
+               )
         Plots.ylabel!(p, "Euclidean distance from true tree")
+        Plots.plot!(p, size = (320, 290), xtickfontsize = 8)
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-all-sites-euclidean-distances.tex")
         write(stdout, "Writing to $(plot_path)\n")
         Plots.savefig(p, plot_path)
@@ -3287,9 +3354,16 @@ function main_cli()::Cint
                 [ LaTeXString("\\begin{tabular}{c} Generalized \\\\ model \\end{tabular}") LaTeXString("\\begin{tabular}{c} Independent bifurcating \\\\ model (true model) \\end{tabular}") ],
                 [ gen_col bif_col ],
                 [ gen_marker_alpha bif_marker_alpha ],
+                marker_shapes = [ gen_shape bif_shape ],
+                marker_sizes = [ gen_marker_size bif_marker_size ],
                 y_buffer = 0.02,
-                show_labels_on_x = true)
+                show_labels_on_x = true,
+                comparisons = ((1, 2),),
+                comparison_positions = (0.995,),
+                comparisons_are_paired = true,
+               )
         Plots.ylabel!(p, "Euclidean distance from true tree")
+        Plots.plot!(p, size = (320, 290), xtickfontsize = 8)
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-bif-all-sites-euclidean-distances.tex")
         write(stdout, "Writing to $(plot_path)\n")
         Plots.savefig(p, plot_path)
@@ -3347,6 +3421,8 @@ function main_cli()::Cint
                 [ LaTeXString("\\begin{tabular}{c} Generalized model \\\\ (true model) \\\\ All sites \\end{tabular}") LaTeXString("\\begin{tabular}{c} Independent bifurcating \\\\ model \\\\ All sites \\end{tabular}") ],
                 [ gen_col bif_col ],
                 [ gen_marker_alpha bif_marker_alpha ],
+                marker_shapes = [ gen_shape bif_shape ],
+                marker_sizes = [ gen_marker_size bif_marker_size ],
                 y_buffer = 0.02,
                 show_labels_on_x = true)
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-all-sites-euclidean-distances.tex")
@@ -3416,6 +3492,8 @@ function main_cli()::Cint
                 [ LaTeXString("\\begin{tabular}{c} Generalized model \\\\ All sites \\end{tabular}") LaTeXString("\\begin{tabular}{c} Independent bifurcating \\\\ model (true model) \\\\ All sites \\end{tabular}") ],
                 [ gen_col bif_col ],
                 [ gen_marker_alpha bif_marker_alpha ],
+                marker_shapes = [ gen_shape bif_shape ],
+                marker_sizes = [ gen_marker_size bif_marker_size ],
                 y_buffer = 0.02,
                 show_labels_on_x = true)
         Plots.ylabel!(p, "Euclidean distance from true tree")
@@ -3481,11 +3559,15 @@ function main_cli()::Cint
                 left_marker_colors = [gen_col],
                 left_fill_alphas = [gen_fill_alpha],
                 left_marker_alphas = [gen_marker_alpha],
+                left_marker_shapes = [gen_shape],
+                left_marker_sizes = [gen_marker_size],
                 left_labels = "Generalized",
                 right_fill_colors = [bif_col],
                 right_marker_colors = [bif_col],
                 right_fill_alphas = [bif_fill_alpha],
                 right_marker_alphas = [bif_marker_alpha],
+                right_marker_shapes = [bif_shape],
+                right_marker_sizes = [bif_marker_size],
                 right_labels = "Bifurcating",
                 legend = :top,
                 dot_legend = false)
@@ -3524,11 +3606,15 @@ function main_cli()::Cint
                 left_marker_colors = [gen_col vo_gen_col],
                 left_fill_alphas = [gen_fill_alpha vo_gen_fill_alpha],
                 left_marker_alphas = [gen_marker_alpha vo_gen_marker_alpha],
+                left_marker_shapes = [ gen_shape vo_gen_shape ],
+                left_marker_sizes = [ gen_marker_size vo_gen_marker_size],
                 left_labels = "Generalized",
                 right_fill_colors = [bif_col vo_bif_col],
                 right_marker_colors = [bif_col vo_bif_col],
                 right_fill_alphas = [bif_fill_alpha vo_bif_fill_alpha],
                 right_marker_alphas = [bif_marker_alpha vo_bif_marker_alpha],
+                right_marker_shapes = [ bif_shape vo_bif_shape ],
+                right_marker_sizes = [ bif_marker_size vo_bif_marker_size],
                 right_labels = "Bifurcating",
                 legend = false,
                 dot_legend = false)
@@ -3572,11 +3658,15 @@ function main_cli()::Cint
                 left_marker_colors = [gen_col vo_gen_col],
                 left_fill_alphas = [gen_fill_alpha vo_gen_fill_alpha],
                 left_marker_alphas = [gen_marker_alpha vo_gen_marker_alpha],
+                left_marker_shapes = [ gen_shape vo_gen_shape ],
+                left_marker_sizes = [ gen_marker_size vo_gen_marker_size],
                 left_labels = "Generalized",
                 right_fill_colors = [bif_col vo_bif_col],
                 right_marker_colors = [bif_col vo_bif_col],
                 right_fill_alphas = [bif_fill_alpha vo_bif_fill_alpha],
                 right_marker_alphas = [bif_marker_alpha vo_bif_marker_alpha],
+                right_marker_shapes = [ bif_shape vo_bif_shape ],
+                right_marker_sizes = [ bif_marker_size vo_bif_marker_size],
                 right_labels = "Bifurcating",
                 legend = false,
                 dot_legend = false)
@@ -3592,11 +3682,15 @@ function main_cli()::Cint
                 left_marker_colors = [gen_col vo_gen_col],
                 left_fill_alphas = [gen_fill_alpha vo_gen_fill_alpha],
                 left_marker_alphas = [gen_marker_alpha vo_gen_marker_alpha],
+                left_marker_shapes = [ gen_shape vo_gen_shape ],
+                left_marker_sizes = [ gen_marker_size vo_gen_marker_size],
                 left_labels = "Generalized",
                 right_fill_colors = [bif_col vo_bif_col],
                 right_marker_colors = [bif_col vo_bif_col],
                 right_fill_alphas = [bif_fill_alpha vo_bif_fill_alpha],
                 right_marker_alphas = [bif_marker_alpha vo_bif_marker_alpha],
+                right_marker_shapes = [ bif_shape vo_bif_shape ],
+                right_marker_sizes = [ bif_marker_size vo_bif_marker_size],
                 right_labels = "Bifurcating",
                 legend = false,
                 dot_legend = false)
