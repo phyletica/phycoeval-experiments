@@ -189,20 +189,36 @@ end
 
 function get_data_frame(paths::Vector{String};
                         skip::Int = 0)::DataFrame
-    return DataFrame(mapreduce(
-            x -> CSV.File(x, header = 1, skipto = skip + 2),
-            vcat,
-            paths))
+    try
+        return DataFrame(mapreduce(
+                x -> CSV.File(x, header = 1, skipto = skip + 2),
+                vcat,
+                paths))
+    catch e
+        write(stderr, "ProjectUtil::get_data_frame:: Error parsing paths:\n")
+        for pth in paths
+            write(stderr, "  $pth\n")
+        end
+        throw(e)
+    end
 end
 
 function get_data_frame_from_gz(paths::Vector{String};
                         skip::Int = 0)::DataFrame
-    return DataFrame(mapreduce(
-            x -> CSV.File(transcode(GzipDecompressor, Mmap.mmap(x)),
-                          header = 1,
-                          skipto = skip + 2),
-            vcat,
-            paths))
+    try
+        return DataFrame(mapreduce(
+                x -> CSV.File(transcode(GzipDecompressor, Mmap.mmap(x)),
+                              header = 1,
+                              skipto = skip + 2),
+                vcat,
+                paths))
+    catch e
+        write(stderr, "ProjectUtil::get_data_frame_from_gz:: Error parsing paths:\n")
+        for pth in paths
+            write(stderr, "  $pth\n")
+        end
+        throw(e)
+    end
 end
 
 function parse_runtime(path::String)::String

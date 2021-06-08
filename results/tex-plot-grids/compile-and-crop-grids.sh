@@ -10,5 +10,6 @@ do
 
     latexmk -C "$tex_path" && \
         latexmk -pdf "$tex_path" && \
-        pdfcrop "$pdf_path" "$cropped_path"
+        pdfcrop "$pdf_path" "$cropped_path" && \
+        latexmk -C "$tex_path"
 done

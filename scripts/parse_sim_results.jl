@@ -77,7 +77,7 @@ function run_sumphycoeval(
     @assert min_split_freq > 0.0
     @assert min_split_freq < 1.0
     sumphy_path = Base.Filesystem.joinpath(ProjectUtil.BIN_DIR, "sumphycoeval")
-    sumphy_cmd = `sh -c "$sumphy_path --newick-target -b $burnin -t $target_tree_path --min-split-freq $min_split_freq $tree_log_paths"`
+    sumphy_cmd = `sh -c "$sumphy_path --newick-target -b $burnin -t $target_tree_path --min-split-freq $min_split_freq --include-merged-target-heights $tree_log_paths"`
     return YAML.load(read(sumphy_cmd, String))
 end
 
@@ -250,6 +250,9 @@ function parse_sim_results(
             true_shared_probs_path = Base.Filesystem.joinpath(
                     batch_dir,
                     "results-true-shared-height-probs-$(sim_pattern.var_only)$(sim_pattern.config_name).tsv")
+            merged_height_probs_path = Base.Filesystem.joinpath(
+                    batch_dir,
+                    "results-wrong-merged-height-probs-$(sim_pattern.var_only)$(sim_pattern.config_name).tsv")
 
             true_split_probs::Vector{Float64} = []
             true_node_probs::Vector{Float64} = []
@@ -303,6 +306,27 @@ function parse_sim_results(
                     end
                     open(true_shared_probs_path, "a") do out
                         write(out, "$(true_height["frequency"])\t$(length(true_height["splits"]))\n")
+                    end
+                end
+            end
+
+            # If true tree was comb, it won't have merged target heights
+            if haskey(treesum, "merged_target_heights")
+                for merged_target_height in treesum["merged_target_heights"]
+                    if ! Base.Filesystem.ispath(merged_height_probs_path)
+                        open(merged_height_probs_path, "w") do out
+                            write(out, "merged_height_prob\tnum_nodes\theight_diff\theight_midpoint\n")
+                        end
+                        push!(extra_results_paths, merged_height_probs_path)
+                    end
+                    ht_freq::Float64 = merged_target_height["frequency"]
+                    n_nodes::Int = merged_target_height["merged_height_number_of_nodes"]
+                    younger_ht::Float64 = merged_target_height["younger_height"]
+                    older_ht::Float64 = merged_target_height["older_height"]
+                    ht_diff::Float64 = older_ht - younger_ht
+                    ht_midpoint::Float64 = (older_ht + younger_ht) / 2.0
+                    open(merged_height_probs_path, "a") do out
+                        write(out, "$(ht_freq)\t$(n_nodes)\t$(ht_diff)\t$(ht_midpoint)\n")
                     end
                 end
             end

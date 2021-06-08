@@ -1,0 +1,60 @@
+\documentclass[border=10pt,varwidth=30cm]{standalone}
+\usepackage{graphicx,capt-of}
+\usepackage{subcaption}
+\usepackage[cm]{sfmath}
+\usepackage[T1]{fontenc}
+
+\renewcommand{\familydefault}{\sfdefault}
+
+\DeclareCaptionSubType[Alph]{figure}
+\captionsetup[subfigure]{labelformat=simple,labelsep=space}
+
+\begin{document}
+
+\begin{figure}
+    \centering
+    \begin{subfigure}[c][][c]{0.49\textwidth}
+        \centering
+        \huge {\Huge $M_{G}$} = \textbf{Generalized model (true model)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[c][][c]{0.49\textwidth}
+        \centering
+        \huge {\Huge $M_{IB}$} = \textbf{Independent-bifurcating model}
+    \end{subfigure}
+    \vspace{2mm}
+    \begin{subfigure}[c][][c]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../legend-horizontal-short-sans-cropped.pdf}
+    \end{subfigure}
+    \vspace{2mm}
+    \begin{subfigure}[b][][l]{\textwidth}
+        \Huge \textbf{A}
+    \end{subfigure}
+    % \vspace{2mm}
+    \begin{subfigure}[c][][c]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../locus-100-unfixed-gen-euclidean-distances-sans-cropped.pdf}
+    \end{subfigure}
+    \begin{subfigure}[b][][l]{0.49\textwidth}
+        \Huge \textbf{B}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b][][l]{0.49\textwidth}
+        \Huge \textbf{C}
+    \end{subfigure}
+    % \vspace{2mm}
+    \begin{subfigure}[c][][c]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../locus-100-unfixed-gen-gen-true-shared-height-probs-sans-cropped.pdf}
+        % \caption{}
+        \label{fig:gentree}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[c][][c]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../locus-100-unfixed-gen-gen-true-polytomy-probs-sans-cropped.pdf}
+    \end{subfigure}
+\end{figure}
+
+\end{document}

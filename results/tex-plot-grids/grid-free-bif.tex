@@ -1,0 +1,49 @@
+\documentclass[border=10pt,varwidth=30cm]{standalone}
+\usepackage{graphicx,capt-of}
+\usepackage{subcaption}
+\usepackage[cm]{sfmath}
+\usepackage[T1]{fontenc}
+
+\renewcommand{\familydefault}{\sfdefault}
+
+\DeclareCaptionSubType[Alph]{figure}
+\captionsetup[subfigure]{labelformat=simple,labelsep=space}
+
+\begin{document}
+
+\begin{figure}
+    \centering
+    \begin{subfigure}[c][][c]{0.39\textwidth}
+        \centering
+        \huge {\Huge $M_{G}$} = \textbf{Generalized model}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[c][][c]{0.59\textwidth}
+        \centering
+        \huge {\Huge $M_{IB}$} = \textbf{Independent-bifurcating (true model)}
+    \end{subfigure}
+    \vspace{2mm}
+    \begin{subfigure}[c][][c]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../legend-horizontal-short-sans-cropped.pdf}
+    \end{subfigure}
+    \vspace{2mm}
+    \begin{subfigure}[b][][l]{\textwidth}
+        \Huge \textbf{A}
+    \end{subfigure}
+    % \vspace{2mm}
+    \begin{subfigure}[c][][c]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../unfixed-bif-euclidean-distances-sans-cropped.pdf}
+    \end{subfigure}
+    \begin{subfigure}[b][][l]{\textwidth}
+        \Huge \textbf{B}
+    \end{subfigure}
+    % \vspace{2mm}
+    \begin{subfigure}[c][][c]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../unfixed-bif-mean-split-probs-sans-cropped.pdf}
+    \end{subfigure}
+\end{figure}
+
+\end{document}
