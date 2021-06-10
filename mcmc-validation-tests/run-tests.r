@@ -1,5 +1,7 @@
 #! /usr/bin/env Rscript
 
+library(viridis)
+
 plot_width = 4.0
 plot_height = 3.8
 p_val_digits = 3
@@ -11,6 +13,8 @@ mar = c(3.1,3.1,2.4,0.5)
 source("plot-functions.r")
 
 source("5-leaf-general-tree-test.r")
+
+viridis_colors = viridis(100)
 
 chi_test = chisq.test(counts)
 chi_test_stat = format(chi_test$statistic, big.mark = ",")
@@ -82,6 +86,35 @@ mtext(bquote(chi^2 == .(chi_test_stat)),
       side=3, line = -1.5, adj = 0.02)
 mtext(bquote(italic(p) == .(chi_test_p)),
       side=3, line = -2.5, adj = 0.02)
+dev.off()
+
+pdf("7-leaf-general-tree-test-count-distribution-pretty.pdf",
+    width = plot_width, height = plot_height)
+# mgp adjusts space of axis labels
+par(mgp = mgp)
+# oma is space around all plots
+par(oma = oma, mar = mar)
+
+plot_binom_on_hist(counts = counts, p = binomial_prob,
+        sample_line_wt = 2.5,
+        binom_line_wt = 2.5,
+        sample_line_type = 1,
+        binom_line_type = 2,
+        sample_line_color = viridis_colors[66],
+        binom_line_color = viridis_colors[33])
+mtext(bquote(chi^2 == .(chi_test_stat)),
+      side=3, line = -1.5, adj = 0.02)
+mtext(bquote(italic(p) == .(chi_test_p)),
+      side=3, line = -2.5, adj = 0.02)
+dev.off()
+
+pdf("7-leaf-general-tree-test-qq.pdf",
+    width = plot_width, height = plot_height)
+# mgp adjusts space of axis labels
+par(mgp = mgp)
+# oma is space around all plots
+par(oma = oma, mar = mar)
+plot_binom_qq(counts = counts, p = binomial_prob)
 dev.off()
 
 
