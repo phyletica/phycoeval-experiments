@@ -1,34 +1,35 @@
 plot_binom_on_hist <- function(counts, p,
-        sample_line_type = 1,
-        binom_line_type = 2,
+        sample_line_type = 2,
+        binom_line_type = 1,
         sample_line_wt = 1.5,
         binom_line_wt = 1.5,
         sample_line_color = "black",
-        binom_line_color = "black") {
+        binom_line_color = "grey70") {
     k = seq(from = min(counts), to = max(counts), by = 1)
     n = sum(counts)
     binom_probs = dbinom(k, n, p)
     # hist(counts, freq = F)
     d = density(counts)
-    plot(d$x, d$y,
+    plot(k, binom_probs,
             type = 'l',
-            lwd = sample_line_wt,
-            lty = sample_line_type,
-            col = sample_line_color,
+            lwd = binom_line_wt,
+            lty = binom_line_type,
+            col = binom_line_color,
             xlab = "Number of times each topology sampled",
             ylab = "Density",
             main = NULL)
-    lines(k, binom_probs, type = 'l',
-            lwd = binom_line_wt,
-            lty = binom_line_type,
-            col = binom_line_color)
+    lines(d$x, d$y,
+            type = 'l',
+            lwd = sample_line_wt,
+            lty = sample_line_type,
+            col = sample_line_color)
     num_topologies = length(counts)
     binom_label = paste("Binom(", format(n), ", 1/", format(num_topologies, big.mark = ","), ")", sep = "")
     legend("bottom",
-            legend=c("MCMC", binom_label),
-            lty=c(sample_line_type, binom_line_type),
-            lwd=c(sample_line_wt, binom_line_wt),
-            col=c(sample_line_color, binom_line_color),
+            legend=c(binom_label, "MCMC"),
+            lty=c(binom_line_type, sample_line_type),
+            lwd=c(binom_line_wt, sample_line_wt),
+            col=c(binom_line_color, sample_line_color),
             box.lty = 0,
             horiz = FALSE,
             inset = 0.99,

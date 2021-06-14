@@ -98,10 +98,10 @@ par(oma = oma, mar = mar)
 plot_binom_on_hist(counts = counts, p = binomial_prob,
         sample_line_wt = 2.5,
         binom_line_wt = 2.5,
-        sample_line_type = 1,
-        binom_line_type = 2,
-        sample_line_color = viridis_colors[66],
-        binom_line_color = viridis_colors[33])
+        sample_line_type = 2,
+        binom_line_type = 1,
+        sample_line_color = viridis_colors[15],
+        binom_line_color = "grey70")
 mtext(bquote(chi^2 == .(chi_test_stat)),
       side=3, line = -1.5, adj = 0.02)
 mtext(bquote(italic(p) == .(chi_test_p)),
