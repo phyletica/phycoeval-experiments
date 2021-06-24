@@ -3552,9 +3552,11 @@ function main_cli()::Cint
         write(stdout, "mean diff = $(Statistics.mean(vo_unfixed_bif_gen_dist_mean - vo_unfixed_bif_bif_dist_mean))\n")
         write(stdout, "\n")
 
+        comparisons_are_paired = true
         comparison_positions = (0.995, 0.995, 0.86, 0.02)
         if length(locus_prefix) > 0
             comparison_positions = (0.998, 0.998, 0.80, 0.9)
+            comparisons_are_paired = false
         end
         p = get_groups_by_y(
                 hcat(fixed_gen_gen_dist_mean,
@@ -3581,7 +3583,7 @@ function main_cli()::Cint
                 show_labels_on_x = true,
                 comparisons = ((1, 2), (3, 4), (1, 3), (2, 4)),
                 comparison_positions = comparison_positions,
-                comparisons_are_paired = true,
+                comparisons_are_paired = comparisons_are_paired,
                )
         Plots.ylabel!(p, "Euclidean distance from true tree")
         Plots.plot!(p, size = (375, 290))
@@ -3645,7 +3647,7 @@ function main_cli()::Cint
                 show_labels_on_x = true,
                 comparisons = ((1, 2),),
                 comparison_positions = (0.995,),
-                comparisons_are_paired = true,
+                comparisons_are_paired = comparisons_are_paired,
                )
         Plots.ylabel!(p, "Euclidean distance from true tree")
         Plots.plot!(p, size = (320, 290), xtickfontsize = 8)
@@ -3672,7 +3674,7 @@ function main_cli()::Cint
                 show_labels_on_x = true,
                 comparisons = ((1, 2),),
                 comparison_positions = (0.995,),
-                comparisons_are_paired = true,
+                comparisons_are_paired = comparisons_are_paired,
                )
         Plots.ylabel!(p, "Euclidean distance from true tree")
         Plots.plot!(p, size = (220, 290))
@@ -3717,7 +3719,7 @@ function main_cli()::Cint
                 show_labels_on_x = true,
                 comparisons = ((1, 2), (3, 4), (1, 3), (2, 4)),
                 comparison_positions = comparison_positions,
-                comparisons_are_paired = true,
+                comparisons_are_paired = comparisons_are_paired,
                )
         Plots.ylabel!(p, "Euclidean distance from true tree")
         #= Plots.plot!(p, size = (600, 350)) =#
@@ -3749,7 +3751,7 @@ function main_cli()::Cint
                 show_labels_on_x = true,
                 comparisons = ((1, 2),),
                 comparison_positions = (0.995,),
-                comparisons_are_paired = true,
+                comparisons_are_paired = comparisons_are_paired,
                )
         Plots.ylabel!(p, "Euclidean distance from true tree")
         Plots.plot!(p, size = (320, 290), xtickfontsize = 8)
@@ -3776,7 +3778,7 @@ function main_cli()::Cint
                 show_labels_on_x = true,
                 comparisons = ((1, 2),),
                 comparison_positions = (0.995,),
-                comparisons_are_paired = true,
+                comparisons_are_paired = comparisons_are_paired,
                )
         Plots.ylabel!(p, "Euclidean distance from true tree")
         Plots.plot!(p, size = (220, 290))
@@ -3817,7 +3819,7 @@ function main_cli()::Cint
                 show_labels_on_x = true,
                 comparisons = ((1, 2), (3, 4)),
                 comparison_positions = comparison_positions,
-                comparisons_are_paired = true,
+                comparisons_are_paired = comparisons_are_paired,
                )
         Plots.ylabel!(p, "Euclidean distance from true tree")
         #= Plots.plot!(p, size = (600, 340)) =#
@@ -3864,7 +3866,7 @@ function main_cli()::Cint
                 show_labels_on_x = true,
                 comparisons = ((1, 2),),
                 comparison_positions = (0.995,),
-                comparisons_are_paired = true,
+                comparisons_are_paired = comparisons_are_paired,
                )
         Plots.ylabel!(p, "Euclidean distance from true tree")
         Plots.plot!(p, size = (220, 290))
@@ -3963,7 +3965,7 @@ function main_cli()::Cint
                 show_labels_on_x = true,
                 comparisons = ((1, 2),),
                 comparison_positions = (0.995,),
-                comparisons_are_paired = true,
+                comparisons_are_paired = comparisons_are_paired,
                )
         Plots.ylabel!(p, "Euclidean distance from true tree")
         Plots.plot!(p, size = (220, 290))
