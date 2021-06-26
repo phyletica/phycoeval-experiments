@@ -1,0 +1,59 @@
+\documentclass[border=10pt,varwidth=30cm]{standalone}
+\usepackage{graphicx,capt-of}
+\usepackage{rotating}
+\usepackage{multirow}
+\usepackage[cm]{sfmath}
+\usepackage[T1]{fontenc}
+\usepackage{xspace}
+
+\renewcommand{\familydefault}{\sfdefault}
+
+\newcounter{subfloat}
+\renewcommand{\thesubfloat}{\Alph{subfloat}}
+\newcommand{\image}[2]{%
+    \stepcounter{subfloat}%
+    \begin{tabular}[t]{@{}c@{}}
+    \thesubfloat. #1 \\
+    #2
+    \end{tabular}%
+}
+\newcommand{\insertlabel}{%
+    \small
+    \stepcounter{subfloat}%
+    \thesubfloat}
+\newcommand{\trm}[1]{\ensuremath{\textrm{\sffamily #1}}}
+
+\newcommand{\genmodel}{\ensuremath{M_{\textrm{\sffamily G}}}\xspace}
+\newcommand{\bimodel}{\ensuremath{M_{\textrm{\sffamily IB}}}\xspace}
+
+\begin{document}
+
+\begin{figure}
+    \setlength\arrayrulewidth{2pt}
+    \centering
+    \begin{tabular}{@{}ccc@{}}
+        \hline
+        \multicolumn{3}{|c|}{\includegraphics[width=0.7\textwidth]{../legend-horizontal-all-sites-sans-cropped.pdf}} \\
+        \hline
+        & & \\
+        {\Huge True model = \genmodel}
+        &
+        &
+        {\Huge True model = \bimodel}
+        \\[2ex]
+        \cline{1-1}\cline{3-3}
+        & & \\
+        \includegraphics[width=0.35\textwidth]{../fixed-gen-all-sites-euclidean-distances-narrow-sans-cropped.pdf}
+        &
+        &
+        \includegraphics[width=0.35\textwidth]{../fixed-bif-all-sites-euclidean-distances-narrow-sans-cropped.pdf}
+        \\
+        \includegraphics[width=0.35\textwidth]{../unfixed-gen-gen-true-shared-height-probs-all-sites-wider-y-sans-cropped.pdf}
+        &
+        &
+        \includegraphics[width=0.35\textwidth]{../unfixed-bif-gen-wrong-merged-height-probs-vln-sans-cropped.pdf}
+        \\
+    \end{tabular}
+\end{figure}
+
+\end{document}

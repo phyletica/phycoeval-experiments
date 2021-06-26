@@ -1898,12 +1898,16 @@ function main_cli()::Cint
                 true,
                 false,
                 locus_size)
+        bif_gen_wrong_merged_false_pos = bif_gen_wrong_merged_heights[bif_gen_wrong_merged_heights[:merged_height_prob] .> 0.5, :]
+        bif_gen_fpr = nrow(bif_gen_wrong_merged_false_pos) / nrow(bif_gen_wrong_merged_heights)
         vo_bif_gen_wrong_merged_heights = get_rows(merged_target_height_results,
                 false,
                 false,
                 true,
                 true,
                 locus_size)
+        vo_bif_gen_wrong_merged_false_pos = vo_bif_gen_wrong_merged_heights[vo_bif_gen_wrong_merged_heights[:merged_height_prob] .> 0.5, :]
+        vo_bif_gen_fpr = nrow(vo_bif_gen_wrong_merged_false_pos) / nrow(vo_bif_gen_wrong_merged_heights)
 
         p = @df bif_gen_wrong_merged_heights Plots.scatter(
                 :height_diff,
@@ -1930,9 +1934,18 @@ function main_cli()::Cint
                 marker_alphas = gen_marker_alpha,
                 include_dots = true,
                 marker_sizes = 2.0)
-        Plots.plot!(v, size = (180, 220), xtickfontsize = 11)
+        Plots.plot!(v, size = (190, 220), xtickfontsize = 11)
         Plots.ylims!(v, (-0.04, 1.0))
         Plots.ylabel!(v, "Posterior probability")
+        fpr_position = relative_xy(v, 1.02, 0.98) 
+        fpr_str = @sprintf("%.2g", bif_gen_fpr)
+        annotate!(v, fpr_position...,
+                  text(L"FPR = %$(fpr_str)",
+                       :right,
+                       :top,
+                       6,
+                       rotation = 0),
+                  annotation_clip = false)
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-bif-gen-wrong-merged-height-probs-vln.tex")
         Plots.savefig(v, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
@@ -1975,9 +1988,18 @@ function main_cli()::Cint
                 marker_alphas = vo_gen_marker_alpha,
                 include_dots = true,
                 marker_sizes = 2.0)
-        Plots.plot!(v, size = (180, 220), xtickfontsize = 11)
+        Plots.plot!(v, size = (190, 220), xtickfontsize = 11)
         Plots.ylims!(v, (-0.04, 1.02))
         Plots.ylabel!(v, "Posterior probability")
+        fpr_position = relative_xy(v, 1.02, 0.98) 
+        fpr_str = @sprintf("%.2g", vo_bif_gen_fpr)
+        annotate!(v, fpr_position...,
+                  text(L"FPR = %$(fpr_str)",
+                       :right,
+                       :top,
+                       6,
+                       rotation = 0),
+                  annotation_clip = false)
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-bif-gen-var-only-wrong-merged-height-probs-vln.tex")
         Plots.savefig(v, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
@@ -2125,11 +2147,19 @@ function main_cli()::Cint
                 marker_colors = gen_col,
                 fill_alphas = gen_fill_alpha,
                 marker_alphas = gen_marker_alpha,
-                include_dots = true)
-        Plots.plot!(v_shared_div_probs_all_sites, size = (170, 220))
+                include_dots = true,
+                marker_shapes = gen_shape,
+                marker_sizes = gen_marker_size - 1)
+        Plots.plot!(v_shared_div_probs_all_sites, size = (190, 220))
         Plots.ylims!(v_shared_div_probs_all_sites, (-0.02, 1.02))
         Plots.ylabel!(v_shared_div_probs_all_sites, "Posterior probability")
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-true-shared-height-probs-all-sites.tex")
+        Plots.savefig(v_shared_div_probs_all_sites, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        Plots.plot!(v_shared_div_probs_all_sites, size = (190, 220), xtickfontsize = 11)
+        Plots.ylims!(v_shared_div_probs_all_sites, (-0.04, 1.0))
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-true-shared-height-probs-all-sites-wider-y.tex")
         Plots.savefig(v_shared_div_probs_all_sites, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
