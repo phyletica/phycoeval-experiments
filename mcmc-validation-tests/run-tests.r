@@ -38,6 +38,14 @@ mtext(bquote(italic(p) == .(chi_test_p)),
       side=3, line = -2.5, adj = 0.02)
 dev.off()
 
+pdf("5-leaf-general-tree-test-qq.pdf",
+    width = plot_width, height = plot_height)
+# mgp adjusts space of axis labels
+par(mgp = mgp)
+# oma is space around all plots
+par(oma = oma, mar = mar)
+plot_binom_qq(counts = counts, p = binomial_prob)
+dev.off()
 
 source("6-leaf-general-tree-test.r")
 
@@ -61,6 +69,15 @@ mtext(bquote(chi^2 == .(chi_test_stat)),
       side=3, line = -1.5, adj = 0.02)
 mtext(bquote(italic(p) == .(chi_test_p)),
       side=3, line = -2.5, adj = 0.02)
+dev.off()
+
+pdf("6-leaf-general-tree-test-qq.pdf",
+    width = plot_width, height = plot_height)
+# mgp adjusts space of axis labels
+par(mgp = mgp)
+# oma is space around all plots
+par(oma = oma, mar = mar)
+plot_binom_qq(counts = counts, p = binomial_prob)
 dev.off()
 
 
@@ -142,6 +159,15 @@ mtext(bquote(italic(p) == .(chi_test_p)),
       side=3, line = -2.5, adj = 0.02)
 dev.off()
 
+pdf("6-leaf-NeighborHeightNodeSwapAll-test-qq.pdf",
+    width = plot_width, height = plot_height)
+# mgp adjusts space of axis labels
+par(mgp = mgp)
+# oma is space around all plots
+par(oma = oma, mar = mar)
+plot_binom_qq(counts = counts, p = binomial_prob)
+dev.off()
+
 
 source("6-leaf-NodeHeightSlideBumpSwapAllScaler-test.r")
 
@@ -167,6 +193,15 @@ mtext(bquote(italic(p) == .(chi_test_p)),
       side=3, line = -2.5, adj = 0.02)
 dev.off()
 
+pdf("6-leaf-NodeHeightSlideBumpSwapAllScaler-test-qq.pdf",
+    width = plot_width, height = plot_height)
+# mgp adjusts space of axis labels
+par(mgp = mgp)
+# oma is space around all plots
+par(oma = oma, mar = mar)
+plot_binom_qq(counts = counts, p = binomial_prob)
+dev.off()
+
 
 source("6-leaf-NodeHeightSlideBumpSwapScaler-test.r")
 
@@ -190,4 +225,13 @@ mtext(bquote(chi^2 == .(chi_test_stat)),
       side=3, line = -1.5, adj = 0.02)
 mtext(bquote(italic(p) == .(chi_test_p)),
       side=3, line = -2.5, adj = 0.02)
+dev.off()
+
+pdf("6-leaf-NodeHeightSlideBumpSwapScaler-test-qq.pdf",
+    width = plot_width, height = plot_height)
+# mgp adjusts space of axis labels
+par(mgp = mgp)
+# oma is space around all plots
+par(oma = oma, mar = mar)
+plot_binom_qq(counts = counts, p = binomial_prob)
 dev.off()
