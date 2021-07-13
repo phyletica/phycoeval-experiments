@@ -9,6 +9,7 @@ p_val_digits = 3
 mgp = c(2.0,0.6,0)
 oma = c(0,0,0,0)
 mar = c(3.1,3.1,2.4,0.5)
+qq_mar = c(3.1,3.1,0.5,0.5)
 
 source("plot-functions.r")
 
@@ -43,7 +44,7 @@ pdf("5-leaf-general-tree-test-qq.pdf",
 # mgp adjusts space of axis labels
 par(mgp = mgp)
 # oma is space around all plots
-par(oma = oma, mar = mar)
+par(oma = oma, mar = qq_mar)
 plot_binom_qq(counts = counts, p = binomial_prob)
 dev.off()
 
@@ -76,7 +77,7 @@ pdf("6-leaf-general-tree-test-qq.pdf",
 # mgp adjusts space of axis labels
 par(mgp = mgp)
 # oma is space around all plots
-par(oma = oma, mar = mar)
+par(oma = oma, mar = qq_mar)
 plot_binom_qq(counts = counts, p = binomial_prob)
 dev.off()
 
@@ -130,7 +131,7 @@ pdf("7-leaf-general-tree-test-qq.pdf",
 # mgp adjusts space of axis labels
 par(mgp = mgp)
 # oma is space around all plots
-par(oma = oma, mar = mar)
+par(oma = oma, mar = qq_mar)
 plot_binom_qq(counts = counts, p = binomial_prob)
 dev.off()
 
@@ -164,7 +165,7 @@ pdf("6-leaf-NeighborHeightNodeSwapAll-test-qq.pdf",
 # mgp adjusts space of axis labels
 par(mgp = mgp)
 # oma is space around all plots
-par(oma = oma, mar = mar)
+par(oma = oma, mar = qq_mar)
 plot_binom_qq(counts = counts, p = binomial_prob)
 dev.off()
 
@@ -198,7 +199,7 @@ pdf("6-leaf-NodeHeightSlideBumpSwapAllScaler-test-qq.pdf",
 # mgp adjusts space of axis labels
 par(mgp = mgp)
 # oma is space around all plots
-par(oma = oma, mar = mar)
+par(oma = oma, mar = qq_mar)
 plot_binom_qq(counts = counts, p = binomial_prob)
 dev.off()
 
@@ -232,6 +233,6 @@ pdf("6-leaf-NodeHeightSlideBumpSwapScaler-test-qq.pdf",
 # mgp adjusts space of axis labels
 par(mgp = mgp)
 # oma is space around all plots
-par(oma = oma, mar = mar)
+par(oma = oma, mar = qq_mar)
 plot_binom_qq(counts = counts, p = binomial_prob)
 dev.off()
