@@ -8,6 +8,7 @@ using Statistics
 using CodecZlib
 using Mmap
 using Random
+using Printf
 
 # Project paths
 SCRIPT_DIR = Base.Filesystem.dirname(@__FILE__)
@@ -94,6 +95,20 @@ BATCH_DIR_PATTERN = Regex(
         raw"^" * BATCH_DIR_PATTERN_STR * raw"$")
 BATCH_DIR_ENDING_PATTERN = Regex(
             raw"^.*" * BATCH_DIR_PATTERN_STR * raw"(" * Base.Filesystem.path_separator * raw")?$")
+
+
+function pretty_sci_not(n::Float64)::String
+    n_str = @sprintf("%.2g", n)
+    m = match(SCI_NOTATION_PATTERN, n_str)
+    if ! isnothing(m)
+        e_sign = ""
+        if m[:sign] == "-"
+            e_sign = "-"
+        end
+        n_str = "$(m[:digits]) \\times 10^{$(e_sign)$(m[:exponent])}"
+    end
+    return n_str
+end
 
 function get_pbs_header(pbs_script_path::AbstractString;
         exe_name::AbstractString = "phycoeval",
