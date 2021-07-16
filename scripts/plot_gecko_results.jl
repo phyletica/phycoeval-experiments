@@ -17,8 +17,9 @@ sans_tex_lines = [
 sans_tex_insert = r"^\\usepackage\{pgfplots\}$"
 
 dark_blue_col = RGB(2/255, 75/255, 120/255)
+dpurp_col = RGB(113/255, 74/255, 126/255)
 
-gen_col = dark_blue_col
+gen_col = dpurp_col
 
 axis_pattern = r"\\begin\{axis\}\["
 axis_replace = "\\begin{axis}[clip=false, "
@@ -221,7 +222,13 @@ function main_cli()::Cint
             x_tick_labels = string.(1:max_num_divs)
             for i in 1:max_num_divs
                 if i % 2 == 0
-                    x_tick_labels[i] = ""
+                    if max_num_divs % 2 != 0
+                        x_tick_labels[i] = ""
+                    end
+                else
+                    if max_num_divs % 2 == 0
+                        x_tick_labels[i] = ""
+                    end
                 end
             end
             groups = repeat(["Prior", "Posterior"], inner = max_num_divs)
@@ -238,32 +245,53 @@ function main_cli()::Cint
                     #= framestyle = :box =#
                    )
             Plots.plot!(p, size = (600, 280))
+            plot_path = joinpath(ProjectUtil.GEK_OUT_DIR, "number-of-divs-w-prior-$(taxon).tex")
+            Plots.savefig(p, plot_path)
+            pdf_path = process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+            groups = repeat(["Posterior"], inner = max_num_divs)
+
+            p = StatsPlots.groupedbar(x_ticks,
+                    num_div_freqs,
+                    group = groups,
+                    xlabel = "Number of divergences",
+                    ylabel = "Posterior probability",
+                    xticks = (1:max_num_divs, x_tick_labels),
+                    bar_width = 0.9,
+                    fillcolor = gen_col,
+                    fillalpha = 1.0,
+                    linewidth = 0.0,
+                    linealpha = 0.0,
+                    legend = false
+                    #= framestyle = :box =#
+                   )
+            Plots.plot!(p, size = (270, 200))
             plot_path = joinpath(ProjectUtil.GEK_OUT_DIR, "number-of-divs-$(taxon).tex")
             Plots.savefig(p, plot_path)
             pdf_path = process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
             continue
         end
 
-        x_tick_labels = string.(1:max_num_divs)
-        for i in 1:max_num_divs
-            if i % 2 == 0
-                x_tick_labels[i] = ""
-            end
-        end
-        p = Plots.bar(num_div_freqs,
-                      fillcolor = gen_col,
-                      linecolor = gen_col,
-                      fillalpha = 1.0,
-                      linealpha = 0.0,
-                      xlabel = "Number of divergences",
-                      ylabel = "Posterior probability",
-                      #= xticks = (1:max_num_divs, string.(1:max_num_divs)), =#
-                      xticks = (1:max_num_divs, x_tick_labels),
-                      legend = false)
-        Plots.plot!(p, size = (400, 280))
-        plot_path = joinpath(ProjectUtil.GEK_OUT_DIR, "number-of-divs-$(taxon).tex")
-        Plots.savefig(p, plot_path)
-        pdf_path = process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+        # x_tick_labels = string.(1:max_num_divs)
+        # for i in 1:max_num_divs
+        #     if i % 2 == 0
+        #         x_tick_labels[i] = ""
+        #     end
+        # end
+        # p = Plots.bar(num_div_freqs,
+        #               fillcolor = gen_col,
+        #               linecolor = gen_col,
+        #               fillalpha = 1.0,
+        #               linealpha = 0.0,
+        #               xlabel = "Number of divergences",
+        #               ylabel = "Posterior probability",
+        #               #= xticks = (1:max_num_divs, string.(1:max_num_divs)), =#
+        #               xticks = (1:max_num_divs, x_tick_labels),
+        #               legend = false)
+        # Plots.plot!(p, size = (400, 280))
+        # plot_path = joinpath(ProjectUtil.GEK_OUT_DIR, "number-of-divs-$(taxon).tex")
+        # Plots.savefig(p, plot_path)
+        # pdf_path = process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
     end
     return 0
 end
