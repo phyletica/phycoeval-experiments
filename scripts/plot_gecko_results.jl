@@ -207,6 +207,8 @@ function main_cli()::Cint
                 skip = burnin)
         max_num_divs = length(num_div_freqs)
 
+        prob_out_path = joinpath(ProjectUtil.GEK_OUT_DIR, "number-of-divs-$(taxon).tsv")
+
         have_prior_samples = false
         prior_state_log_path_iter = ProjectUtil.flat_file_path_iter(
                 ProjectUtil.GEK_OUT_DIR,
@@ -232,6 +234,14 @@ function main_cli()::Cint
                 end
             end
             groups = repeat(["Prior", "Posterior"], inner = max_num_divs)
+
+            # Write data to tab-delimited file
+            open(prob_out_path, "w") do io
+                write(io, "number_of_divs\tposterior_prob\tprior_prob\n")
+                for i in 1:max_num_divs
+                    write(io, "$(i)\t$(num_div_freqs[i])\t$(prior_num_div_freqs[i])\n")
+                end
+            end
 
             p = StatsPlots.groupedbar(vcat(x_ticks, x_ticks),
                     hcat(prior_num_div_freqs, num_div_freqs),
