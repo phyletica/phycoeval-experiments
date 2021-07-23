@@ -1937,7 +1937,7 @@ function main_cli()::Cint
         Plots.plot!(v, size = (190, 220), xtickfontsize = 11)
         Plots.ylims!(v, (-0.04, 1.0))
         Plots.ylabel!(v, "Posterior probability")
-        fpr_position = relative_xy(v, 1.02, 0.98) 
+        fpr_position = relative_xy(v, 1.02, 0.96)
         fpr_str = @sprintf("%.2g", bif_gen_fpr)
         annotate!(v, fpr_position...,
                   text(L"FPR = %$(fpr_str)",
@@ -1991,7 +1991,7 @@ function main_cli()::Cint
         Plots.plot!(v, size = (190, 220), xtickfontsize = 11)
         Plots.ylims!(v, (-0.04, 1.02))
         Plots.ylabel!(v, "Posterior probability")
-        fpr_position = relative_xy(v, 1.02, 0.98) 
+        fpr_position = relative_xy(v, 1.02, 0.96)
         fpr_str = @sprintf("%.2g", vo_bif_gen_fpr)
         annotate!(v, fpr_position...,
                   text(L"FPR = %$(fpr_str)",

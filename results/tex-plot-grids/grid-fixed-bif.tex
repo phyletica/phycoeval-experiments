@@ -6,6 +6,13 @@
 
 \renewcommand{\familydefault}{\sfdefault}
 
+\newcounter{subfloat}
+\renewcommand{\thesubfloat}{\Alph{subfloat}}
+\newcommand{\insertlabel}{%
+    \huge%
+    \stepcounter{subfloat}%
+    \textbf{\thesubfloat)}}
+
 \DeclareCaptionSubType[Alph]{figure}
 \captionsetup[subfigure]{labelformat=simple,labelsep=space}
 
@@ -29,11 +36,11 @@
     \end{subfigure}
     \vspace{2mm}
     \begin{subfigure}[b][][l]{0.55\textwidth}
-        \huge \textbf{A}
+        \insertlabel
     \end{subfigure}
     \hfill
     \begin{subfigure}[b][][l]{0.43\textwidth}
-        \huge \textbf{B}
+        \insertlabel
     \end{subfigure}
     \vspace{2mm}
     \begin{subfigure}[c][][c]{0.55\textwidth}
@@ -48,14 +55,14 @@
         \includegraphics[width=\textwidth]{../fixed-bif-true-topo-probs-sans-cropped.pdf}
     \end{subfigure}
     \begin{subfigure}[b][][l]{\textwidth}
-        \huge \textbf{C}
+        \insertlabel
     \end{subfigure}
     \begin{subfigure}[c][][c]{\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../fixed-bif-gen-wrong-probs-sans-cropped.pdf}
     \end{subfigure}
     \begin{subfigure}[b][][l]{\textwidth}
-        \huge \textbf{D}
+        \insertlabel
     \end{subfigure}
     \begin{subfigure}[c][][c]{\textwidth}
         \centering

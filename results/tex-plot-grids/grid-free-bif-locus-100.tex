@@ -6,6 +6,13 @@
 
 \renewcommand{\familydefault}{\sfdefault}
 
+\newcounter{subfloat}
+\renewcommand{\thesubfloat}{\Alph{subfloat}}
+\newcommand{\insertlabel}{%
+    \Huge%
+    \stepcounter{subfloat}%
+    \textbf{\thesubfloat)}}
+
 \DeclareCaptionSubType[Alph]{figure}
 \captionsetup[subfigure]{labelformat=simple,labelsep=space}
 
@@ -29,7 +36,7 @@
     \end{subfigure}
     \vspace{2mm}
     \begin{subfigure}[b][][l]{\textwidth}
-        \Huge \textbf{A}
+        \insertlabel
     \end{subfigure}
     % \vspace{2mm}
     \begin{subfigure}[c][][c]{\textwidth}
@@ -37,7 +44,7 @@
         \includegraphics[width=\textwidth]{../locus-100-unfixed-bif-euclidean-distances-sans-cropped.pdf}
     \end{subfigure}
     \begin{subfigure}[b][][l]{\textwidth}
-        \Huge \textbf{B}
+        \insertlabel
     \end{subfigure}
     % \vspace{2mm}
     \begin{subfigure}[c][][c]{\textwidth}

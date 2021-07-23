@@ -45,7 +45,7 @@ do
 
     "${project_dir}/bin/sumphycoeval" -f -b 101 --mo "${output_dir}/map-tree-${out_label}.nex" ${output_dir}/run-??-threads-*-${out_label}-trees-run-1.nex > "$yml_path"
 
-    root_height="$(./get_root_height.jl "$yml_path")"
+    root_height="$(julia --project get_root_height.jl "$yml_path")"
 
     if [ -n "$root_height" ]
     then

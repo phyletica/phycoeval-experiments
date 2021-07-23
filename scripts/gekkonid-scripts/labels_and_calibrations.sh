@@ -24,7 +24,7 @@
 #   1 / 0.0003802927 = 2629.55 = Gekko tree multiplier
 #
 
-cyrt_root_age=19.85211054
+cyrt_root_age=23.07
 
 gekko_root_age=33.76
 
