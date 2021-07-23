@@ -3615,7 +3615,7 @@ function main_cli()::Cint
                 comparison_positions = comparison_positions,
                 comparisons_are_paired = comparisons_are_paired,
                )
-        Plots.ylabel!(p, "Euclidean distance from true tree")
+        Plots.ylabel!(p, "Distance from true tree")
         Plots.plot!(p, size = (375, 290))
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-euclidean-distances.tex")
         write(stdout, "Writing to $(plot_path)\n")
@@ -3653,7 +3653,7 @@ function main_cli()::Cint
                     comparison_positions = (0.995,),
                     comparisons_are_paired = false,
                    )
-            Plots.ylabel!(p, "Euclidean distance from true tree")
+            Plots.ylabel!(p, "Distance from true tree")
             Plots.plot!(p, size = (300, 290), xtickfontsize = 8)
             plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-euclidean-distances-unlinked-v-linked.tex")
             write(stdout, "Writing to $(plot_path)\n")
@@ -3679,7 +3679,7 @@ function main_cli()::Cint
                 comparison_positions = (0.995,),
                 comparisons_are_paired = comparisons_are_paired,
                )
-        Plots.ylabel!(p, "Euclidean distance from true tree")
+        Plots.ylabel!(p, "Distance from true tree")
         Plots.plot!(p, size = (320, 290), xtickfontsize = 8)
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-all-sites-euclidean-distances.tex")
         write(stdout, "Writing to $(plot_path)\n")
@@ -3706,7 +3706,7 @@ function main_cli()::Cint
                 comparison_positions = (0.995,),
                 comparisons_are_paired = comparisons_are_paired,
                )
-        Plots.ylabel!(p, "Euclidean distance from true tree")
+        Plots.ylabel!(p, "Distance from true tree")
         Plots.plot!(p, size = (220, 290))
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-all-sites-euclidean-distances-narrow.tex")
         write(stdout, "Writing to $(plot_path)\n")
@@ -3751,7 +3751,7 @@ function main_cli()::Cint
                 comparison_positions = comparison_positions,
                 comparisons_are_paired = comparisons_are_paired,
                )
-        Plots.ylabel!(p, "Euclidean distance from true tree")
+        Plots.ylabel!(p, "Distance from true tree")
         #= Plots.plot!(p, size = (600, 350)) =#
         Plots.plot!(p, size = (375, 290))
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-bif-euclidean-distances.tex")
@@ -3783,7 +3783,7 @@ function main_cli()::Cint
                 comparison_positions = (0.995,),
                 comparisons_are_paired = comparisons_are_paired,
                )
-        Plots.ylabel!(p, "Euclidean distance from true tree")
+        Plots.ylabel!(p, "Distance from true tree")
         Plots.plot!(p, size = (320, 290), xtickfontsize = 8)
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-bif-all-sites-euclidean-distances.tex")
         write(stdout, "Writing to $(plot_path)\n")
@@ -3810,7 +3810,7 @@ function main_cli()::Cint
                 comparison_positions = (0.995,),
                 comparisons_are_paired = comparisons_are_paired,
                )
-        Plots.ylabel!(p, "Euclidean distance from true tree")
+        Plots.ylabel!(p, "Distance from true tree")
         Plots.plot!(p, size = (220, 290))
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-bif-all-sites-euclidean-distances-narrow.tex")
         write(stdout, "Writing to $(plot_path)\n")
@@ -3851,7 +3851,7 @@ function main_cli()::Cint
                 comparison_positions = comparison_positions,
                 comparisons_are_paired = comparisons_are_paired,
                )
-        Plots.ylabel!(p, "Euclidean distance from true tree")
+        Plots.ylabel!(p, "Distance from true tree")
         #= Plots.plot!(p, size = (600, 340)) =#
         Plots.plot!(p, size = (420, 290))
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-euclidean-distances.tex")
@@ -3898,7 +3898,7 @@ function main_cli()::Cint
                 comparison_positions = (0.995,),
                 comparisons_are_paired = comparisons_are_paired,
                )
-        Plots.ylabel!(p, "Euclidean distance from true tree")
+        Plots.ylabel!(p, "Distance from true tree")
         Plots.plot!(p, size = (220, 290))
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-all-sites-euclidean-distances-narrow.tex")
         write(stdout, "Writing to $(plot_path)\n")
@@ -3949,7 +3949,7 @@ function main_cli()::Cint
                 comparisons = ((1, 2), (3, 4)),
                 comparison_positions = comparison_positions
                )
-        Plots.ylabel!(p, "Euclidean distance from true tree")
+        Plots.ylabel!(p, "Distance from true tree")
         #= Plots.plot!(p, size = (600, 340)) =#
         Plots.plot!(p, size = (420, 290))
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-bif-euclidean-distances.tex")
@@ -3971,7 +3971,7 @@ function main_cli()::Cint
                 marker_sizes = [ gen_marker_size bif_marker_size ],
                 y_buffer = 0.02,
                 show_labels_on_x = true)
-        Plots.ylabel!(p, "Euclidean distance from true tree")
+        Plots.ylabel!(p, "Distance from true tree")
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-bif-all-sites-euclidean-distances.tex")
         write(stdout, "Writing to $(plot_path)\n")
         Plots.savefig(p, plot_path)
@@ -3997,7 +3997,7 @@ function main_cli()::Cint
                 comparison_positions = (0.995,),
                 comparisons_are_paired = comparisons_are_paired,
                )
-        Plots.ylabel!(p, "Euclidean distance from true tree")
+        Plots.ylabel!(p, "Distance from true tree")
         Plots.plot!(p, size = (220, 290))
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-bif-all-sites-euclidean-distances-narrow.tex")
         write(stdout, "Writing to $(plot_path)\n")
@@ -4016,7 +4016,7 @@ function main_cli()::Cint
                 [ vo_gen_marker_alpha vo_bif_marker_alpha ],
                 y_buffer = 0.02,
                 show_labels_on_x = true)
-        Plots.ylabel!(p, "Euclidean distance from true tree")
+        Plots.ylabel!(p, "Distance from true tree")
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-bif-var-only-euclidean-distances.tex")
         write(stdout, "Writing to $(plot_path)\n")
         Plots.savefig(p, plot_path)
