@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5162056.svg)](https://doi.org/10.5281/zenodo.5162056)
+
 # Overview
 
 This repository serves as an [open-science
