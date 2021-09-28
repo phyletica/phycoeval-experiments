@@ -656,6 +656,7 @@ class SimpleTreeInfo(object):
     LEAF_STYLE.name = "simple_leaf"
     LEAF_STYLE.anchor = "west"
     LEAF_STYLE.textSize = "normalsize"
+    LEAF_STYLE.yShift = -0.035
     # LEAF_STYLE.rotate = 90
 
     INTERNAL_NODE_STYLE = copy.deepcopy(_DUMMY_TG.styleDict['node right'])
@@ -754,6 +755,7 @@ class SimpleTreeInfo(object):
             show_tip_labels = True,
             time_font_size = 'small',
             include_time_zero = False,
+            labels_to_yshift = {},
             ):
         read(str(self))
         sys.stderr.write("{0}\n".format(str(self)))
@@ -787,6 +789,9 @@ class SimpleTreeInfo(object):
             p4_node.label.myStyle = self.LEAF_STYLE.name
         for n in nodes_to_shift:
             tg.tree.node(n.nodeNum).label.myStyle = 'simple_internal'
+        for n in tree.iterNodes():
+            if n.name in labels_to_yshift:
+                n.label.yShift = labels_to_yshift[n.name]
         tg.tree.node(node_root.nodeNum).label.xShift = 0.1
         tg.latexUsePackages.append('sfmath')
         tg.latexUsePackages.append('color')
@@ -1695,6 +1700,10 @@ def main_cli():
             show_tip_labels = True,
             time_font_size = 'small',
             include_time_zero = False,
+            labels_to_yshift = {
+                '$t_3$': -0.1,
+                '$t_4$': -0.1,
+                }
             )
     t.plot_tree(
             base_name = 'generalized-tree-short',
