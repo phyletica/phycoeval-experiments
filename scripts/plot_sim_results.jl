@@ -2073,7 +2073,7 @@ function main_cli()::Cint
         v_shared_div_probs = get_split_violin_plot(
                 true_shared_divs.shared_height_prob,
                 vo_true_shared_divs.shared_height_prob,
-                xlabels = [ "True shared divs" ],
+                xlabels = [ "True shared divergences" ],
                 left_fill_colors = gen_col,
                 left_marker_colors = gen_col,
                 left_fill_alphas = gen_fill_alpha,
@@ -2142,7 +2142,7 @@ function main_cli()::Cint
 
         v_shared_div_probs_all_sites = get_violin_plot(
                 true_shared_divs.shared_height_prob,
-                xlabels = [ "True shared divs" ],
+                xlabels = [ "True shared divergences" ],
                 fill_colors = gen_col,
                 marker_colors = gen_col,
                 fill_alphas = gen_fill_alpha,
