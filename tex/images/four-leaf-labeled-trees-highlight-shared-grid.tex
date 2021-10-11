@@ -1,0 +1,116 @@
+\documentclass[border=10pt,varwidth=30cm]{standalone}
+\usepackage{graphicx,capt-of}
+\usepackage{rotating}
+\usepackage{multirow}
+\usepackage[cm]{sfmath}
+\usepackage[T1]{fontenc}
+\usepackage{xspace}
+
+\renewcommand{\familydefault}{\sfdefault}
+
+\newcounter{subfloat}
+\renewcommand{\thesubfloat}{\Alph{subfloat}}
+\newcommand{\image}[2]{%
+    \stepcounter{subfloat}%
+    \begin{tabular}[t]{@{}c@{}}
+    \thesubfloat. #1 \\
+    #2
+    \end{tabular}%
+}
+\newcommand{\insertlabel}{%
+    \small
+    \stepcounter{subfloat}%
+    \thesubfloat}
+\newcommand{\trm}[1]{\ensuremath{\textrm{\sffamily #1}}}
+
+\newcommand{\genmodel}{\ensuremath{M_{\textrm{\sffamily G}}}\xspace}
+\newcommand{\bimodel}{\ensuremath{M_{\textrm{\sffamily BI}}}\xspace}
+\newcommand{\ndivs}{\ensuremath{n_{\tau}}\xspace}
+\newcommand{\pltwidth}{0.1}
+\newcommand{\catspace}{0.1}
+
+\begin{document}
+
+\begin{figure}
+    \setlength\arrayrulewidth{2pt}
+    \centering
+    \begin{tabular}{@{}ccccccccc@{}}
+        \multicolumn{3}{c}{\Huge $\ndivs = 3$} & & \multicolumn{3}{c}{\Huge $\ndivs = 2$} & & {\Huge $\ndivs = 1$} \\[2.5ex]
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-4-0-cropped.pdf}
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-4-1-cropped.pdf}
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-4-2-cropped.pdf}
+        &
+        \hspace{\catspace\textwidth}
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-5-0-highlight-cropped.pdf}
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-5-1-highlight-cropped.pdf}
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-5-2-highlight-cropped.pdf}
+        &
+        \hspace{\catspace\textwidth}
+        &
+        \\
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-3-0-cropped.pdf}
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-3-1-cropped.pdf}
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-3-2-cropped.pdf}
+        &
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-1-0-cropped.pdf}
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-1-1-cropped.pdf}
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-1-2-cropped.pdf}
+        &
+        &
+        \\
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-3-3-cropped.pdf}
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-3-4-cropped.pdf}
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-3-5-cropped.pdf}
+        &
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-1-3-cropped.pdf}
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-1-4-cropped.pdf}
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-1-5-cropped.pdf}
+        &
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-0-0-cropped.pdf}
+        \\
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-3-6-cropped.pdf}
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-3-7-cropped.pdf}
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-3-8-cropped.pdf}
+        &
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-2-0-cropped.pdf}
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-2-1-cropped.pdf}
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-2-2-cropped.pdf}
+        &
+        &
+        \\
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-3-9-cropped.pdf}
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-3-10-cropped.pdf}
+        &
+        \includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-3-11-cropped.pdf}
+        &
+        &
+        \multicolumn{3}{c}{\includegraphics[width=\pltwidth\textwidth]{../trees/4-leaf-labeled-tree-bare-2-3-cropped.pdf}}
+        &
+        &
+        \\
+    \end{tabular}
+\end{figure}
+
+\end{document}
