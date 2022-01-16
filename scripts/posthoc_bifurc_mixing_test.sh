@@ -20,7 +20,7 @@ archives_needed=(\
 # locally, and the extract them
 for sim_dir in "${sim_dirs[@]}"
 do
-    for batch_path in "../simulations/${sim_dir}/batch-?????????"
+    for batch_path in ../simulations/${sim_dir}/batch-?????????
     do
         batch_dir="$(basename "$batch_path")"
         for archive_name in "${archives_needed[@]}"
