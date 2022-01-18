@@ -69,6 +69,11 @@ do
             rm *-qsub.sh.o*
             break
         fi; done
+        for p in *-long-chain-*; do if [ -e "$p" ]; then
+            echo "Archiving and removing long chain files..."
+            tar czf sim-files-posthoc-mixing-test.tar.gz *-long-chain-* && rm *-long-chain-*
+            break
+        fi; done
         for p in *-qsub.sh; do if [ -e "$p" ]; then
             echo "Archiving and removing qsub scripts..."
             tar czf sim-files-qsub-scripts.tar.gz *-qsub.sh && rm *-qsub.sh
@@ -106,12 +111,22 @@ do
         fi; done
         for p in simphycoeval-sim-*-true-parameters.txt; do if [ -e "$p" ]; then
             echo "Archiving and removing files with true parameters..."
-            tar czf sim-files-true-parameters.tar.gz simphycoeval-sim-*-true-parameters.txt && rm simphycoeval-sim-*-true-parameters.txt
+            if [ -e "sim-files-true-parameters.tar.gz" ]
+            then
+                echo "  WARNING: true parameter archive already exists; skipping!"
+            else
+                tar czf sim-files-true-parameters.tar.gz simphycoeval-sim-*-true-parameters.txt && rm simphycoeval-sim-*-true-parameters.txt
+            fi
             break
         fi; done
         for p in simphycoeval-sim-*-true-tree.phy; do if [ -e "$p" ]; then
             echo "Archiving and removing files with true trees..."
-            tar czf sim-files-true-trees.tar.gz simphycoeval-sim-*-true-tree.phy && rm simphycoeval-sim-*-true-tree.phy
+            if [ -e "sim-files-true-trees.tar.gz" ]
+            then
+                echo "  WARNING: true tree archive already exists; skipping!"
+            else
+                tar czf sim-files-true-trees.tar.gz simphycoeval-sim-*-true-tree.phy && rm simphycoeval-sim-*-true-tree.phy
+            fi
             break
         fi; done
         for p in simphycoeval*rejected-trees.phy; do if [ -e "$p" ]; then
