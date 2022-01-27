@@ -128,6 +128,9 @@ vo_bif_marker_size = bif_marker_size
 
 gen_model = L"$M_{G}$"
 bif_model = L"$M_{IB}$"
+gen_model_small = L"{\footnotesize $M_{G}$}"
+bif_model_small = L"{\footnotesize $M_{IB}$}"
+bif_mix_model_small = L"{\footnotesize $M_{IB}$ long chains}"
 
 gen_marker_alpha = marker_alpha
 #= vo_gen_marker_alpha = marker_alpha - 0.3 =#
@@ -3770,6 +3773,47 @@ function main_cli()::Cint
         Plots.savefig(p, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
+        if locus_size == 1
+            lc_fixed_gen_bif_dist_mean = get_floats(long_chain_results,
+                    true, true, false, false,
+                    :euclidean_distance_mean, locus_size)
+            lc_fixed_gen_bif_dist_lower = get_floats(long_chain_results,
+                    true, true, false, false,
+                    :euclidean_distance_eti_95_lower, locus_size)
+            lc_fixed_gen_bif_dist_upper = get_floats(long_chain_results,
+                    true, true, false, false,
+                    :euclidean_distance_eti_95_upper, locus_size)
+            p = get_groups_by_y(
+                    hcat(fixed_gen_gen_dist_mean,
+                         fixed_gen_bif_dist_mean,
+                         lc_fixed_gen_bif_dist_mean),
+                    hcat(fixed_gen_gen_dist_lower,
+                         fixed_gen_bif_dist_lower,
+                         lc_fixed_gen_bif_dist_lower),
+                    hcat(fixed_gen_gen_dist_upper,
+                         fixed_gen_bif_dist_upper,
+                         lc_fixed_gen_bif_dist_upper),
+                    [ gen_model_small bif_model_small bif_mix_model_small ],
+                    [ gen_col bif_col bif_col ],
+                    [ gen_marker_alpha bif_marker_alpha bif_marker_alpha ],
+                    marker_shapes = [ gen_shape bif_shape bif_shape ],
+                    marker_sizes = [ gen_marker_size bif_marker_size bif_marker_size ],
+                    y_buffer = 0.02,
+                    x_label_size = 10.0,
+                    x_label_offset = 0.05,
+                    show_labels_on_x = true,
+                    comparisons = ((1, 2), (1, 3), (2, 3)),
+                    comparison_positions = (0.9, 0.999, 0.12),
+                    comparisons_are_paired = true,
+                   )
+            Plots.ylabel!(p, "Distance from true tree")
+            Plots.plot!(p, size = (375, 290))
+            plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed-gen-euclidean-distances-long-chain.tex")
+            write(stdout, "Writing to $(plot_path)\n")
+            Plots.savefig(p, plot_path)
+            process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+        end
+
         if length(locus_prefix) == 0
             l_100_unfixed_gen_gen_dist_mean = get_floats(results,
                     false, true, true, false,
@@ -4309,9 +4353,12 @@ function main_cli()::Cint
                     marker_shapes = [ gen_shape bif_shape bif_shape ],
                     marker_sizes = [ gen_marker_size bif_marker_size bif_marker_size ],
                     include_dots = true)
-            Plots.plot!(lc_vln_fixed_gen_asdsf, size = (500, 300), xtickfontsize = 11)
-            Plots.title!(lc_vln_fixed_gen_asdsf, "True model = Figure 1A")
+            Plots.plot!(lc_vln_fixed_gen_asdsf, size = (450, 290), xtickfontsize = 11)
             Plots.ylabel!(lc_vln_fixed_gen_asdsf, "ASDSF")
+            plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed_gen_long_chain_asdsf_no_title.tex")
+            Plots.savefig(lc_vln_fixed_gen_asdsf, plot_path)
+            process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+            Plots.title!(lc_vln_fixed_gen_asdsf, "True model = Figure 1A")
             plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)fixed_gen_long_chain_asdsf.tex")
             Plots.savefig(lc_vln_fixed_gen_asdsf, plot_path)
             process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
