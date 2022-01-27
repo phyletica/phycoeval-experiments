@@ -1,0 +1,55 @@
+\documentclass[border=10pt,varwidth=30cm]{standalone}
+\usepackage{graphicx,capt-of}
+\usepackage{subcaption}
+\usepackage[cm]{sfmath}
+\usepackage[T1]{fontenc}
+
+\renewcommand{\familydefault}{\sfdefault}
+
+\newcounter{subfloat}
+\renewcommand{\thesubfloat}{\Alph{subfloat}}
+\newcommand{\insertlabel}{%
+    \Huge%
+    \stepcounter{subfloat}%
+    \textbf{\thesubfloat}}
+
+\DeclareCaptionSubType[Alph]{figure}
+\captionsetup[subfigure]{labelformat=simple,labelsep=space}
+
+\begin{document}
+
+\begin{figure}
+    \centering
+
+    \begin{subfigure}[c][][c]{\textwidth}
+        \centering
+        % \Huge \textbf{True tree = Figure 1A}
+        \resizebox{0.55\linewidth}{!}{True tree = Figure 1A}
+    \end{subfigure}
+
+    \vspace{4mm}
+    \begin{subfigure}[b][][l]{\textwidth}
+        \insertlabel
+    \end{subfigure}
+    \begin{subfigure}[c][][c]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../fixed-gen-euclidean-distances-long-chain-sans-cropped.pdf}
+    \end{subfigure}
+
+    \vspace{6mm}
+    \begin{subfigure}[b][][l]{\textwidth}
+        \insertlabel
+    \end{subfigure}
+    \begin{subfigure}[c][][c]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../fixed_gen_long_chain_asdsf_no_title-sans-cropped.pdf}
+    \end{subfigure}
+
+    \vspace{6mm}
+    \begin{subfigure}[c][][c]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../legend-horizontal-all-sites-sans-cropped.pdf}
+    \end{subfigure}
+\end{figure}
+
+\end{document}
