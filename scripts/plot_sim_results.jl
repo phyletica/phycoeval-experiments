@@ -430,7 +430,7 @@ function get_groups_by_y(
                 linewidth = 1.0)
     end
 
-    xtick_pos = [x[end, 1]]
+    xtick_pos = [x[1, 1], x[end, 1]]
     Plots.plot!(plt,
             x[:,1],
             y[:,1],
@@ -568,6 +568,14 @@ function get_groups_by_y(
     end
     Plots.plot!(plt, xticks = xtick_pos)
     Plots.xaxis!(plt, false)
+    Plots.plot!(plt,
+            [x_limits[1] + 1, x_limits[end]],
+            [0,  0],
+            seriestype = :line,
+            legend = false,
+            linecolor = "black",
+            linealpha = 1.0,
+            linewidth = 0.5)
 
     return plt
 end
