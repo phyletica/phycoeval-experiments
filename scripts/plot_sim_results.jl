@@ -569,7 +569,7 @@ function get_groups_by_y(
     Plots.plot!(plt, xticks = xtick_pos)
     Plots.xaxis!(plt, false)
     Plots.plot!(plt,
-            [x_limits[1] + 1, x_limits[end]],
+            [xtick_pos[1], xtick_pos[end]],
             [0,  0],
             seriestype = :line,
             legend = false,
@@ -3742,7 +3742,7 @@ function main_cli()::Cint
         write(stdout, "\n")
 
         comparisons_are_paired = true
-        comparison_positions = (0.995, 0.995, 0.86, 0.02)
+        comparison_positions = (0.998, 0.998, 0.80, 0.90)
         if length(locus_prefix) > 0
             comparison_positions = (0.998, 0.998, 0.80, 0.9)
             comparisons_are_paired = false
