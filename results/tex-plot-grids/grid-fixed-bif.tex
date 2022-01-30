@@ -4,6 +4,10 @@
 \usepackage[cm]{sfmath}
 \usepackage[T1]{fontenc}
 
+\usepackage{adjustbox,xcolor}
+
+\definecolor{shadecolor}{gray}{0.9}
+
 \renewcommand{\familydefault}{\sfdefault}
 
 \newcounter{subfloat}
@@ -29,12 +33,14 @@
         \centering
         \Huge $M_{IB}$ = \textbf{Independent-bifurcating model}
     \end{subfigure}
-    \vspace{2mm}
+
+    % \vspace{2mm}
     \begin{subfigure}[c][][c]{\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../legend-horizontal-short-sans-cropped.pdf}
     \end{subfigure}
-    \vspace{2mm}
+
+    \vspace{3mm}
     \begin{subfigure}[b][][l]{0.55\textwidth}
         \insertlabel
     \end{subfigure}
@@ -42,28 +48,36 @@
     \begin{subfigure}[b][][l]{0.43\textwidth}
         \insertlabel
     \end{subfigure}
+
     \vspace{2mm}
-    \begin{subfigure}[c][][c]{0.55\textwidth}
+    \begin{subfigure}[c][][c]{0.53\textwidth}
+        \begin{adjustbox}{bgcolor=shadecolor}
         \centering
         \includegraphics[width=\textwidth]{../../tex/trees/bifurcating-tree-tall-cropped.pdf}
-        % \caption{}
         \label{fig:gentree}
+        \end{adjustbox}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[c][][c]{0.43\textwidth}
+    \begin{subfigure}[c][][c]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../fixed-bif-true-topo-probs-sans-cropped.pdf}
     \end{subfigure}
+
+    \vspace{5mm}
     \begin{subfigure}[b][][l]{\textwidth}
         \insertlabel
     \end{subfigure}
+
+    \vspace{2mm}
     \begin{subfigure}[c][][c]{\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../fixed-bif-gen-wrong-probs-sans-cropped.pdf}
     \end{subfigure}
+
     \begin{subfigure}[b][][l]{\textwidth}
         \insertlabel
     \end{subfigure}
+
     \begin{subfigure}[c][][c]{\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../fixed-bif-euclidean-distances-large-sans-cropped.pdf}
