@@ -43,7 +43,7 @@ do
     # pyco-sumchains ${output_dir}/run-??-threads-*-${out_label}-state-run-1.log > "${output_dir}/pyco-sumchains-${out_label}.txt"
     yml_path="${output_dir}/posterior-summary-${out_label}.yml"
 
-    "${project_dir}/bin/sumphycoeval" -f -b 101 --mo "${output_dir}/map-tree-${out_label}.nex" ${output_dir}/run-??-threads-*-${out_label}-trees-run-1.nex > "$yml_path"
+    "${project_dir}/bin/sumphycoeval" -f -b 101 --mo "${output_dir}/map-tree-${out_label}.nex" --mco "${output_dir}/map-cladogram-${out_label}.nex" ${output_dir}/run-??-threads-*-${out_label}-trees-run-1.nex > "$yml_path"
 
     root_height="$(julia --project get_root_height.jl "$yml_path")"
 
@@ -52,7 +52,7 @@ do
         root_age="${root_calibrations[idx]}"
         multiplier="$(echo "${root_age}/${root_height}" | bc -l)"
 
-        "${project_dir}/bin/sumphycoeval" -f -b 101 -m $multiplier --mo "${output_dir}/scaled-map-tree-${out_label}.nex" ${output_dir}/run-??-threads-*-${out_label}-trees-run-1.nex > "${output_dir}/scaled-posterior-summary-${out_label}.yml"
+        "${project_dir}/bin/sumphycoeval" -f -b 101 -m $multiplier --mo "${output_dir}/scaled-map-tree-${out_label}.nex" --mco "${output_dir}/scaled-map-cladogram-${out_label}.nex" ${output_dir}/run-??-threads-*-${out_label}-trees-run-1.nex > "${output_dir}/scaled-posterior-summary-${out_label}.yml"
     fi
     idx=$(expr $idx + 1)
 done
