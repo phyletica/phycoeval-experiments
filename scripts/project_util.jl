@@ -96,6 +96,29 @@ BATCH_DIR_PATTERN = Regex(
 BATCH_DIR_ENDING_PATTERN = Regex(
             raw"^.*" * BATCH_DIR_PATTERN_STR * raw"(" * Base.Filesystem.path_separator * raw")?$")
 
+NEXUS_TREE_LINE_STR = raw"\s*TREE\s+(?<tree_label>\S+)\s+=\s+\[&R]\s(?<newick_str>\(.*;)\s*"
+NEXUS_TREE_LINE_PATTERN = Regex(join([
+        raw"^",
+        NEXUS_TREE_LINE_STR,
+        raw"$"
+       ]))
+
+FLOAT_STR = (
+        raw"\d+[.]?[Ee]?[+-]?\d*"
+        )
+INTERNAL_NODE_ANNOTATION_STR = (
+        raw"\[&height_index=(?<height_index>\d+)," *
+        raw"index_freq=(?<index_freq>" * FLOAT_STR * ")," *
+        raw"[^]]*" *
+        raw"index_height_mean=(?<index_height_mean>" * FLOAT_STR * ")," *
+        raw"index_height_median=(?<index_height_median>" * FLOAT_STR * ")," *
+        raw"[^]]*" *
+        raw"index_height_eti_95={(?<index_height_eti_95_lower>" * FLOAT_STR * ")," * "(?<index_height_eti_95_upper>" * FLOAT_STR * ")}," *
+        raw"index_height_hpdi_95={(?<index_height_hpdi_95_lower>" * FLOAT_STR * ")," * "(?<index_height_hpdi_95_upper>" * FLOAT_STR * ")}," *
+        raw"[^]]*\]"
+       )
+INTERNAL_NODE_ANNOTATION_PATTERN = Regex(INTERNAL_NODE_ANNOTATION_STR)
+
 
 function pretty_sci_not(n::Float64)::String
     n_str = @sprintf("%.2g", n)
