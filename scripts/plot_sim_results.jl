@@ -2018,13 +2018,13 @@ function main_cli()::Cint
         Plots.plot!(v, size = (190, 220), xtickfontsize = 11)
         Plots.ylims!(v, (-0.04, 1.0))
         Plots.ylabel!(v, "Posterior probability")
-        fpr_position = relative_xy(v, 1.02, 0.96)
+        fpr_position = relative_xy(v, 1.025, 0.94)
         fpr_str = @sprintf("%.2g", bif_gen_fpr)
         annotate!(v, fpr_position...,
                   text(L"FPR = %$(fpr_str)",
                        :right,
                        :top,
-                       6,
+                       8,
                        rotation = 0),
                   annotation_clip = false)
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-bif-gen-wrong-merged-height-probs-vln.tex")
@@ -2136,13 +2136,13 @@ function main_cli()::Cint
         Plots.plot!(v, size = (190, 220), xtickfontsize = 11)
         Plots.ylims!(v, (-0.04, 1.0))
         Plots.ylabel!(v, "Posterior probability")
-        fpr_position = relative_xy(v, 1.02, 0.96)
+        fpr_position = relative_xy(v, 1.025, 0.94)
         fpr_str = @sprintf("%.2g", vo_bif_gen_fpr)
         annotate!(v, fpr_position...,
                   text(L"FPR = %$(fpr_str)",
                        :right,
                        :top,
-                       6,
+                       8,
                        rotation = 0),
                   annotation_clip = false)
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-bif-gen-var-only-wrong-merged-height-probs-vln.tex")
@@ -2175,6 +2175,265 @@ function main_cli()::Cint
         plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-bif-gen-var-only-wrong-merged-height-probs-age-separate.tex")
         Plots.savefig(g, plot_path)
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+
+
+        gen_gen_wrong_merged_heights = get_rows(merged_target_height_results,
+                false,
+                true,
+                true,
+                false,
+                locus_size)
+        gen_gen_wrong_merged_false_pos = gen_gen_wrong_merged_heights[gen_gen_wrong_merged_heights[:merged_height_prob] .> 0.5, :]
+        gen_gen_fpr = nrow(gen_gen_wrong_merged_false_pos) / nrow(gen_gen_wrong_merged_heights)
+        gen_gen_wrong_merged_non_zero = gen_gen_wrong_merged_heights[gen_gen_wrong_merged_heights[:merged_height_prob] .> 0.0, :]
+        vo_gen_gen_wrong_merged_heights = get_rows(merged_target_height_results,
+                false,
+                true,
+                true,
+                true,
+                locus_size)
+        vo_gen_gen_wrong_merged_false_pos = vo_gen_gen_wrong_merged_heights[vo_gen_gen_wrong_merged_heights[:merged_height_prob] .> 0.5, :]
+        vo_gen_gen_fpr = nrow(vo_gen_gen_wrong_merged_false_pos) / nrow(vo_gen_gen_wrong_merged_heights)
+        vo_gen_gen_wrong_merged_non_zero = vo_gen_gen_wrong_merged_heights[vo_gen_gen_wrong_merged_heights[:merged_height_prob] .> 0.0, :]
+
+        #####################################################################
+        # Tests for association between height and wrong post prob
+        ols = lm(@formula(merged_height_prob ~ height_midpoint), gen_gen_wrong_merged_non_zero)
+        ct = CorrelationTest(gen_gen_wrong_merged_non_zero[:merged_height_prob], gen_gen_wrong_merged_non_zero[:height_midpoint])
+
+        vo_ols = lm(@formula(merged_height_prob ~ height_midpoint), vo_gen_gen_wrong_merged_non_zero)
+        vo_ct = CorrelationTest(vo_gen_gen_wrong_merged_non_zero[:merged_height_prob], vo_gen_gen_wrong_merged_non_zero[:height_midpoint])
+
+        test_out_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-wrong-merged-height-probs-tests.txt")
+        open(test_out_path, "w") do ostream
+            write(ostream, "\nRegression results for all sites and locus size $(locus_size):\n")
+            write(ostream, "$(ols)\n")
+            write(ostream, "\nCorrelation results for all sites and locus size $(locus_size):\n")
+            write(ostream, "$(ct)\n")
+            write(ostream, "\nRegression results for only variable sites and locus size $(locus_size):\n")
+            write(ostream, "$(vo_ols)\n")
+            write(ostream, "\nCorrelation results for only variable sites and locus size $(locus_size):\n")
+            write(ostream, "$(vo_ct)\n")
+        end
+        #####################################################################
+
+        p = @df gen_gen_wrong_merged_heights Plots.scatter(
+                :height_diff,
+                :merged_height_prob,
+                marker_z = :height_midpoint,
+                legend = false,
+                colorbar = true,
+                colorbar_title = "Age",
+                markersize = 3.0)
+        Plots.plot!(p, size = (280, 220))
+        Plots.ylims!(p, (-0.04, 1.0))
+        Plots.ylabel!(p, "Posterior probability")
+        Plots.xlabel!(p, "Time difference")
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-wrong-merged-height-probs-scatter.tex")
+        Plots.savefig(p, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        p_no_age = @df gen_gen_wrong_merged_heights Plots.scatter(
+                :height_diff,
+                :merged_height_prob,
+                legend = false,
+                markercolor = gen_col,
+                markeralpha = gen_marker_alpha,
+                markersize = 3.0)
+        Plots.plot!(p_no_age, size = (280, 220))
+        Plots.ylims!(p_no_age, (-0.04, 1.0))
+        Plots.ylabel!(p_no_age, "Posterior probability")
+        Plots.xlabel!(p_no_age, "Time difference")
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-wrong-merged-height-probs-no-age-scatter.tex")
+        Plots.savefig(p_no_age, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        p_age = @df gen_gen_wrong_merged_heights Plots.scatter(
+                :height_midpoint,
+                :merged_height_prob,
+                legend = false,
+                markercolor = gen_col,
+                markeralpha = gen_marker_alpha,
+                markersize = 3.0)
+        Plots.plot!(p_age, size = (280, 220))
+        Plots.ylims!(p_age, (-0.04, 1.0))
+        Plots.ylabel!(p_age, "Posterior probability")
+        Plots.xlabel!(p_age, "Midpoint divergence time")
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-wrong-merged-height-probs-age-scatter.tex")
+        Plots.savefig(p_age, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        v = get_violin_plot(
+                gen_gen_wrong_merged_heights.merged_height_prob,
+                xlabels = [ "Merged times" ],
+                fill_colors = gen_col,
+                marker_colors = gen_col,
+                fill_alphas = gen_fill_alpha,
+                marker_alphas = gen_marker_alpha,
+                include_dots = true,
+                marker_sizes = 2.0)
+        Plots.plot!(v, size = (190, 220), xtickfontsize = 11)
+        Plots.ylims!(v, (-0.04, 1.0))
+        Plots.ylabel!(v, "Posterior probability")
+        fpr_position = relative_xy(v, 1.025, 0.94)
+        fpr_str = @sprintf("%.2g", gen_gen_fpr)
+        annotate!(v, fpr_position...,
+                  text(L"FPR = %$(fpr_str)",
+                       :right,
+                       :top,
+                       8,
+                       rotation = 0),
+                  annotation_clip = false)
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-wrong-merged-height-probs-vln.tex")
+        Plots.savefig(v, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        g = Plots.plot(
+                v,
+                p,
+                layout = (1, 2),
+                legend = false,
+                colorbar = true,
+                size = (500, 220),
+                link = :y, # :none, :x, :y, :both, :all
+        )
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-wrong-merged-height-probs.tex")
+        Plots.savefig(g, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        g = Plots.plot(
+                v,
+                p_no_age,
+                p_age,
+                layout = (1, 3),
+                legend = false,
+                colorbar = true,
+                size = (700, 220),
+                link = :y, # :none, :x, :y, :both, :all
+        )
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-wrong-merged-height-probs-age-separate.tex")
+        Plots.savefig(g, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+       
+        annotate!(v,        relative_xy(v,        -0.28, 1.11)..., text("A", :left, :bottom, 12))
+        annotate!(p_no_age, relative_xy(p_no_age, -0.28, 1.11)..., text("B", :left, :bottom, 12))
+        annotate!(p_age,    relative_xy(p_age,    -0.28, 1.11)..., text("C", :left, :bottom, 12))
+
+        g = Plots.plot(
+                v,
+                p_no_age,
+                p_age,
+                layout = (1, 3),
+                legend = false,
+                colorbar = true,
+                size = (700, 220),
+                link = :y, # :none, :x, :y, :both, :all
+        )
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-wrong-merged-height-probs-age-separate-with-labels.tex")
+        Plots.savefig(g, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+
+        p = @df vo_gen_gen_wrong_merged_heights Plots.scatter(
+                :height_diff,
+                :merged_height_prob,
+                marker_z = :height_midpoint,
+                legend = false,
+                colorbar = true,
+                colorbar_title = "Age",
+                markersize = 3.0)
+        Plots.plot!(p, size = (280, 220))
+        Plots.ylims!(p, (-0.04, 1.0))
+        Plots.ylabel!(p, "Posterior probability")
+        Plots.xlabel!(p, "Time difference")
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-var-only-wrong-merged-height-probs-scatter.tex")
+        Plots.savefig(p, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        p_no_age = @df vo_gen_gen_wrong_merged_heights Plots.scatter(
+                :height_diff,
+                :merged_height_prob,
+                legend = false,
+                markercolor = vo_gen_col,
+                markeralpha = vo_gen_marker_alpha,
+                markersize = 3.0)
+        Plots.plot!(p_no_age, size = (280, 220))
+        Plots.ylims!(p_no_age, (-0.04, 1.0))
+        Plots.ylabel!(p_no_age, "Posterior probability")
+        Plots.xlabel!(p_no_age, "Time difference")
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-var-only-wrong-merged-height-probs-no-age-scatter.tex")
+        Plots.savefig(p_no_age, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        p_age = @df vo_gen_gen_wrong_merged_heights Plots.scatter(
+                :height_midpoint,
+                :merged_height_prob,
+                legend = false,
+                markercolor = vo_gen_col,
+                markeralpha = vo_gen_marker_alpha,
+                markersize = 3.0)
+        Plots.plot!(p_age, size = (280, 220))
+        Plots.ylims!(p_age, (-0.04, 1.0))
+        Plots.ylabel!(p_age, "Posterior probability")
+        Plots.xlabel!(p_age, "Midpoint divergence time")
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-var-only-wrong-merged-height-probs-age-scatter.tex")
+        Plots.savefig(p_age, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        v = get_violin_plot(
+                vo_gen_gen_wrong_merged_heights.merged_height_prob,
+                xlabels = [ "Merged times" ],
+                fill_colors = vo_gen_col,
+                marker_colors = vo_gen_col,
+                fill_alphas = vo_gen_fill_alpha,
+                marker_alphas = vo_gen_marker_alpha,
+                include_dots = true,
+                marker_sizes = 2.0)
+        Plots.plot!(v, size = (190, 220), xtickfontsize = 11)
+        Plots.ylims!(v, (-0.04, 1.0))
+        Plots.ylabel!(v, "Posterior probability")
+        fpr_position = relative_xy(v, 1.025, 0.94)
+        fpr_str = @sprintf("%.2g", vo_gen_gen_fpr)
+        annotate!(v, fpr_position...,
+                  text(L"FPR = %$(fpr_str)",
+                       :right,
+                       :top,
+                       8,
+                       rotation = 0),
+                  annotation_clip = false)
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-var-only-wrong-merged-height-probs-vln.tex")
+        Plots.savefig(v, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        g = Plots.plot(
+                v,
+                p,
+                layout = (1, 2),
+                legend = false,
+                colorbar = true,
+                size = (500, 220),
+                link = :y, # :none, :x, :y, :both, :all
+        )
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-var-only-wrong-merged-height-probs.tex")
+        Plots.savefig(g, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+        g = Plots.plot(
+                v,
+                p_no_age,
+                p_age,
+                layout = (1, 3),
+                legend = false,
+                colorbar = true,
+                size = (700, 220),
+                link = :y, # :none, :x, :y, :both, :all
+        )
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-gen-gen-var-only-wrong-merged-height-probs-age-separate.tex")
+        Plots.savefig(g, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
 
 
         true_shared_divs = get_rows(shared_div_results,
