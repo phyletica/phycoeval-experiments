@@ -1,0 +1,35 @@
+\documentclass[border=10pt,varwidth=30cm]{standalone}
+\usepackage{graphicx,capt-of}
+\usepackage{rotating}
+\usepackage{multirow}
+\usepackage[cm]{sfmath}
+\usepackage[T1]{fontenc}
+\usepackage{xspace}
+
+\renewcommand{\familydefault}{\sfdefault}
+
+\newcounter{subfloat}
+\renewcommand{\thesubfloat}{\Alph{subfloat}}
+\newcommand{\insertlabel}{%
+    \huge%
+    \stepcounter{subfloat}%
+    \textbf{\thesubfloat}}
+
+\newcommand{\genmodel}{\ensuremath{M_{G}}\xspace}
+\newcommand{\bimodel}{\ensuremath{M_{IB}}\xspace}
+
+\begin{document}
+
+\begin{figure}
+    \setlength\arrayrulewidth{2pt}
+    \centering
+    \begin{tabular}{@{}c@{}}
+        {\large Probability of incorrectly merged divergence times} \\[0.5ex]
+        {\large True model = \genmodel} \\[0.5ex]
+        \includegraphics[width=0.45\textwidth]{../unfixed-gen-gen-wrong-merged-height-probs-age-separate-with-labels-sans-cropped.pdf} \\
+        {\large True model = \bimodel} \\[0.5ex]
+        \includegraphics[width=0.45\textwidth]{../unfixed-bif-gen-wrong-merged-height-probs-age-separate-with-alt-labels-sans-cropped.pdf} \\
+    \end{tabular}
+\end{figure}
+
+\end{document}

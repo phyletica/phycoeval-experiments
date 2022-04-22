@@ -2078,6 +2078,72 @@ function main_cli()::Cint
         process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
 
 
+        p_no_age = @df bif_gen_wrong_merged_heights Plots.scatter(
+                :height_diff,
+                :merged_height_prob,
+                legend = false,
+                markercolor = gen_col,
+                markeralpha = gen_marker_alpha,
+                markersize = 3.0)
+        Plots.plot!(p_no_age, size = (280, 220))
+        Plots.ylims!(p_no_age, (-0.04, 1.0))
+        Plots.ylabel!(p_no_age, "Posterior probability")
+        Plots.xlabel!(p_no_age, "Time difference")
+
+        p_age = @df bif_gen_wrong_merged_heights Plots.scatter(
+                :height_midpoint,
+                :merged_height_prob,
+                legend = false,
+                markercolor = gen_col,
+                markeralpha = gen_marker_alpha,
+                markersize = 3.0)
+        Plots.plot!(p_age, size = (280, 220))
+        Plots.ylims!(p_age, (-0.04, 1.0))
+        Plots.ylabel!(p_age, "Posterior probability")
+        Plots.xlabel!(p_age, "Midpoint divergence time")
+
+        v = get_violin_plot(
+                bif_gen_wrong_merged_heights.merged_height_prob,
+                xlabels = [ "Merged times" ],
+                fill_colors = gen_col,
+                marker_colors = gen_col,
+                fill_alphas = gen_fill_alpha,
+                marker_alphas = gen_marker_alpha,
+                include_dots = true,
+                marker_sizes = 2.0)
+        Plots.plot!(v, size = (190, 220), xtickfontsize = 11)
+        Plots.ylims!(v, (-0.04, 1.0))
+        Plots.ylabel!(v, "Posterior probability")
+        fpr_position = relative_xy(v, 1.025, 0.94)
+        fpr_str = @sprintf("%.2g", bif_gen_fpr)
+        annotate!(v, fpr_position...,
+                  text(L"FPR = %$(fpr_str)",
+                       :right,
+                       :top,
+                       8,
+                       rotation = 0),
+                  annotation_clip = false)
+       
+        annotate!(v,        relative_xy(v,        -0.28, 1.11)..., text("D", :left, :bottom, 12))
+        annotate!(p_no_age, relative_xy(p_no_age, -0.28, 1.11)..., text("E", :left, :bottom, 12))
+        annotate!(p_age,    relative_xy(p_age,    -0.28, 1.11)..., text("F", :left, :bottom, 12))
+
+        g = Plots.plot(
+                v,
+                p_no_age,
+                p_age,
+                layout = (1, 3),
+                legend = false,
+                colorbar = true,
+                size = (700, 220),
+                link = :y, # :none, :x, :y, :both, :all
+        )
+        plot_path = joinpath(ProjectUtil.RESULTS_DIR, "$(locus_prefix)unfixed-bif-gen-wrong-merged-height-probs-age-separate-with-alt-labels.tex")
+        Plots.savefig(g, plot_path)
+        process_tex(plot_path, target = axis_pattern, replacement = axis_replace)
+
+
+
         p = @df vo_bif_gen_wrong_merged_heights Plots.scatter(
                 :height_diff,
                 :merged_height_prob,
