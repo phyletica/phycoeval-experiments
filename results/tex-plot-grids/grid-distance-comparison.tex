@@ -11,7 +11,7 @@
 \newcounter{subfloat}
 \renewcommand{\thesubfloat}{\Alph{subfloat}}
 \newcommand{\insertlabel}{%
-    \huge%
+    \Huge%
     \stepcounter{subfloat}%
     \textbf{\thesubfloat}}
 
@@ -24,10 +24,6 @@
     \setlength\arrayrulewidth{2pt}
     \centering
     \begin{tabular}{@{}ccc@{}}
-        \hline
-        \multicolumn{3}{|c|}{\includegraphics[width=0.7\textwidth]{../legend-horizontal-all-sites-sans-cropped.pdf}} \\
-        \hline
-        & & \\
         {\Huge True model = \genmodel}
         &
         &
@@ -35,17 +31,27 @@
         \\[2ex]
         \cline{1-1}\cline{3-3}
         & & \\
+        \multicolumn{1}{l}{\insertlabel}
+        &
+        & 
+        \multicolumn{1}{l}{\insertlabel} \\
         \includegraphics[width=0.35\textwidth]{../fixed-gen-all-sites-euclidean-distances-narrow-sans-cropped.pdf}
         &
         &
         \includegraphics[width=0.35\textwidth]{../fixed-bif-all-sites-euclidean-distances-narrow-sans-cropped.pdf}
-        \\
+        \\[2ex]
+        \multicolumn{1}{l}{\insertlabel}
+        &
+        & 
+        \multicolumn{1}{l}{\insertlabel} \\
         \includegraphics[width=0.35\textwidth]{../unfixed-gen-gen-true-shared-height-probs-all-sites-wider-y-sans-cropped.pdf}
         &
         &
-        % \includegraphics[width=0.35\textwidth]{../unfixed-bif-gen-wrong-merged-height-probs-vln-sans-cropped.pdf}
-        \includegraphics[width=0.35\textwidth]{../unfixed-gen-gen-wrong-merged-height-probs-vln-sans-cropped.pdf}
-        \\
+        \includegraphics[width=0.33\textwidth]{../unfixed-bif-gen-wrong-merged-height-probs-vln-sans-cropped.pdf}
+        \\[1ex]
+        \hline
+        \multicolumn{3}{|c|}{\includegraphics[width=0.7\textwidth]{../legend-horizontal-all-sites-sans-cropped.pdf}} \\
+        \hline
     \end{tabular}
 \end{figure}
 
